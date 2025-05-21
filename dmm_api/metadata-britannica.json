@@ -1,0 +1,248 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "citeAs": "https://github.com/TU-plogan/kp-editions",
+  "dct:conformsTo": "http://mlcommons.org/croissant/1.0",
+  "description": "Full-text versions in plain-text and TEI-XML formats of the 7th edition of the Encyclopedia Britannica (1830-1842), 21 volumes.",
+  "distribution": [
+    {
+      "@id": "github-repository",
+      "@type": "cr:FileObject",
+      "contentUrl": "https://github.com/TU-plogan/kp-editions",
+      "description": "Repository hosting the content of the Encyclopedia Britannica 7th edition, organized by version, volume, and page.",
+      "encodingFormat": "git+https",
+      "name": "github-repository",
+      "sha256": "main"
+    },
+    {
+      "@id": "xml-files",
+      "@type": "cr:FileSet",
+      "containedIn": {
+        "@id": "github-repository"
+      },
+      "description": "TEI-XML files hosted in the GitHub repository.",
+      "encodingFormat": "application/xml",
+      "includes": "eb07/TXT_V*/**/*-eb07*-*.xml",
+      "name": "xml-files"
+    }
+  ],
+  "license": "cc-by-4.0",
+  "name": "Encyclopedia Britannica 7th Edition",
+  "recordSet": [
+    {
+      "@id": "entities",
+      "description": "Each record corresponds to an Entity in the Encyclopedia Britannica 7th edition, extracted from the text files across different versions.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "The version of the dataset, extracted from the directory name (e.g., 1 for TXT_V1, 2 for TXT_V2).",
+          "name": "version",
+          "source": {
+            "distribution": "xml_files",
+            "extract": {
+              "fileProperty": "fullpath"
+            },
+            "transform": {
+              "regex": ".*/TXT_V(\\d+)/.*"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "The name of the text file.",
+          "name": "file_name",
+          "source": {
+            "distribution": "text_files",
+            "extract": {
+              "fileProperty": "name"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "The volume number extracted from the file name.",
+          "name": "volume",
+          "source": {
+            "distribution": "xml_files",
+            "extract": {
+              "fileProperty": "filename"
+            },
+            "transform": {
+              "regex": ".*-eb07\\d{2}-(\\d{4})\\d{2}-\\d{4}-v1\\.xml"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "The page number extracted from the file name.",
+          "name": "page",
+          "source": {
+            "distribution": "xml_files",
+            "extract": {
+              "fileProperty": "page"
+            },
+            "transform": {
+              "regex": ".*-eb07\\d{2}-\\d{4}(\\d{2})-\\d{4}-v1\\.txt"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "The content of the xml file.",
+          "name": "content",
+          "source": {
+            "distribution": "xml_files",
+            "extract": {
+              "fileProperty": "content"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "Unique identifier for each entity, derived from the file name.",
+          "name": "entity_id",
+          "source": {
+            "distribution": "xml_files",
+            "extract": {
+              "fileProperty": "name",
+              "regex": ".*/(.*)-eb07.*"
+            }
+          }
+        },
+        {
+          "@id": "entity",
+          "@type": "cr:Field",
+          "dataType": "cr:RecordSet",
+          "description": "The encyclopedia entry.",
+          "name": "entity",
+          "subField": [
+            {
+              "@id": "entity/entity_id",
+              "@type": "cr:Field",
+              "dataType": "sc:Text",
+              "description": "Unique identifier for each entity.",
+              "name": "entity_id",
+              "source": {
+                "extract": {
+                  "xpath": "//label/@xml:id"
+                },
+                "fileSet": {
+                  "@id": "xml_files"
+                }
+              }
+            },
+            {
+              "@type": "cr:Field",
+              "dataType": "sc:Text",
+              "description": "The label of the entity.",
+              "name": "label",
+              "source": {
+                "extract": {
+                  "xpath": "//label"
+                },
+                "fileSet": {
+                  "@id": "xml_files"
+                }
+              }
+            },
+            {
+              "@type": "cr:Field",
+              "dataType": "sc:Text",
+              "description": "The text content of each entry.",
+              "name": "entity_text",
+              "source": {
+                "extract": {
+                  "xpath": "//text/body/div"
+                },
+                "fileObject": {
+                  "@id": "xml_files"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "Keywords associated with the entry, extracted from the TEI-XML profile description.",
+          "name": "keywords",
+          "source": {
+            "extract": {
+              "xpath": "//profileDesc/textClass/keywords/term"
+            },
+            "fileObject": {
+              "@id": "xml_files"
+            }
+          }
+        },
+        {
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "Reference to the page in the original document, including facsimile link.",
+          "name": "reference",
+          "source": {
+            "extract": {
+              "xpath": "//pb/@xml:id"
+            },
+            "fileObject": {
+              "@id": "xml_files"
+            }
+          }
+        }
+      ],
+      "name": "Entities"
+    }
+  ],
+  "url": "https://github.com/TU-plogan/kp-editions",
+  "version": "1.0"
+}
