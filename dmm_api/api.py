@@ -16,7 +16,7 @@ class JsonReceiver(Resource):
             print("Json received")
             json_received_flag = True
             stored_json = data
-            return {"message": "Json received"}, 200
+            return {"message": "JSON received"}, 200
         else:
             return {"message": "No JSON received"}, 400
 
