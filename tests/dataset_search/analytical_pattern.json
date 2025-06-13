@@ -1,0 +1,108 @@
+{
+  "edges": [
+    {
+      "from": "AP_2",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "OP_2"
+    },
+    {
+      "from": "USER_1",
+      "labels": [
+        "intervene"
+      ],
+      "to": "OP_2"
+    },
+    {
+      "from": "AP_2",
+      "labels": [
+        "executed_by"
+      ],
+      "to": "USER_1"
+    },
+    {
+      "from": "TASK_2",
+      "labels": [
+        "is_achieved"
+      ],
+      "to": "AP_2"
+    },
+    {
+      "from": "USER_1",
+      "labels": [
+        "request"
+      ],
+      "to": "TASK_2"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "AP_2",
+      "labels": [
+        "AnalyticalPattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to search datasets",
+        "EndTime": "10:10:15",
+        "ExecutedBy": "user1",
+        "ExecutionTime": "00:00:15",
+        "Identifier": 2,
+        "Name": "Dataset Search",
+        "Process": "semi-automatically",
+        "PublishedDate": "2025-06-30",
+        "StartTime": "10:10:00"
+      }
+    },
+    {
+      "id": "OP_2",
+      "labels": [
+        "Operator"
+      ],
+      "properties": {
+        "Description": "Search datasets by keyword matching in metadata",
+        "EndTime": "10:10:15",
+        "ExecutedBy": "user1",
+        "ExecutionTime": "00:00:15",
+        "Identifier": 2,
+        "Name": "searchDataset",
+        "Parameters": [
+          "keyword=meteo"
+        ],
+        "PublishedDate": "2025-06-30",
+        "Software": "DataCatalog Search Engine",
+        "StartTime": "10:10:00",
+        "Step": 1,
+        "Type": "Search"
+      }
+    },
+    {
+      "id": "USER_1",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Identifier": 1,
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "id": "TASK_2",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "APNum": 2,
+        "Description": "Task to search datasets by keyword",
+        "Identifier": "2",
+        "Name": "Dataset Search Task"
+      }
+    }
+  ]
+}
