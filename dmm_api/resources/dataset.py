@@ -1,8 +1,8 @@
-import os
-import duckdb
 from flask_restful import Resource
 from flask import request
-import pandas as pd
+
+from .query_executor import execute_query
+from .data_resolver import resolve_dataset
 
 datasets = {}
 profiles = {}
@@ -35,7 +35,7 @@ class DatasetResource(Resource):
                 "count": len(datasets),
                 "dataset_ids": list(datasets.keys()),
                 # To view the JSON dataset too, not only the ID
-                # "datasets": datasets
+                "datasets": datasets,
             }, 200
 
 
@@ -91,7 +91,7 @@ class DatasetProfile(Resource):
                 "count": len(profiles),
                 "profile_ids": list(profiles.keys()),
                 # To view the JSON profile too, not only the ID
-                # "datasets": profiles
+                "datasets": profiles,
             }, 200
 
 
@@ -103,45 +103,44 @@ class DatasetQuery(Resource):
             return {"message": "No query data received"}, 400
 
         try:
-            # Extract the Dataset ID + SQL query
+            # Extract information from the JSON data
+            dataset_id = None
+            query = None
+            software = None
+
             for node in data["nodes"]:
-                if node["labels"] == ["Dataset"]:
+                if node["labels"] == ["CSV"]:
                     dataset_id = node["id"]
-                elif node["labels"] == ["Software"]:
-                    query = node["properties"]["query"][0]
+                    dataset_name = node["properties"]["Name"]
+                elif node["labels"] == ["Operator"]:
+                    query = node["properties"]["Parameters"]["query"]
+                    software = node["properties"]["Software"]["name"]
+            if not dataset_id:
+                return {"message": "Dataset node not found in the request"}, 400
+            if not query:
+                return {"message": "Query not found in the request"}, 400
+            if not software:
+                return {
+                    "message": "Database software must be specified in the Operator node"
+                }, 400
 
-            # Later, this will be Neo4j
-            csv_path = f"dmm_api/data/{dataset_id}.csv"
-            if not os.path.exists(csv_path):
-                return {"message": f"Dataset not found: {csv_path}"}, 404
+            csv_path = resolve_dataset(dataset_id)
 
-            # Query with DuckDB
-            conn = duckdb.connect()
-            conn.execute(
-                f"CREATE OR REPLACE TABLE dataset AS SELECT * FROM read_csv_auto('{csv_path}')"
-            )
-            result = conn.execute(query).fetchall()
-
-            # Convert to a CSV
-            data = pd.DataFrame(result).to_csv(index=False)
+            query_result = execute_query(dataset_name, query, software, csv_path)
 
             query_results[dataset_id] = {
                 "dataset_id": dataset_id,
-                "query": query,
-                "result": data,
+                "query": query_result["query"],
+                "result": query_result["result"],
             }
 
             return {
                 "message": "Query executed successfully",
                 "dataset_id": dataset_id,
-                "query": query,
-                "result": data,
+                "query": query_result["query"],
+                "result": query_result["result"],
             }, 200
 
-        except StopIteration:
-            return {
-                "message": "Analytical Pattern is missing required nodes (Dataset/Software)"
-            }, 400
         except Exception as e:
             return {"message": "Failed to execute query", "error": str(e)}, 500
 
@@ -166,6 +165,7 @@ class DatasetQuery(Resource):
             }
 
 
+# 1) Dataset
 # POST (send) a dataset
 # curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset
 
@@ -174,17 +174,16 @@ class DatasetQuery(Resource):
 
 # GET a specific dataset
 # curl http://127.0.0.1:5000/api/v1/dataset/ds_1
-# or
 # curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/ds_1
 
-
+# 2) Dataset Profile
 # POST a profile
 # curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset/profile
 
 # GET all dataset profiles
 # curl http://127.0.0.1:5000/api/v1/dataset/profile
 
-
+# 3) Query Analytical Pattern
 # POST an Analytical Pattern
 # curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
 
