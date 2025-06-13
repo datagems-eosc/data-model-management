@@ -10,7 +10,7 @@ Data Model & Management Platform API (WP5)
 
 ### 1. Set Up Your Development Environment
 
-#### Linux
+#### Linux/macOS
 
 If you do not have `uv` installed, you can install it with
 
@@ -36,7 +36,7 @@ If you do not have `uv` installed, you can install it with
 ```bash
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
-Or following the instructions [here](docs.astral.sh/uv/getting-started/installation/#installation-methods).
+Or following the instructions at docs.astral.sh/uv/getting-started/installation/#installation-methods.
 
 After executing the command above, you will need to restart your shell.
 
@@ -70,5 +70,68 @@ git push origin main
 ```
 
 ---
+
+
+
+## Running the API
+
+To run the Flask API, navigate to the dmm_api folder and execute the api.py file in your terminal:
+
+```bash
+cd dmm_api
+python api.py
+```
+
+## API Usage Examples
+
+Once the API is running, you can interact with it using the following commands:
+
+### 1) Dataset Operations
+
+#### POST a dataset
+```bash
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset
+```
+
+#### GET all datasets
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset
+```
+
+#### GET a specific dataset
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset/ds_1
+# or
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/ds_1
+```
+
+### 2) Dataset Profile Operations
+
+#### POST a profile
+```bash
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset/profile
+```
+
+#### GET all dataset profiles
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset/profile
+```
+
+### 3) Query Analytical Pattern
+
+#### POST an Analytical Pattern
+```bash
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
+```
+
+#### GET query results for a specific dataset
+```bash
+curl -X GET http://127.0.0.1:5000/api/v1/dataset/query/ds_1
+```
+---
+
+## Docker
+
+To be implemented
 
 The uv-python cookiecutter was originally created in [https://github.com/fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
