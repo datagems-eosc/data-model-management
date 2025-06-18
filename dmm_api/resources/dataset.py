@@ -1,7 +1,7 @@
 from flask_restful import Resource
 from flask import request
 
-from .query_executor import execute_query
+from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 
 datasets = {}
@@ -16,6 +16,7 @@ class DatasetResource(Resource):
         if not data:
             return {"message": "No data received"}, 400
 
+        # To be changed the way the id is generated
         dataset_id = f"ds_{len(datasets) + 1}"
         datasets[dataset_id] = data
 
@@ -105,40 +106,46 @@ class DatasetQuery(Resource):
         try:
             # Extract information from the JSON data
             dataset_id = None
+            dataset_name = None
+            database_name = None
             query = None
             software = None
 
             for node in data["nodes"]:
+                if node["labels"] == ["CSVDB"]:
+                    database_name = node["properties"]["Name"]
                 if node["labels"] == ["CSV"]:
                     dataset_id = node["id"]
                     dataset_name = node["properties"]["Name"]
-                elif node["labels"] == ["Operator"]:
-                    query = node["properties"]["Parameters"]["query"]
+                elif node["labels"] == ["SQL_Operator"]:
+                    query = node["properties"]["Query"]
                     software = node["properties"]["Software"]["name"]
             if not dataset_id:
-                return {"message": "Dataset node not found in the request"}, 400
+                return {"message": "Dataset node not found."}, 400
             if not query:
-                return {"message": "Query not found in the request"}, 400
+                return {"message": "Query not found."}, 400
             if not software:
                 return {
-                    "message": "Database software must be specified in the Operator node"
+                    "message": "Database software must be specified in the Operator node."
                 }, 400
 
-            csv_path = resolve_dataset(dataset_id)
+            path = resolve_dataset(dataset_id, database_name)
 
-            query_result = execute_query(dataset_name, query, software, csv_path)
+            # execute_query gets called based on the dataset type
+            query_result = execute_query_csv(dataset_name, query, software, path)
 
             query_results[dataset_id] = {
                 "dataset_id": dataset_id,
                 "query": query_result["query"],
                 "result": query_result["result"],
+                "json_metadata_path": query_result["json_metadata_path"],
             }
 
             return {
-                "message": "Query executed successfully",
+                "message": "The query results have been saved in CSV format. The CSV path is available in the JSON metadata file.",
                 "dataset_id": dataset_id,
                 "query": query_result["query"],
-                "result": query_result["result"],
+                "json_metadata_path": query_result["json_metadata_path"],
             }, 200
 
         except Exception as e:
@@ -163,29 +170,3 @@ class DatasetQuery(Resource):
                 "available_dataset_ids": list(query_results.keys()),
                 "message": "Access specific dataset at /dataset/query/<dataset_id>",
             }
-
-
-# 1) Dataset
-# POST (send) a dataset
-# curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset
-
-# GET all datasets
-# curl http://127.0.0.1:5000/api/v1/dataset
-
-# GET a specific dataset
-# curl http://127.0.0.1:5000/api/v1/dataset/ds_1
-# curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/ds_1
-
-# 2) Dataset Profile
-# POST a profile
-# curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset/profile
-
-# GET all dataset profiles
-# curl http://127.0.0.1:5000/api/v1/dataset/profile
-
-# 3) Query Analytical Pattern
-# POST an Analytical Pattern
-# curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
-
-# GET query results for a specific dataset
-# curl -X GET http://127.0.0.1:5000/api/v1/dataset/query/ds_1

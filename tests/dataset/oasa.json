@@ -1,0 +1,82 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@id": "8743b52063cd84097a65d1633f5c74f5",
+  "@type": "sc:Dataset",
+  "citeAs": "",
+  "country": "GR",
+  "dataPath": "/data/datagems/datasets/oasa_ridership",
+  "datePublished": "2020-08-08",
+  "dct:conformsTo": "http://mlcommons.org/croissant/1.0",
+  "description": "Passengers per hour for Urban Rail Transport S.A stations and bus lines.",
+  "distribution": [
+    {
+      "@id": "csv-file",
+      "@type": "cr:FileObject",
+      "contentSize": "2.29 MB",
+      "contentUrl": "https://data.gov.gr/datasets/oasa_ridership",
+      "description": "CSV file containing hourly ridership data for OASA (Athens public transport).",
+      "encodingFormat": "text/csv",
+      "name": "oasa_daily_ridership.csv",
+      "sha256": ""
+    }
+  ],
+  "fieldOfScience": [
+    "OTHER SOCIAL SCIENCES"
+  ],
+  "inLanguage": [
+    "el"
+  ],
+  "keywords": [
+    "transportation",
+    "greece"
+  ],
+  "license": "cc-by-4.0",
+  "name": "oasa_daily_ridership",
+  "recordSet": [],
+  "url": "https://data.gov.gr/datasets/oasa_ridership",
+  "version": "1.0"
+}

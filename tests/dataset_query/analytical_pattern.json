@@ -34,19 +34,35 @@
         "request"
       ],
       "to": "TASK_1"
+    },
+    {
+      "end": "CSV1",
+      "labels": [
+        "contain"
+      ],
+      "properties": {},
+      "start": "CSVDB1"
+    },
+    {
+      "end": "CSV2",
+      "labels": [
+        "contain"
+      ],
+      "properties": {},
+      "start": "CSVDB1"
     }
   ],
   "nodes": [
     {
       "id": "AP_1",
       "labels": [
-        "AnalyticalPattern"
+        "Analytical_Pattern"
       ],
       "properties": {
-        "Description": "Analytical Pattern to Query a dataset using SQL",
-        "EndTime": "10:05:25",
+        "Description": "Anaytical Pattern to Query a dataset using SQL",
+        "EndTime": "",
         "ExecutedBy": "user1",
-        "ExecutionTime": "00:05:25",
+        "ExecutionTime": "",
         "Identifier": "1",
         "Name": "SQL Dataset Query",
         "Process": "Query",
@@ -57,19 +73,20 @@
     {
       "id": "OP_1",
       "labels": [
-        "Operator"
+        "SQL_Operator"
       ],
       "properties": {
         "Description": "Query executed via DuckDB",
-        "EndTime": "10:05:25",
+        "EndTime": "",
         "ExecutedBy": "user1",
-        "ExecutionTime": "00:05:25",
+        "ExecutionTime": "",
         "Identifier": "1",
         "Name": "DuckDB Query Operator",
         "Parameters": {
-          "query": "SELECT * FROM oasa_daily_ridership WHERE boarding_disembark_desc = 'Boarding' LIMIT 10"
+          "queryType": "SELECT"
         },
         "PublishedDate": "2025-06-30",
+        "Query": "SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding'",
         "Software": {
           "description": "In-process OLAP database for analytical queries",
           "name": "DuckDB",
@@ -78,6 +95,36 @@
         "StartTime": "10:00:00",
         "Step": 1,
         "Type": "SQL Query"
+      }
+    },
+    {
+      "id": "CSVDB1",
+      "labels": [
+        "CSVDB"
+      ],
+      "properties": {
+        "Description": "Dataset of passengers per hour for Urban Rail Transport S.A stations and bus lines",
+        "Format": [
+          ""
+        ],
+        "Identifier": "1",
+        "Keywords": [
+          "transportation",
+          "public transport",
+          "Athens",
+          "metro",
+          "bus"
+        ],
+        "License": "cc-by-4.0",
+        "License Holder": "DataGems",
+        "Name": "oasa",
+        "Num Items": 1,
+        "Published  Date": "2020-08-08",
+        "Publisher": "GOVGR",
+        "Purpose  ": "Descriptions of transportation data in Athens",
+        "Size": 2407043,
+        "URL": "https://data.gov.gr/datasets/oasa_ridership",
+        "Version": "1.0"
       }
     },
     {
@@ -102,11 +149,11 @@
         "Columns Num": 11,
         "Description": "Passengers per hour for Urban Rail Transport S.A stations and bus lines",
         "Identifier": "1",
-        "Name": "oasa_daily_ridership",
+        "Name": "oasa_daily_ridership_1",
         "PublishedDate": "2020-08-08",
         "Rows Num": 20358,
         "Size": 2407043,
-        "URL": "https://data.gov.gr/datasets/oasa_ridership"
+        "URL": "https://data.gov.gr/datasets/oasa_ridership/oasa_daily_ridership_1.csv"
       }
     },
     {

@@ -90,7 +90,7 @@ Once the API is running, you can interact with it using the following commands:
 
 #### POST a dataset
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset
 ```
 
 #### GET all datasets
@@ -101,7 +101,9 @@ curl http://127.0.0.1:5000/api/v1/dataset
 #### GET a specific dataset
 ```bash
 curl http://127.0.0.1:5000/api/v1/dataset/ds_1
-# or
+```
+or
+```bash
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/ds_1
 ```
 
@@ -124,14 +126,11 @@ curl http://127.0.0.1:5000/api/v1/dataset/profile
 curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
 ```
 
-#### GET query results for a specific dataset
-```bash
-curl -X GET http://127.0.0.1:5000/api/v1/dataset/query/ds_1
-```
 ---
 
 ## Docker
 
 To be implemented
 
+---
 The uv-python cookiecutter was originally created in [https://github.com/fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).

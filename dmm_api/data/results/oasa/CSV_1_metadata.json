@@ -1,0 +1,5 @@
+{
+  "csv_results_path": "dmm_api/data/results/oasa/CSV_1_query_results.csv",
+  "dataset_name": "oasa_daily_ridership_1",
+  "executed_query": "SELECT * FROM read_csv_auto('dmm_api/data/oasa/CSV_1.csv') WHERE boarding_disembark_desc = 'Boarding'"
+}
