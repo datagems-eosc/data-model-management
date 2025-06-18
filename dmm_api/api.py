@@ -3,7 +3,7 @@ from flask_restful import Api
 from resources.dataset import (
     DatasetResource,
     DatasetRegister,
-    DatasetProfile,
+    DatasetUpdate,
     DatasetQuery,
 )
 
@@ -13,9 +13,7 @@ api = Api(app, prefix="/api/v1")
 # Endpoints
 api.add_resource(DatasetResource, "/dataset", "/dataset/<string:dataset_id>")
 api.add_resource(DatasetRegister, "/dataset/register")
-api.add_resource(
-    DatasetProfile, "/dataset/profile", "/dataset/profile/<string:profile_id>"
-)
+api.add_resource(DatasetUpdate, "/dataset/update")
 api.add_resource(DatasetQuery, "/dataset/query", "/dataset/query/<string:dataset_id>")
 
 
@@ -33,19 +31,24 @@ def api_home():
             "message": "API V1 is running",
             "endpoints": {
                 "dataset": {
-                    "description": "Dataset operations",
+                    "description": "Get all datasets or specific dataset by ID",
+                    "methods": ["GET"],
                     "url": "/api/v1/dataset",
+                    "example_url": "/api/v1/dataset/<dataset_id>",
                 },
                 "dataset_register": {
-                    "description": "Dataset registering operations",
+                    "description": "Register a new dataset (POST)",
+                    "methods": ["POST"],
                     "url": "/api/v1/dataset/register",
                 },
-                "dataset_profile": {
-                    "description": "Dataset profile operations",
-                    "url": "/api/v1/dataset/profile",
+                "dataset_update": {
+                    "description": "Update an existing dataset after profiling (PUT)",
+                    "methods": ["PUT"],
+                    "url": "/api/v1/dataset/update",
                 },
                 "dataset_query": {
-                    "description": "Query the dataset",
+                    "description": "Execute queries on datasets",
+                    "methods": ["GET", "POST"],
                     "url": "/api/v1/dataset/query",
                 },
             },

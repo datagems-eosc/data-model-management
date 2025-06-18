@@ -90,7 +90,7 @@ Once the API is running, you can interact with it using the following commands:
 
 #### POST a dataset
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset/register
 ```
 
 #### GET all datasets
@@ -109,14 +109,9 @@ curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dat
 
 ### 2) Dataset Profile Operations
 
-#### POST a profile
+#### PUT a profile
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/metadata-britannica.json http://127.0.0.1:5000/api/v1/dataset/profile
-```
-
-#### GET all dataset profiles
-```bash
-curl http://127.0.0.1:5000/api/v1/dataset/profile
+curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/api/v1/dataset/update
 ```
 
 ### 3) Query Analytical Pattern

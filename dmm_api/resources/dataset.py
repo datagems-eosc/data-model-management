@@ -5,97 +5,80 @@ from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 
 datasets = {}
-profiles = {}
 query_results = {}
 
 
+# This class return the dataset (either before or after the profiling) through a GET request
 class DatasetResource(Resource):
-    def post(self):
-        """Receive and store a dataset"""
-        data = request.get_json()
-        if not data:
-            return {"message": "No data received"}, 400
-
-        # To be changed the way the id is generated
-        dataset_id = f"ds_{len(datasets) + 1}"
-        datasets[dataset_id] = data
-
-        return {"message": "Dataset stored successfully", "dataset_id": dataset_id}, 200
-
     def get(self, dataset_id=None):
         """Return dataset with a specific ID or all datasets"""
         if dataset_id:
             if dataset_id not in datasets:
                 return {"message": "Dataset not found"}, 404
 
-            return {"dataset_id": dataset_id, "data": datasets[dataset_id]}, 200
+            return {"data": datasets[dataset_id]}, 200
 
         else:
             """Return all the datasets"""
             return {
-                "count": len(datasets),
                 "dataset_ids": list(datasets.keys()),
                 # To view the JSON dataset too, not only the ID
                 "datasets": datasets,
             }, 200
 
 
+# This class receives a dataset (before profiling) through a POST request
 class DatasetRegister(Resource):
     def post(self):
-        """Sending dataset to external API"""
-        if not datasets:
-            return {"message": "No datasets available to register"}, 400
+        """Receive and store a dataset"""
         try:
-            dataset_id = next(iter(datasets.items()))
+            data = request.get_json()
+            if not data:
+                return {"message": "No data received"}, 400
+            if "@id" not in data:
+                return {"message": "Missing required field '@id'"}, 400
 
-            response = {
-                "status": "success",
-                "api_response": {
-                    "registered_id": f"ext_{dataset_id}",
-                    "service": "dataset-registry",
-                },
-            }
+            dataset_id = data["@id"]
+            if dataset_id in datasets:
+                return {"message": "Dataset with this ID already exists"}, 409
+            datasets[dataset_id] = data
 
             return {
-                "message": "Dataset sent to external API",
+                "message": "Dataset stored successfully",
                 "dataset_id": dataset_id,
-                "external_response": response,
+                "data": data,
             }, 200
-
         except Exception as e:
-            return {"message": "Failed to register dataset", "error": str(e)}, 500
+            return {"message": "Failed to store dataset", "error": str(e)}, 500
 
 
-class DatasetProfile(Resource):
-    def post(self):
-        """Receive and store a profile for a dataset"""
-        data = request.get_json()
-        if not data:
-            return {"message": "No profile data received"}, 400
+# This class updates the dataset of DatasetRegister with the new dataset after profiling through a PUT request
+class DatasetUpdate(Resource):
+    def put(self):
+        """Update an existing dataset with new data after profiling"""
+        try:
+            data = request.get_json()
+            if not data:
+                return {"message": "No data received"}, 400
+            if "@id" not in data:
+                return {"message": "Missing required field '@id'"}, 400
 
-        profile_id = f"pf_{len(profiles) + 1}"
-        profiles[profile_id] = data
+            dataset_id = data["@id"]
+            if dataset_id in datasets:
+                datasets[dataset_id] = data
+            else:
+                return {"message": "Dataset with this ID does not exist"}, 404
 
-        return {"message": "Profile stored successfully", "profile_id": profile_id}, 200
-
-    def get(self, profile_id=None):
-        """Return a profile with a specific ID or all profiles"""
-        if profile_id:
-            if profile_id not in profiles:
-                return {"message": "Profile not found"}, 404
-
-            return {"profile_id": profile_id, "data": profiles[profile_id]}, 200
-
-        else:
-            """Return all the dataset profiles"""
             return {
-                "count": len(profiles),
-                "profile_ids": list(profiles.keys()),
-                # To view the JSON profile too, not only the ID
-                "datasets": profiles,
+                "message": "Dataset updated successfully",
+                "dataset_id": dataset_id,
+                "data": data,
             }, 200
+        except Exception as e:
+            return {"message": "Failed to update dataset", "error": str(e)}, 500
 
 
+# This class executes a SQL query on a dataset through a POST request
 class DatasetQuery(Resource):
     def post(self):
         """Execute a SQL query on a dataset based on an Analytical Pattern."""

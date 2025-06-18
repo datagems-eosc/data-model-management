@@ -1,0 +1,513 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "24cc747a3546f6a0a12c95e80abd1531b665372785f9fad5fe8d61bdda6ab46b",
+  "@type": "sc:Dataset",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "GR",
+  "datePublished": "24-05-2025",
+  "description": "The dataset includes daily meteorological parameters for the period 2010-2023 from 54 meteorological stations. You can see visualizations of the data from these stations on the page https://www.meteo.gr/climate/ The parameters are temperature (\u00b0C), relative humidity (%), pressure (hPa), rainfall (mm), wind speed (km/h), dominant wind direction, and wind gust (km/h). The measurements come from the network of automatic meteorological stations of the National Observatory of Athens/meteo.gr. Information about the stations and any malfunctions are provided at http://meteosearch.meteo.gr/ on the respective station's page. Reference to the network is made through the scientific publication https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/gdj3.44",
+  "distribution": [
+    {
+      "@id": "33a53426d8e387a2caecf249774a6c6f53daebbc7cdb511b30c9c7d46cd179f4",
+      "@type": "cr:FileObject",
+      "contentSize": "22582102 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "cities.csv",
+      "sha256": "968ef7acc8f9cb5072e6c2c640d4c9afac2b48ebc0ce79f54604f8e141ec5725"
+    },
+    {
+      "@id": "83f96dd6229baced71c4717476ae73f6f0e064a20aca3912fa5fce5584446685",
+      "@type": "cr:FileObject",
+      "contentSize": "1917 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "stations_list.csv",
+      "sha256": "c17e38ae3449ace3631ce7f2d8b7c7f59a6815979745f124f6d0138fa2f7094e"
+    }
+  ],
+  "fieldOfScience": [
+    "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+  ],
+  "headline": "Daily meteorological parameters for the period 2010-2023 from 54 meteorological stations in Greece.",
+  "inLanguage": [
+    "el"
+  ],
+  "keywords": [
+    "weather",
+    "greece",
+    "weather prediction"
+  ],
+  "license": "CC-BY-SA 4.0 - Creative Commons Attribution-ShareAlike 4.0 International",
+  "name": "Meteorological data time series (Daily - UTC)",
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "description": "",
+      "field": [
+        {
+          "@id": "cities/Date",
+          "@type": "cr:Field",
+          "dataType": "sc:Date",
+          "description": "",
+          "key": {
+            "@id": "cities/Date"
+          },
+          "name": "cities/Date",
+          "sample": [
+            "2014-07-27",
+            "2021-09-09",
+            "2020-01-31"
+          ],
+          "source": {
+            "column": "Date",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/T_mean",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/T_mean"
+          },
+          "name": "cities/T_mean",
+          "sample": [
+            "19.3",
+            "25.0",
+            "26.6"
+          ],
+          "source": {
+            "column": "T_mean",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/T_max",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/T_max"
+          },
+          "name": "cities/T_max",
+          "sample": [
+            "12.1",
+            "28.9",
+            "17.7"
+          ],
+          "source": {
+            "column": "T_max",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/T_min",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/T_min"
+          },
+          "name": "cities/T_min",
+          "sample": [
+            "8.4",
+            "6.6",
+            "8.1"
+          ],
+          "source": {
+            "column": "T_min",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/RH_mean",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/RH_mean"
+          },
+          "name": "cities/RH_mean",
+          "sample": [
+            "79.3",
+            "80.1",
+            "---"
+          ],
+          "source": {
+            "column": "RH_mean",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/RH_max",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "key": {
+            "@id": "cities/RH_max"
+          },
+          "name": "cities/RH_max",
+          "sample": [
+            "84",
+            "72",
+            "96"
+          ],
+          "source": {
+            "column": "RH_max",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/RH_min",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "key": {
+            "@id": "cities/RH_min"
+          },
+          "name": "cities/RH_min",
+          "sample": [
+            "53",
+            "61",
+            "27"
+          ],
+          "source": {
+            "column": "RH_min",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/Prs_mean",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/Prs_mean"
+          },
+          "name": "cities/Prs_mean",
+          "sample": [
+            "1014.6",
+            "1019.1",
+            "1011.3"
+          ],
+          "source": {
+            "column": "Prs_mean",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/Prs_max",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/Prs_max"
+          },
+          "name": "cities/Prs_max",
+          "sample": [
+            "1013.7",
+            "1017.6",
+            "1005.7"
+          ],
+          "source": {
+            "column": "Prs_max",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/Prs_min",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/Prs_min"
+          },
+          "name": "cities/Prs_min",
+          "sample": [
+            "1012.8",
+            "1012.9",
+            "1015.9"
+          ],
+          "source": {
+            "column": "Prs_min",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/Ac_R",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/Ac_R"
+          },
+          "name": "cities/Ac_R",
+          "sample": [
+            "0.0",
+            "0.0",
+            "0.0"
+          ],
+          "source": {
+            "column": "Ac_R",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/WS_mean",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/WS_mean"
+          },
+          "name": "cities/WS_mean",
+          "sample": [
+            "6.7",
+            "2.1",
+            "10.1"
+          ],
+          "source": {
+            "column": "WS_mean",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/DWD",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "key": {
+            "@id": "cities/DWD"
+          },
+          "name": "cities/DWD",
+          "sample": [
+            "WNW",
+            "E",
+            "NW"
+          ],
+          "source": {
+            "column": "DWD",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/WG",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "cities/WG"
+          },
+          "name": "cities/WG",
+          "sample": [
+            "30.6",
+            "24.1",
+            "25.7"
+          ],
+          "source": {
+            "column": "WG",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        },
+        {
+          "@id": "cities/city",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "key": {
+            "@id": "cities/city"
+          },
+          "name": "cities/city",
+          "sample": [
+            "samos",
+            "pirgos",
+            "sparti"
+          ],
+          "source": {
+            "column": "city",
+            "fileObject": {
+              "@id": "cities.csv"
+            }
+          }
+        }
+      ],
+      "key": {
+        "@id": "cities"
+      },
+      "name": "cities"
+    },
+    {
+      "@type": "cr:RecordSet",
+      "description": "",
+      "field": [
+        {
+          "@id": "stations_list/stations",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "key": {
+            "@id": "stations_list/stations"
+          },
+          "name": "stations_list/stations",
+          "sample": [
+            "larissa",
+            "nemea",
+            "athens"
+          ],
+          "source": {
+            "column": "stations",
+            "fileObject": {
+              "@id": "stations_list.csv"
+            }
+          }
+        },
+        {
+          "@id": "stations_list/latitude",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "stations_list/latitude"
+          },
+          "name": "stations_list/latitude",
+          "sample": [
+            41.485584,
+            40.794947,
+            38.259031
+          ],
+          "source": {
+            "column": "latitude",
+            "fileObject": {
+              "@id": "stations_list.csv"
+            }
+          }
+        },
+        {
+          "@id": "stations_list/longitude",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "stations_list/longitude"
+          },
+          "name": "stations_list/longitude",
+          "sample": [
+            21.445693,
+            20.279882,
+            28.086268
+          ],
+          "source": {
+            "column": "longitude",
+            "fileObject": {
+              "@id": "stations_list.csv"
+            }
+          }
+        },
+        {
+          "@id": "stations_list/altitude",
+          "@type": "cr:Field",
+          "dataType": "sc:Float",
+          "description": "",
+          "key": {
+            "@id": "stations_list/altitude"
+          },
+          "name": "stations_list/altitude",
+          "sample": [
+            637,
+            52,
+            20
+          ],
+          "source": {
+            "column": "altitude",
+            "fileObject": {
+              "@id": "stations_list.csv"
+            }
+          }
+        }
+      ],
+      "key": {
+        "@id": "stations_list"
+      },
+      "name": "stations_list"
+    }
+  ],
+  "url": "https://data.climpact.gr/dataset/497dc26d-45e0-4ad5-b8f3-5f8890f65129",
+  "version": ""
+}
