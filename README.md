@@ -6,9 +6,9 @@
 Data Model & Management Platform API (WP5)
 
 
-## Getting started with your project
+## 1. Getting started with your project
 
-### 1. Set Up Your Development Environment
+### Set Up Your Development Environment
 
 #### Linux/macOS
 
@@ -51,29 +51,11 @@ uv run pre-commit install
 
 This will also generate your `uv.lock` file
 
-### 2. Run the pre-commit hooks
-
-Initially, the CI/CD pipeline might be failing due to formatting issues. To resolve those run:
-
-```bash
-uv run pre-commit run -a
-```
-
-### 3. Commit the changes
-
-Lastly, commit the changes made by the two steps above to your repository.
-
-```bash
-git add .
-git commit -m 'Fix formatting issues'
-git push origin main
-```
-
 ---
 
 
 
-## Running the API
+## 2. Running the API
 
 To run the Flask API, navigate to the dmm_api folder and execute the api.py file in your terminal:
 
