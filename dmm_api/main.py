@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 
-from resources.dataset import router as dataset_router
+from dmm_api.resources.dataset import router as dataset_router
 
 app = FastAPI(
     title="Dataset API",
