@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/github/license/datagems-eosc/dmm-api)](https://img.shields.io/github/license/datagems-eosc/dmm-api)
 
 Data Model & Management Platform API (WP5)
-
+v0.01
 
 ## 1. Getting started with your project
 
