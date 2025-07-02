@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "24cc747a3546f6a0a12c95e80abd1531b665372785f9fad5fe8d61bdda6ab46b",
+  "@id": "319b0f35826b50cd7d9b3ec454fc62525dd5b3539b57448178202a3e49206062",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",
@@ -53,7 +53,7 @@
   "description": "The dataset includes daily meteorological parameters for the period 2010-2023 from 54 meteorological stations. You can see visualizations of the data from these stations on the page https://www.meteo.gr/climate/ The parameters are temperature (\u00b0C), relative humidity (%), pressure (hPa), rainfall (mm), wind speed (km/h), dominant wind direction, and wind gust (km/h). The measurements come from the network of automatic meteorological stations of the National Observatory of Athens/meteo.gr. Information about the stations and any malfunctions are provided at http://meteosearch.meteo.gr/ on the respective station's page. Reference to the network is made through the scientific publication https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/gdj3.44",
   "distribution": [
     {
-      "@id": "33a53426d8e387a2caecf249774a6c6f53daebbc7cdb511b30c9c7d46cd179f4",
+      "@id": "68ce5763ba5410c3ad1898ae0c433bcaf9962d9075f04397eb314f09a6d464b4",
       "@type": "cr:FileObject",
       "contentSize": "22582102 B",
       "contentUrl": "",
@@ -63,7 +63,7 @@
       "sha256": "968ef7acc8f9cb5072e6c2c640d4c9afac2b48ebc0ce79f54604f8e141ec5725"
     },
     {
-      "@id": "83f96dd6229baced71c4717476ae73f6f0e064a20aca3912fa5fce5584446685",
+      "@id": "21a2c57d0dd6862fa90168a7055f62824bf8d92f93cafc9314533f613798c6ff",
       "@type": "cr:FileObject",
       "contentSize": "1917 B",
       "contentUrl": "",
@@ -102,9 +102,9 @@
           },
           "name": "cities/Date",
           "sample": [
-            "2014-07-27",
-            "2021-09-09",
-            "2020-01-31"
+            "2017-03-21",
+            "2017-02-13",
+            "2012-03-28"
           ],
           "source": {
             "column": "Date",
@@ -123,9 +123,9 @@
           },
           "name": "cities/T_mean",
           "sample": [
-            "19.3",
-            "25.0",
-            "26.6"
+            "24.2",
+            "5.0",
+            "20.7"
           ],
           "source": {
             "column": "T_mean",
@@ -144,9 +144,9 @@
           },
           "name": "cities/T_max",
           "sample": [
-            "12.1",
-            "28.9",
-            "17.7"
+            "29.1",
+            "19.1",
+            "32.8"
           ],
           "source": {
             "column": "T_max",
@@ -165,9 +165,9 @@
           },
           "name": "cities/T_min",
           "sample": [
-            "8.4",
-            "6.6",
-            "8.1"
+            "14.7",
+            "19.8",
+            "11.3"
           ],
           "source": {
             "column": "T_min",
@@ -186,9 +186,9 @@
           },
           "name": "cities/RH_mean",
           "sample": [
-            "79.3",
-            "80.1",
-            "---"
+            "69.7",
+            "63.6",
+            "62.8"
           ],
           "source": {
             "column": "RH_mean",
@@ -207,9 +207,9 @@
           },
           "name": "cities/RH_max",
           "sample": [
-            "84",
-            "72",
-            "96"
+            "94",
+            "95",
+            "71"
           ],
           "source": {
             "column": "RH_max",
@@ -228,9 +228,9 @@
           },
           "name": "cities/RH_min",
           "sample": [
-            "53",
-            "61",
-            "27"
+            "65",
+            "40",
+            "60"
           ],
           "source": {
             "column": "RH_min",
@@ -249,9 +249,9 @@
           },
           "name": "cities/Prs_mean",
           "sample": [
-            "1014.6",
-            "1019.1",
-            "1011.3"
+            "1016.7",
+            "1010.7",
+            "1006.4"
           ],
           "source": {
             "column": "Prs_mean",
@@ -270,9 +270,9 @@
           },
           "name": "cities/Prs_max",
           "sample": [
-            "1013.7",
-            "1017.6",
-            "1005.7"
+            "1018.8",
+            "1018.0",
+            "1010.6"
           ],
           "source": {
             "column": "Prs_max",
@@ -291,9 +291,9 @@
           },
           "name": "cities/Prs_min",
           "sample": [
-            "1012.8",
-            "1012.9",
-            "1015.9"
+            "1018.6",
+            "1010.9",
+            "1018.7"
           ],
           "source": {
             "column": "Prs_min",
@@ -333,9 +333,9 @@
           },
           "name": "cities/WS_mean",
           "sample": [
-            "6.7",
-            "2.1",
-            "10.1"
+            "3.2",
+            "1.6",
+            "1.6"
           ],
           "source": {
             "column": "WS_mean",
@@ -354,9 +354,9 @@
           },
           "name": "cities/DWD",
           "sample": [
-            "WNW",
-            "E",
-            "NW"
+            "---",
+            "SSW",
+            "ESE"
           ],
           "source": {
             "column": "DWD",
@@ -375,9 +375,9 @@
           },
           "name": "cities/WG",
           "sample": [
-            "30.6",
-            "24.1",
-            "25.7"
+            "27.4",
+            "27.4",
+            "45.1"
           ],
           "source": {
             "column": "WG",
@@ -396,9 +396,9 @@
           },
           "name": "cities/city",
           "sample": [
-            "samos",
-            "pirgos",
-            "sparti"
+            "nevrokopi",
+            "xanthi",
+            "veroia"
           ],
           "source": {
             "column": "city",
@@ -427,9 +427,9 @@
           },
           "name": "stations_list/stations",
           "sample": [
-            "larissa",
-            "nemea",
-            "athens"
+            "nevrokopi",
+            "notiopedio",
+            "xanthi"
           ],
           "source": {
             "column": "stations",
@@ -448,9 +448,9 @@
           },
           "name": "stations_list/latitude",
           "sample": [
-            41.485584,
-            40.794947,
-            38.259031
+            37.037222,
+            37.795072,
+            37.509202
           ],
           "source": {
             "column": "latitude",
@@ -469,9 +469,9 @@
           },
           "name": "stations_list/longitude",
           "sample": [
-            21.445693,
-            20.279882,
-            28.086268
+            22.122221,
+            25.85828,
+            22.437633
           ],
           "source": {
             "column": "longitude",
@@ -490,9 +490,9 @@
           },
           "name": "stations_list/altitude",
           "sample": [
-            637,
-            52,
-            20
+            163.0,
+            133.0,
+            30.0
           ],
           "source": {
             "column": "altitude",
