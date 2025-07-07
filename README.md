@@ -29,6 +29,10 @@ make install
 
 This will also generate your `uv.lock` file
 
+
+
+
+
 ### Windows
 
 If you do not have `uv` installed, you can install it with

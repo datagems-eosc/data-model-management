@@ -12,6 +12,7 @@ app = FastAPI(
     redoc_url="/api/v1/redoc",
 )
 
+# TODO: check if we need to change the API path prefix
 app.include_router(dataset_router, prefix="/api/v1")
 
 
