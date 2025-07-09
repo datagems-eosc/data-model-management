@@ -1,0 +1,192 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "420f3e5af5487380630892b0d7b903883248de0225e2e0dda9c0e7d689be9add",
+  "@type": "sc:Dataset",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "PT",
+  "datePublished": "24-05-2025",
+  "description": "A collection of datasets of multiple types for testing reasons",
+  "distribution": [
+    {
+      "@id": "26ca6cb3-6d97-45b7-8983-d84afcef2901",
+      "@type": "cr:FileSet",
+      "contentSize": "148957 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "application/pdf",
+      "includes": "pdfs/*",
+      "name": "pdfs"
+    },
+    {
+      "@id": "c3e63882-d400-468c-bb17-590dd044ca5e",
+      "@type": "cr:FileSet",
+      "contentSize": "77587 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "image/jpg",
+      "includes": "imgs/*",
+      "name": "imgs"
+    },
+    {
+      "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460",
+      "@type": "cr:FileObject",
+      "contentSize": "2407043 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "csv_1.csv",
+      "sha256": "01c3cf8783e21961ed68d5170f1806035759066a3abdacc4e2c4942ababab055"
+    },
+    {
+      "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc",
+      "@type": "cr:FileObject",
+      "contentSize": "206 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/sql",
+      "name": "mathe.sql",
+      "sha256": "58312224507884348228d09db8af35d3d40fc088e189841a7d66b07d4901729e"
+    },
+    {
+      "@id": "5cdf8af3-8c84-4e45-abff-9cdfeae1f99d",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "89af6edf-800a-4cd0-9526-1389559679e6",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "ee1f6f46-d107-41dd-b8f7-10b90fffbe23",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "267d2575-4bc9-4f40-8c87-d45aa6b84f55",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "7da90e12-7c54-48cb-9a91-eacfdd8c7e40",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "46e46218-c24c-486e-8e7e-d077d496ab01",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "b35d70a5-2fe1-4c44-be34-73876063f1b1",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "00d3c300-9375-432b-8184-857a985417c9",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "0cd7f99e-8b98-43a2-a1ac-77478aa39cc4",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    },
+    {
+      "@id": "c6731c6f-876f-4288-97b9-11069272b664",
+      "@type": "cr:FileObject",
+      "containedIn": {
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
+      },
+      "encodingFormat": "text/sql"
+    }
+  ],
+  "fieldOfScience": [
+    "CIVIL ENGINEERING"
+  ],
+  "headline": "A collection of datasets of multiple types for testing reasons.",
+  "inLanguage": [
+    "el"
+  ],
+  "keywords": [
+    "dev",
+    "keyword"
+  ],
+  "license": "???",
+  "name": "Dev Data",
+  "recordSet": [],
+  "url": "",
+  "version": ""
+}

@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "3e988730fb118c5c87a019df1c06d8b12c259f47a8a50ffe59b8e578dceeb349",
+  "@id": "420f3e5af5487380630892b0d7b903883248de0225e2e0dda9c0e7d689be9add",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",
@@ -53,7 +53,7 @@
   "description": "A collection of datasets of multiple types for testing reasons",
   "distribution": [
     {
-      "@id": "69bcf06ec53a82964486191b86c803ee54bbbaa5f1f08750d58cd17f4543309a",
+      "@id": "26ca6cb3-6d97-45b7-8983-d84afcef2901",
       "@type": "cr:FileSet",
       "contentSize": "148957 B",
       "contentUrl": "",
@@ -63,7 +63,7 @@
       "name": "pdfs"
     },
     {
-      "@id": "a3be58f9740aa85311ca14e490f53486f44c5dcaf4f23b0355257c8068ea01ac",
+      "@id": "c3e63882-d400-468c-bb17-590dd044ca5e",
       "@type": "cr:FileSet",
       "contentSize": "77587 B",
       "contentUrl": "",
@@ -73,7 +73,7 @@
       "name": "imgs"
     },
     {
-      "@id": "16e57dd5204265a009e0fd7cc18873dfcb07cd8af7a108eb185b0cea5bf2e061",
+      "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460",
       "@type": "cr:FileObject",
       "contentSize": "2407043 B",
       "contentUrl": "",
@@ -83,7 +83,7 @@
       "sha256": "01c3cf8783e21961ed68d5170f1806035759066a3abdacc4e2c4942ababab055"
     },
     {
-      "@id": "0e7bfd09115dcb1dc0cca83ba4f08a2b3a3c7d240e89de706bb555c77b1a60b8",
+      "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc",
       "@type": "cr:FileObject",
       "contentSize": "206 B",
       "contentUrl": "",
@@ -93,82 +93,82 @@
       "sha256": "58312224507884348228d09db8af35d3d40fc088e189841a7d66b07d4901729e"
     },
     {
-      "@id": "mathe.sql/material_top_sub",
+      "@id": "5cdf8af3-8c84-4e45-abff-9cdfeae1f99d",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_sna_questions",
+      "@id": "89af6edf-800a-4cd0-9526-1389559679e6",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/material_type",
+      "@id": "ee1f6f46-d107-41dd-b8f7-10b90fffbe23",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/assessment",
+      "@id": "267d2575-4bc9-4f40-8c87-d45aa6b84f55",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_material_keyword",
+      "@id": "7da90e12-7c54-48cb-9a91-eacfdd8c7e40",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_topic",
+      "@id": "46e46218-c24c-486e-8e7e-d077d496ab01",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_keywords",
+      "@id": "b35d70a5-2fe1-4c44-be34-73876063f1b1",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_subtopic",
+      "@id": "00d3c300-9375-432b-8184-857a985417c9",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_materials",
+      "@id": "0cd7f99e-8b98-43a2-a1ac-77478aa39cc4",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     },
     {
-      "@id": "mathe.sql/platform_keyword_snaquestion",
+      "@id": "c6731c6f-876f-4288-97b9-11069272b664",
       "@type": "cr:FileObject",
       "containedIn": {
-        "@id": "mathe.sql"
+        "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
       },
       "encodingFormat": "text/sql"
     }
@@ -188,80 +188,75 @@
   "name": "Dev Data",
   "recordSet": [
     {
+      "@id": "1e51d845-8799-47ad-9f3b-95ea62790581",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "csv_1/dv_agency",
+          "@id": "d5749f35-7d1d-407b-8046-578e111ab9f3",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "csv_1/dv_agency"
-          },
           "name": "csv_1/dv_agency",
           "sample": [
-            2,
+            3,
             2,
             2
           ],
           "source": {
-            "column": "dv_agency",
+            "extract": {
+              "column": "dv_agency"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/dv_platenum_station",
+          "@id": "d25b2618-c225-491d-8078-73362399a2aa",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "csv_1/dv_platenum_station"
-          },
           "name": "csv_1/dv_platenum_station",
           "sample": [
-            "\u0395\u039b\u039b\u0397\u039d\u0399\u039a\u039f",
-            "\u039a\u0391\u039b\u039b\u0399\u0398\u0395\u0391",
-            "\u0397\u03a1\u0391\u039a\u039b\u0395\u0399\u039f"
+            "\u03a3\u0395\u03a0O\u039b\u0399\u0391",
+            "\u0395\u039b\u0391\u0399\u03a9\u039d\u0391\u03a3",
+            "\u03a7\u039f\u039b\u0391\u03a1\u0393O\u03a3"
           ],
           "source": {
-            "column": "dv_platenum_station",
+            "extract": {
+              "column": "dv_platenum_station"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/dv_validations",
+          "@id": "54585236-9df3-4684-bf0e-19725de41ac6",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "csv_1/dv_validations"
-          },
           "name": "csv_1/dv_validations",
           "sample": [
-            171,
-            678,
-            448
+            11,
+            180,
+            3
           ],
           "source": {
-            "column": "dv_validations",
+            "extract": {
+              "column": "dv_validations"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/dv_route",
+          "@id": "2227569e-3e09-4dc3-8021-b5d9c2f2abd4",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "csv_1/dv_route"
-          },
           "name": "csv_1/dv_route",
           "sample": [
             null,
@@ -269,20 +264,19 @@
             null
           ],
           "source": {
-            "column": "dv_route",
+            "extract": {
+              "column": "dv_route"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/routes_per_hour",
+          "@id": "1b9553f2-06e2-4d4c-b067-acc78d33e4fd",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "csv_1/routes_per_hour"
-          },
           "name": "csv_1/routes_per_hour",
           "sample": [
             null,
@@ -290,156 +284,147 @@
             null
           ],
           "source": {
-            "column": "routes_per_hour",
+            "extract": {
+              "column": "routes_per_hour"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/load_dt",
+          "@id": "02665a51-7475-4bc8-8499-36d57ab94ba2",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "csv_1/load_dt"
-          },
           "name": "csv_1/load_dt",
           "sample": [
-            "2025-05-24T07:55:55",
+            "2025-05-25T07:52:01",
             "2025-05-27T07:56:05",
-            "2025-05-27T07:58:26"
+            "2025-05-27T07:56:05"
           ],
           "source": {
-            "column": "load_dt",
+            "extract": {
+              "column": "load_dt"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/date_hour",
+          "@id": "df13f702-ba23-48f2-87f1-a7c2cb1115be",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "csv_1/date_hour"
-          },
           "name": "csv_1/date_hour",
           "sample": [
-            "2025-05-25T22:00:00",
-            "2025-05-25T22:00:00",
-            "2025-05-26T21:00:00"
+            "2025-05-24T09:00:00",
+            "2025-05-26T11:00:00",
+            "2025-05-25T18:00:00"
           ],
           "source": {
-            "column": "date_hour",
+            "extract": {
+              "column": "date_hour"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/etl_extraction_dt",
+          "@id": "7f74d567-63f9-4def-9ed0-670277c3d69b",
           "@type": "cr:Field",
           "dataType": "sc:Date",
           "description": "",
-          "key": {
-            "@id": "csv_1/etl_extraction_dt"
-          },
           "name": "csv_1/etl_extraction_dt",
           "sample": [
-            "2025-05-24",
-            "2025-05-27",
+            "2025-05-26",
+            "2025-05-26",
             "2025-05-26"
           ],
           "source": {
-            "column": "etl_extraction_dt",
+            "extract": {
+              "column": "etl_extraction_dt"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/etl_load_dt",
+          "@id": "a01bb55d-0398-4ec1-a4cf-69c282089fee",
           "@type": "cr:Field",
           "dataType": "sc:Date",
           "description": "",
-          "key": {
-            "@id": "csv_1/etl_load_dt"
-          },
           "name": "csv_1/etl_load_dt",
           "sample": [
-            "2025-05-28",
-            "2025-05-26",
-            "2025-05-25"
+            "2025-05-27",
+            "2025-05-25",
+            "2025-05-26"
           ],
           "source": {
-            "column": "etl_load_dt",
+            "extract": {
+              "column": "etl_load_dt"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/dv_agency_desc",
+          "@id": "8008539e-3138-45ea-8905-60c26dccfba3",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "csv_1/dv_agency_desc"
-          },
           "name": "csv_1/dv_agency_desc",
           "sample": [
-            "\u0393\u03a1\u0391\u039c\u039c\u0389 1",
             "\u0393\u03a1\u0391\u039c\u039c\u0389 3",
-            "\u0393\u03a1\u0391\u039c\u039c\u0389 1"
+            "\u0393\u03a1\u0391\u039c\u039c\u0389 1",
+            "\u0393\u03a1\u0391\u039c\u039c\u0389 2"
           ],
           "source": {
-            "column": "dv_agency_desc",
+            "extract": {
+              "column": "dv_agency_desc"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         },
         {
-          "@id": "csv_1/boarding_disembark_desc",
+          "@id": "9cf03a71-3cc0-461e-bacc-b65c61f45c06",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "csv_1/boarding_disembark_desc"
-          },
           "name": "csv_1/boarding_disembark_desc",
           "sample": [
+            "Boarding",
             "Disembark",
-            "Disembark",
-            "Boarding"
+            "Disembark"
           ],
           "source": {
-            "column": "boarding_disembark_desc",
+            "extract": {
+              "column": "boarding_disembark_desc"
+            },
             "fileObject": {
-              "@id": "csv_1.csv"
+              "@id": "c04a33ac-b4b4-4a1b-80af-c0dcf722c460"
             }
           }
         }
       ],
-      "key": {
-        "@id": "csv_1"
-      },
       "name": "csv_1"
     },
     {
+      "@id": "6e91a8b9-67b2-4ad9-a05b-ca7a9798edb5",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "material_top_sub/id",
+          "@id": "3b507ec2-a42a-450d-95fd-099a6d919608",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "material_top_sub/id"
-          },
           "name": "material_top_sub/id",
           "sample": [
             "68",
@@ -447,20 +432,19 @@
             "80"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "material_top_sub/platform_material_id",
+          "@id": "2e946e49-c675-45ee-83ec-60cb7b0e9608",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "material_top_sub/platform_material_id"
-          },
           "name": "material_top_sub/platform_material_id",
           "sample": [
             "742",
@@ -468,20 +452,19 @@
             "55"
           ],
           "source": {
-            "column": "platform_material_id",
+            "extract": {
+              "column": "platform_material_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "material_top_sub/platform_topic_id",
+          "@id": "550b193d-9e3b-4dec-999e-dd00eb7135b3",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "material_top_sub/platform_topic_id"
-          },
           "name": "material_top_sub/platform_topic_id",
           "sample": [
             "25",
@@ -489,20 +472,19 @@
             "14"
           ],
           "source": {
-            "column": "platform_topic_id",
+            "extract": {
+              "column": "platform_topic_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "material_top_sub/platform_subtopic_id",
+          "@id": "a9e59a71-aa90-4299-b6ff-9f05b4adb6bb",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "material_top_sub/platform_subtopic_id"
-          },
           "name": "material_top_sub/platform_subtopic_id",
           "sample": [
             "42",
@@ -510,50 +492,46 @@
             "41"
           ],
           "source": {
-            "column": "platform_subtopic_id",
+            "extract": {
+              "column": "platform_subtopic_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/material_top_sub"
-      },
       "name": "mathe.sql/material_top_sub"
     },
     {
+      "@id": "fe7b5a41-2708-4de2-bec7-2b5ced31fe3f",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_sna_questions/validate",
+          "@id": "bc25c632-8683-40b8-bab4-c965bb6cf651",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/validate"
-          },
           "name": "platform_sna_questions/validate",
           "sample": [
             "1",
             "2"
           ],
           "source": {
-            "column": "validate",
+            "extract": {
+              "column": "validate"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/id",
+          "@id": "41efebac-6120-48e8-9eb0-0c7f550feee6",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/id"
-          },
           "name": "platform_sna_questions/id",
           "sample": [
             "79",
@@ -561,20 +539,19 @@
             "81"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/id_lect",
+          "@id": "f7fbb8e6-6cbd-4bbb-ada6-f6c5fe858d2a",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/id_lect"
-          },
           "name": "platform_sna_questions/id_lect",
           "sample": [
             "42",
@@ -582,20 +559,19 @@
             "41"
           ],
           "source": {
-            "column": "id_lect",
+            "extract": {
+              "column": "id_lect"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/topic",
+          "@id": "25ae804e-5bc5-40da-a7c0-6fbb3beb726f",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/topic"
-          },
           "name": "platform_sna_questions/topic",
           "sample": [
             "25",
@@ -603,20 +579,19 @@
             "14"
           ],
           "source": {
-            "column": "topic",
+            "extract": {
+              "column": "topic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/subtopic",
+          "@id": "3abef1d2-9e3f-414c-932d-a4aea1a3a0e8",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/subtopic"
-          },
           "name": "platform_sna_questions/subtopic",
           "sample": [
             "42",
@@ -624,78 +599,74 @@
             "41"
           ],
           "source": {
-            "column": "subtopic",
+            "extract": {
+              "column": "subtopic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/description",
+          "@id": "d759839f-282d-4d15-ab0d-95e539c5afab",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/description"
-          },
           "name": "platform_sna_questions/description",
           "sample": [],
           "source": {
-            "column": "description",
+            "extract": {
+              "column": "description"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/question",
+          "@id": "2be0cd65-cc3f-47a0-b4f0-d3c83474c17c",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/question"
-          },
           "name": "platform_sna_questions/question",
           "sample": [
             "Find $\\displaystyle \\int (x^2+x)3^x dx$.",
-            "Consider the matrix \n$A=\\left[\\begin{array}{rr}\n 2  & 1  \\\\\n  -1 & 3  \n\\end{array}\\right]$. \nThe subspaces $C_A$ of $\\mathbb{R}^2$ generated by the columns of $A$ and the  space $N_A$ of $A$ are respectively: ",
+            "Consider the matrix \n$A=\\left[\begin{array}{rr}\n 2  & 1  \\\\\n  -1 & 3  \n\\end{array}\right]$. \nThe subspaces $C_A$ of $\\mathbb{R}^2$ generated by the columns of $A$ and the  space $N_A$ of $A$ are respectively: ",
             "Solve the Cauchy problem $y''-2y'+2y=2e^{x}\\cos(x)-4xe^x\\sin(x)$ knowing that $y(0)=1$ and $y'(0)=2$."
           ],
           "source": {
-            "column": "question",
+            "extract": {
+              "column": "question"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/level",
+          "@id": "ef7b71d0-89c4-4680-b18f-26655bb9bed1",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/level"
-          },
           "name": "platform_sna_questions/level",
           "sample": [
             "Basic",
             "Advanced"
           ],
           "source": {
-            "column": "level",
+            "extract": {
+              "column": "level"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/answer1",
+          "@id": "b3b777f7-f940-4eb1-9036-9e9fb1a506e4",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/answer1"
-          },
           "name": "platform_sna_questions/answer1",
           "sample": [
             "$\\dfrac{4\\pi}{3}$",
@@ -703,83 +674,79 @@
             "$\\dfrac{d y}{d x} =\\sec^2(\\sin(x^3)) \\cos(x^3) 3x^2 $"
           ],
           "source": {
-            "column": "answer1",
+            "extract": {
+              "column": "answer1"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/answer2",
+          "@id": "1077e70b-4f82-484f-8a66-f8f46ba6a48e",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/answer2"
-          },
           "name": "platform_sna_questions/answer2",
           "sample": [
             "$\\dfrac{5\\pi}{4}$.",
-            "$\\displaystyle{\\frac{dy}{dx}} = {x^2\\sin(x)\\sin(2x)+2x\\cos(x)\\sin(2x)+2x^2\\cos(x)\\cos(2x)}$",
+            "$\\displaystyle{\frac{dy}{dx}} = {x^2\\sin(x)\\sin(2x)+2x\\cos(x)\\sin(2x)+2x^2\\cos(x)\\cos(2x)}$",
             "$\\dfrac{4\\pi}{3}$"
           ],
           "source": {
-            "column": "answer2",
+            "extract": {
+              "column": "answer2"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/answer3",
+          "@id": "09eac508-42c6-4f84-871f-ac2bf99c5aea",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/answer3"
-          },
           "name": "platform_sna_questions/answer3",
           "sample": [
-            "$\\displaystyle D_{f}=\\mathbb{R}^2\\backslash\\left\\{(-1,1)\\right\\}$.",
+            "$\\displaystyle D_{f}=\\mathbb{R}^2\backslash\\left\\{(-1,1)\right\\}$.",
             "There are both positive and negative linear dependence between before and after the one month program sugar levels. ",
             "Matrix multiplication is not always commutative if one matrix is the identity matrix"
           ],
           "source": {
-            "column": "answer3",
+            "extract": {
+              "column": "answer3"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/answer4",
+          "@id": "cc387366-500b-42b4-842c-e131ca5c2609",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/answer4"
-          },
           "name": "platform_sna_questions/answer4",
           "sample": [
             "$A$ is an orthogonal basis of $\\mathbb{R}^3$. ",
             "The system has infinitely many solutions, which are $(z,z,-z)$ for every $z\\in\\mathbb{R}$.",
-            "$\\displaystyle{\\frac{dy}{dx}} = {-x^2\\sin(x)\\sin(2x)+2x\\cos(2x)\\sin(2x)+2x^2\\cos(2x)\\cos(2x)}$"
+            "$\\displaystyle{\frac{dy}{dx}} = {-x^2\\sin(x)\\sin(2x)+2x\\cos(2x)\\sin(2x)+2x^2\\cos(2x)\\cos(2x)}$"
           ],
           "source": {
-            "column": "answer4",
+            "extract": {
+              "column": "answer4"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/file_name",
+          "@id": "b9ea6462-96ac-417a-934f-6a3dd40641c8",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/file_name"
-          },
           "name": "platform_sna_questions/file_name",
           "sample": [
             "irrigation.jpeg",
@@ -787,20 +754,19 @@
             "Domain_6.png"
           ],
           "source": {
-            "column": "file_name",
+            "extract": {
+              "column": "file_name"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/file_ext",
+          "@id": "661e04df-8be9-4036-a305-746642c020c6",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/file_ext"
-          },
           "name": "platform_sna_questions/file_ext",
           "sample": [
             "jpg",
@@ -808,20 +774,19 @@
             "png"
           ],
           "source": {
-            "column": "file_ext",
+            "extract": {
+              "column": "file_ext"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/date",
+          "@id": "9861b006-b856-435d-8cdb-90e94620864f",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/date"
-          },
           "name": "platform_sna_questions/date",
           "sample": [
             "2020-06-11 17:57:29",
@@ -829,20 +794,19 @@
             "2019-05-07 10:48:48"
           ],
           "source": {
-            "column": "date",
+            "extract": {
+              "column": "date"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/validate_date",
+          "@id": "1fac55a5-3853-4589-ae23-a99cb6d3bc7e",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/validate_date"
-          },
           "name": "platform_sna_questions/validate_date",
           "sample": [
             "2020-12-20 22:33:23",
@@ -850,20 +814,19 @@
             "2019-12-06 19:18:21"
           ],
           "source": {
-            "column": "validate_date",
+            "extract": {
+              "column": "validate_date"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/validate_by",
+          "@id": "d9df4ac4-9c49-4e53-81df-607341aff628",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/validate_by"
-          },
           "name": "platform_sna_questions/validate_by",
           "sample": [
             "155",
@@ -871,20 +834,19 @@
             "52"
           ],
           "source": {
-            "column": "validate_by",
+            "extract": {
+              "column": "validate_by"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/newlevel",
+          "@id": "ffd030d2-10c8-41cd-9a67-d5558ec2ae41",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/newlevel"
-          },
           "name": "platform_sna_questions/newlevel",
           "sample": [
             "4",
@@ -892,20 +854,19 @@
             "5"
           ],
           "source": {
-            "column": "newlevel",
+            "extract": {
+              "column": "newlevel"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/algorithmlevel",
+          "@id": "d441829e-979f-46c2-ba2c-d08b6998848a",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/algorithmlevel"
-          },
           "name": "platform_sna_questions/algorithmlevel",
           "sample": [
             "2",
@@ -913,50 +874,46 @@
             "4"
           ],
           "source": {
-            "column": "algorithmlevel",
+            "extract": {
+              "column": "algorithmlevel"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_sna_questions/checked",
+          "@id": "997e12c7-fcbc-4693-9986-6ee59e72b3df",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_sna_questions/checked"
-          },
           "name": "platform_sna_questions/checked",
           "sample": [
             "1",
             "0"
           ],
           "source": {
-            "column": "checked",
+            "extract": {
+              "column": "checked"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_sna_questions"
-      },
       "name": "mathe.sql/platform_sna_questions"
     },
     {
+      "@id": "5f0bd5b2-b0db-424e-a536-60a9ce177d02",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "material_type/id",
+          "@id": "97b19733-f263-46b7-b232-51dd3cd39d81",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "material_type/id"
-          },
           "name": "material_type/id",
           "sample": [
             "1",
@@ -964,20 +921,19 @@
             "3"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "material_type/description",
+          "@id": "ff18255a-2428-46a9-87e8-d5c8c42c13e3",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "material_type/description"
-          },
           "name": "material_type/description",
           "sample": [
             "Teaching Material",
@@ -985,30 +941,27 @@
             "Video Lesson"
           ],
           "source": {
-            "column": "description",
+            "extract": {
+              "column": "description"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/material_type"
-      },
       "name": "mathe.sql/material_type"
     },
     {
+      "@id": "1b75bab1-c34f-4fb2-9561-eb7d8b574e32",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "assessment/student_id",
+          "@id": "a7c37725-4609-4fc9-a6df-20b0a2b8db1b",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/student_id"
-          },
           "name": "assessment/student_id",
           "sample": [
             "1798",
@@ -1016,20 +969,19 @@
             "1269"
           ],
           "source": {
-            "column": "student_id",
+            "extract": {
+              "column": "student_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/question_id",
+          "@id": "db92486f-4b5a-406b-a89b-807bd4bfd12b",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/question_id"
-          },
           "name": "assessment/question_id",
           "sample": [
             "1489",
@@ -1037,20 +989,19 @@
             "273"
           ],
           "source": {
-            "column": "question_id",
+            "extract": {
+              "column": "question_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/topic",
+          "@id": "498321e6-94f5-49a2-8a8b-3246726add4c",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/topic"
-          },
           "name": "assessment/topic",
           "sample": [
             "25",
@@ -1058,20 +1009,19 @@
             "14"
           ],
           "source": {
-            "column": "topic",
+            "extract": {
+              "column": "topic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/subtopic",
+          "@id": "a8f8ea32-ef40-4185-b200-cf24aca736af",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/subtopic"
-          },
           "name": "assessment/subtopic",
           "sample": [
             "42",
@@ -1079,20 +1029,19 @@
             "41"
           ],
           "source": {
-            "column": "subtopic",
+            "extract": {
+              "column": "subtopic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/question_level",
+          "@id": "34e87552-b323-4b48-b00e-799e774bcc53",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/question_level"
-          },
           "name": "assessment/question_level",
           "sample": [
             "7",
@@ -1100,20 +1049,19 @@
             "5"
           ],
           "source": {
-            "column": "question_level",
+            "extract": {
+              "column": "question_level"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/answer",
+          "@id": "34a0d8cf-bf4a-4005-90dd-3f8bb6615e46",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/answer"
-          },
           "name": "assessment/answer",
           "sample": [
             "0",
@@ -1121,20 +1069,19 @@
             "-1"
           ],
           "source": {
-            "column": "answer",
+            "extract": {
+              "column": "answer"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/date",
+          "@id": "1f14ad58-e839-4385-9f78-9906d6fda690",
           "@type": "cr:Field",
           "dataType": null,
           "description": "",
-          "key": {
-            "@id": "assessment/date"
-          },
           "name": "assessment/date",
           "sample": [
             "2024-10-31 19:47:52",
@@ -1142,20 +1089,19 @@
             "2020-01-08 15:45:52"
           ],
           "source": {
-            "column": "date",
+            "extract": {
+              "column": "date"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/duration",
+          "@id": "b21a5464-55d4-4524-85f7-457b7d55f360",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/duration"
-          },
           "name": "assessment/duration",
           "sample": [
             "2",
@@ -1163,20 +1109,19 @@
             "4"
           ],
           "source": {
-            "column": "duration",
+            "extract": {
+              "column": "duration"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/id",
+          "@id": "a47a855e-7217-4fa6-9fe9-87a92f8c6648",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/id"
-          },
           "name": "assessment/id",
           "sample": [
             "1",
@@ -1184,20 +1129,19 @@
             "3"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "assessment/option_selected",
+          "@id": "5dc46db6-74b7-4398-a393-da1240dc2bbd",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "assessment/option_selected"
-          },
           "name": "assessment/option_selected",
           "sample": [
             "0",
@@ -1205,30 +1149,27 @@
             "2"
           ],
           "source": {
-            "column": "option_selected",
+            "extract": {
+              "column": "option_selected"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/assessment"
-      },
       "name": "mathe.sql/assessment"
     },
     {
+      "@id": "a7927a04-e512-4434-b274-40f1dbe53562",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_material_keyword/platform_material_id",
+          "@id": "086ba187-57aa-4270-bf29-39a73bb010c6",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_material_keyword/platform_material_id"
-          },
           "name": "platform_material_keyword/platform_material_id",
           "sample": [
             "742",
@@ -1236,20 +1177,19 @@
             "55"
           ],
           "source": {
-            "column": "platform_material_id",
+            "extract": {
+              "column": "platform_material_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_material_keyword/platform_keyword_id",
+          "@id": "86f7ec38-01ad-4557-9829-6bc3523cc7ad",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_material_keyword/platform_keyword_id"
-          },
           "name": "platform_material_keyword/platform_keyword_id",
           "sample": [
             "64",
@@ -1257,30 +1197,27 @@
             "185"
           ],
           "source": {
-            "column": "platform_keyword_id",
+            "extract": {
+              "column": "platform_keyword_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_material_keyword"
-      },
       "name": "mathe.sql/platform_material_keyword"
     },
     {
+      "@id": "736ea7a7-aef2-44b5-8f7a-d2263a3f0f3c",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_topic/id",
+          "@id": "9813cac8-c527-48e5-a5ef-78e9bb9e139d",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_topic/id"
-          },
           "name": "platform_topic/id",
           "sample": [
             "25",
@@ -1288,39 +1225,37 @@
             "14"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_topic/hidden",
+          "@id": "231aa6d8-32f0-471d-9e4f-d40842fbd507",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_topic/hidden"
-          },
           "name": "platform_topic/hidden",
           "sample": [
             "0"
           ],
           "source": {
-            "column": "hidden",
+            "extract": {
+              "column": "hidden"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_topic/name",
+          "@id": "a071b80f-62b1-4d43-b2a4-7c0f59448dd7",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_topic/name"
-          },
           "name": "platform_topic/name",
           "sample": [
             "Discrete Mathematics",
@@ -1328,30 +1263,27 @@
             "Differentiation"
           ],
           "source": {
-            "column": "name",
+            "extract": {
+              "column": "name"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_topic"
-      },
       "name": "mathe.sql/platform_topic"
     },
     {
+      "@id": "51fbfb6b-733c-40bd-902b-7f91d6bf1a04",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_keywords/id",
+          "@id": "f1d9c950-fe55-4044-a50f-ece718308635",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keywords/id"
-          },
           "name": "platform_keywords/id",
           "sample": [
             "1",
@@ -1359,20 +1291,19 @@
             "3"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_keywords/id_top",
+          "@id": "319760a9-f670-4dec-b067-df8b4a081cab",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keywords/id_top"
-          },
           "name": "platform_keywords/id_top",
           "sample": [
             "25",
@@ -1380,20 +1311,19 @@
             "14"
           ],
           "source": {
-            "column": "id_top",
+            "extract": {
+              "column": "id_top"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_keywords/id_sub",
+          "@id": "14d16f12-23f4-4e9a-abeb-e7d6d966ceae",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keywords/id_sub"
-          },
           "name": "platform_keywords/id_sub",
           "sample": [
             "42",
@@ -1401,40 +1331,38 @@
             "41"
           ],
           "source": {
-            "column": "id_sub",
+            "extract": {
+              "column": "id_sub"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_keywords/hidden",
+          "@id": "814abe45-e248-4041-83b1-161f67aacbcd",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keywords/hidden"
-          },
           "name": "platform_keywords/hidden",
           "sample": [
             "0",
             "1"
           ],
           "source": {
-            "column": "hidden",
+            "extract": {
+              "column": "hidden"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_keywords/name",
+          "@id": "57fa05bc-15dc-4356-a997-bc5b4c7cb41a",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_keywords/name"
-          },
           "name": "platform_keywords/name",
           "sample": [
             "Kernel",
@@ -1442,30 +1370,27 @@
             "Permutation"
           ],
           "source": {
-            "column": "name",
+            "extract": {
+              "column": "name"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_keywords"
-      },
       "name": "mathe.sql/platform_keywords"
     },
     {
+      "@id": "57a4acbc-4c7a-4185-bf2d-5f77522de19f",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_subtopic/id",
+          "@id": "266f94a2-9b13-4352-b2ed-0e944587b49f",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_subtopic/id"
-          },
           "name": "platform_subtopic/id",
           "sample": [
             "42",
@@ -1473,20 +1398,19 @@
             "41"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_subtopic/id_top",
+          "@id": "32290757-9deb-4c87-b65a-547c2f1d927c",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_subtopic/id_top"
-          },
           "name": "platform_subtopic/id_top",
           "sample": [
             "4",
@@ -1494,39 +1418,37 @@
             "28"
           ],
           "source": {
-            "column": "id_top",
+            "extract": {
+              "column": "id_top"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_subtopic/hidden",
+          "@id": "48ad4737-b5c7-4ca8-8b98-1ec1843e35cf",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_subtopic/hidden"
-          },
           "name": "platform_subtopic/hidden",
           "sample": [
             "0"
           ],
           "source": {
-            "column": "hidden",
+            "extract": {
+              "column": "hidden"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_subtopic/name",
+          "@id": "1f6de9cc-4104-4b18-8168-ac41f15415d5",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_subtopic/name"
-          },
           "name": "platform_subtopic/name",
           "sample": [
             "Domain, Image and Graphics",
@@ -1534,30 +1456,27 @@
             "Definite Integrals"
           ],
           "source": {
-            "column": "name",
+            "extract": {
+              "column": "name"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_subtopic"
-      },
       "name": "mathe.sql/platform_subtopic"
     },
     {
+      "@id": "b1852ae6-bf80-4e37-a435-1f83e62cd3f2",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_materials/id",
+          "@id": "dbc957c3-ec40-46b6-bc8b-07ed95dc04f9",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_materials/id"
-          },
           "name": "platform_materials/id",
           "sample": [
             "9",
@@ -1565,20 +1484,19 @@
             "21"
           ],
           "source": {
-            "column": "id",
+            "extract": {
+              "column": "id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/id_lect",
+          "@id": "a44b24f3-b02c-4ff1-af21-e52b470b19ca",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_materials/id_lect"
-          },
           "name": "platform_materials/id_lect",
           "sample": [
             "74",
@@ -1586,20 +1504,19 @@
             "52"
           ],
           "source": {
-            "column": "id_lect",
+            "extract": {
+              "column": "id_lect"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/type",
+          "@id": "7dd9ea73-5a66-4bc1-8a4c-1838251c0f60",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_materials/type"
-          },
           "name": "platform_materials/type",
           "sample": [
             "1",
@@ -1607,20 +1524,19 @@
             "2"
           ],
           "source": {
-            "column": "type",
+            "extract": {
+              "column": "type"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/clicks",
+          "@id": "5dd93389-377f-4720-83ee-e171cc32ca1e",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/clicks"
-          },
           "name": "platform_materials/clicks",
           "sample": [
             "3",
@@ -1628,20 +1544,19 @@
             "2"
           ],
           "source": {
-            "column": "clicks",
+            "extract": {
+              "column": "clicks"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/title",
+          "@id": "aa7c21df-7f0f-4b6e-bbb0-68fefd16b635",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/title"
-          },
           "name": "platform_materials/title",
           "sample": [
             "Definite integral of a rational function - example (Part II)",
@@ -1649,20 +1564,19 @@
             "Introduction to the Linear Programming "
           ],
           "source": {
-            "column": "title",
+            "extract": {
+              "column": "title"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/author",
+          "@id": "e6704dfe-a1b0-4c6f-a01e-af904bba7ef7",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/author"
-          },
           "name": "platform_materials/author",
           "sample": [
             " Infinity Learn NEET",
@@ -1670,20 +1584,19 @@
             "Roz Whelan"
           ],
           "source": {
-            "column": "author",
+            "extract": {
+              "column": "author"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/description",
+          "@id": "40795da3-108b-4750-9c68-bc1d0194e7b8",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/description"
-          },
           "name": "platform_materials/description",
           "sample": [
             "This video teaches what is a spectral decomposition of a matrix. ",
@@ -1691,20 +1604,19 @@
             "In this video, the author presents a geometric approach to the meaning of linear operator in two-dimensional space. We can also view the matrix representation of these operators."
           ],
           "source": {
-            "column": "description",
+            "extract": {
+              "column": "description"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/link",
+          "@id": "65a8b7c2-b108-42fc-9041-60099dd6b1ae",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/link"
-          },
           "name": "platform_materials/link",
           "sample": [
             "RgnWMBpQPXk",
@@ -1712,20 +1624,19 @@
             "tsbFhR-A_JA"
           ],
           "source": {
-            "column": "link",
+            "extract": {
+              "column": "link"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/languages",
+          "@id": "72680fb2-b20d-473f-9ef5-509d30400c0c",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/languages"
-          },
           "name": "platform_materials/languages",
           "sample": [
             "key_1_4_",
@@ -1733,20 +1644,19 @@
             "key_4_"
           ],
           "source": {
-            "column": "languages",
+            "extract": {
+              "column": "languages"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/topic",
+          "@id": "7b28822d-d5bc-4a57-92e5-cf83ac58ebd1",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/topic"
-          },
           "name": "platform_materials/topic",
           "sample": [
             "key_16_",
@@ -1754,20 +1664,19 @@
             "key_14_"
           ],
           "source": {
-            "column": "topic",
+            "extract": {
+              "column": "topic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/subtopic",
+          "@id": "c2f04bb8-1f0c-44f2-bd53-f6d3c989354e",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/subtopic"
-          },
           "name": "platform_materials/subtopic",
           "sample": [
             "key_41_",
@@ -1775,20 +1684,19 @@
             "12"
           ],
           "source": {
-            "column": "subtopic",
+            "extract": {
+              "column": "subtopic"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/file_name",
+          "@id": "764e85f3-9df6-4dcf-994b-73dc8f87e20d",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/file_name"
-          },
           "name": "platform_materials/file_name",
           "sample": [
             "VennDiagram.pdf",
@@ -1796,20 +1704,19 @@
             "47.pdf"
           ],
           "source": {
-            "column": "file_name",
+            "extract": {
+              "column": "file_name"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/file_ext",
+          "@id": "8aab3443-1d49-434a-9850-c7997781dfde",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/file_ext"
-          },
           "name": "platform_materials/file_ext",
           "sample": [
             "ipynb",
@@ -1817,20 +1724,19 @@
             "pptx"
           ],
           "source": {
-            "column": "file_ext",
+            "extract": {
+              "column": "file_ext"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/date",
+          "@id": "b1444c53-7387-4075-8926-fbca3651653b",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/date"
-          },
           "name": "platform_materials/date",
           "sample": [
             "2019-11-26 16:15:04",
@@ -1838,20 +1744,19 @@
             "2020-06-22 02:18:06"
           ],
           "source": {
-            "column": "date",
+            "extract": {
+              "column": "date"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/validate",
+          "@id": "e4dde1ed-79c0-47c0-815d-72d43d8663d4",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/validate"
-          },
           "name": "platform_materials/validate",
           "sample": [
             "3",
@@ -1859,20 +1764,19 @@
             "2"
           ],
           "source": {
-            "column": "validate",
+            "extract": {
+              "column": "validate"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/validate_date",
+          "@id": "782987d2-28f8-4a15-bd74-e6d4e22295af",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/validate_date"
-          },
           "name": "platform_materials/validate_date",
           "sample": [
             "2021-04-12 00:58:10",
@@ -1880,20 +1784,19 @@
             "2020-10-31 04:06:11"
           ],
           "source": {
-            "column": "validate_date",
+            "extract": {
+              "column": "validate_date"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_materials/validate_by",
+          "@id": "50000617-dfbb-43b7-be0c-40a7c6459734",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "platform_materials/validate_by"
-          },
           "name": "platform_materials/validate_by",
           "sample": [
             "3390",
@@ -1901,30 +1804,27 @@
             "28"
           ],
           "source": {
-            "column": "validate_by",
+            "extract": {
+              "column": "validate_by"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_materials"
-      },
       "name": "mathe.sql/platform_materials"
     },
     {
+      "@id": "1cbd2245-3fb7-4405-b7d0-258bc341d188",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "platform_keyword_snaquestion/platform_keyword_id",
+          "@id": "d273d418-32f1-4bbc-96fe-2d685462af80",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keyword_snaquestion/platform_keyword_id"
-          },
           "name": "platform_keyword_snaquestion/platform_keyword_id",
           "sample": [
             "422",
@@ -1932,20 +1832,19 @@
             "185"
           ],
           "source": {
-            "column": "platform_keyword_id",
+            "extract": {
+              "column": "platform_keyword_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         },
         {
-          "@id": "platform_keyword_snaquestion/platform_sna_question_id",
+          "@id": "cdf58ee3-4594-4792-8d12-7136281c59bb",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "platform_keyword_snaquestion/platform_sna_question_id"
-          },
           "name": "platform_keyword_snaquestion/platform_sna_question_id",
           "sample": [
             "1798",
@@ -1953,16 +1852,15 @@
             "1269"
           ],
           "source": {
-            "column": "platform_sna_question_id",
+            "extract": {
+              "column": "platform_sna_question_id"
+            },
             "fileObject": {
-              "@id": "mathe.sql"
+              "@id": "9b68fcd7-0e06-42c0-9593-2b47aa94f1bc"
             }
           }
         }
       ],
-      "key": {
-        "@id": "mathe.sql/platform_keyword_snaquestion"
-      },
       "name": "mathe.sql/platform_keyword_snaquestion"
     }
   ],

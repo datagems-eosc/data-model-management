@@ -14,7 +14,6 @@
       "@id": "cr:dataType",
       "@type": "@vocab"
     },
-    "dct": "http://purl.org/dc/terms/",
     "examples": {
       "@id": "cr:examples",
       "@type": "@json"
@@ -42,41 +41,42 @@
     "separator": "cr:separator",
     "source": "cr:source",
     "subField": "cr:subField",
-    "transform": "cr:transform"
+    "transform": "cr:transform",
+    "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "47e694a4b86f8e19684b757463607bef825909677cc4bd6565e085fac7a9308a",
+  "@id": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
   "@type": "sc:Dataset",
   "citeAs": "",
-  "country": "GR",
-  "dataPath": "/data/datagems/datasets/oasa_ridership",
-  "datePublished": "2020-08-08",
-  "dct:conformsTo": "http://mlcommons.org/croissant/1.0",
-  "description": "Passengers per hour for Urban Rail Transport S.A stations and bus lines.",
+  "conformsTo": "",
+  "country": "PT",
+  "datePublished": "24-05-2025",
+  "description": "Subway data",
   "distribution": [
     {
-      "@id": "csv-file",
+      "@id": "e590461a-a632-4ddb-abc0-bc341165e26c",
       "@type": "cr:FileObject",
-      "contentSize": "2.29 MB",
-      "contentUrl": "https://data.gov.gr/datasets/oasa_ridership",
-      "description": "CSV file containing hourly ridership data for OASA (Athens public transport).",
+      "contentSize": "2407043 B",
+      "contentUrl": "",
+      "description": "",
       "encodingFormat": "text/csv",
-      "name": "oasa_daily_ridership.csv",
-      "sha256": ""
+      "name": "csv_1.csv",
+      "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
     }
   ],
   "fieldOfScience": [
-    "OTHER SOCIAL SCIENCES"
+    "CIVIL ENGINEERING"
   ],
+  "headline": "Subway data.",
   "inLanguage": [
     "el"
   ],
   "keywords": [
-    "transportation",
-    "greece"
+    "dev",
+    "keyword"
   ],
-  "license": "cc-by-4.0",
-  "name": "oasa_daily_ridership",
+  "license": "???",
+  "name": "Dev Data",
   "recordSet": [],
-  "url": "https://data.gov.gr/datasets/oasa_ridership",
-  "version": "1.0"
+  "url": "",
+  "version": ""
 }

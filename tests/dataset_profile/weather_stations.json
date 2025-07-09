@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "319b0f35826b50cd7d9b3ec454fc62525dd5b3539b57448178202a3e49206062",
+  "@id": "3bb116775373b44744d451453671450b36817c0b5ce19fb13784e7fffcf25587",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",
@@ -53,7 +53,7 @@
   "description": "The dataset includes daily meteorological parameters for the period 2010-2023 from 54 meteorological stations. You can see visualizations of the data from these stations on the page https://www.meteo.gr/climate/ The parameters are temperature (\u00b0C), relative humidity (%), pressure (hPa), rainfall (mm), wind speed (km/h), dominant wind direction, and wind gust (km/h). The measurements come from the network of automatic meteorological stations of the National Observatory of Athens/meteo.gr. Information about the stations and any malfunctions are provided at http://meteosearch.meteo.gr/ on the respective station's page. Reference to the network is made through the scientific publication https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/gdj3.44",
   "distribution": [
     {
-      "@id": "68ce5763ba5410c3ad1898ae0c433bcaf9962d9075f04397eb314f09a6d464b4",
+      "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5",
       "@type": "cr:FileObject",
       "contentSize": "22582102 B",
       "contentUrl": "",
@@ -63,7 +63,7 @@
       "sha256": "968ef7acc8f9cb5072e6c2c640d4c9afac2b48ebc0ce79f54604f8e141ec5725"
     },
     {
-      "@id": "21a2c57d0dd6862fa90168a7055f62824bf8d92f93cafc9314533f613798c6ff",
+      "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996",
       "@type": "cr:FileObject",
       "contentSize": "1917 B",
       "contentUrl": "",
@@ -89,227 +89,215 @@
   "name": "Meteorological data time series (Daily - UTC)",
   "recordSet": [
     {
+      "@id": "00598239-efc5-474e-a537-e4728352c668",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "cities/Date",
+          "@id": "95c395ce-cecc-48c7-b9ce-25a08d84299f",
           "@type": "cr:Field",
           "dataType": "sc:Date",
           "description": "",
-          "key": {
-            "@id": "cities/Date"
-          },
           "name": "cities/Date",
           "sample": [
-            "2017-03-21",
-            "2017-02-13",
-            "2012-03-28"
+            "2016-11-19",
+            "2013-12-29",
+            "2022-03-04"
           ],
           "source": {
-            "column": "Date",
+            "extract": {
+              "column": "Date"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/T_mean",
+          "@id": "fa2ceffa-9b7c-40a6-9094-22c79141c0d7",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/T_mean"
-          },
           "name": "cities/T_mean",
           "sample": [
-            "24.2",
-            "5.0",
-            "20.7"
+            "12.9",
+            "10.8",
+            "20.2"
           ],
           "source": {
-            "column": "T_mean",
+            "extract": {
+              "column": "T_mean"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/T_max",
+          "@id": "80768d33-08ed-4103-ab89-9a6112142e86",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/T_max"
-          },
           "name": "cities/T_max",
           "sample": [
-            "29.1",
-            "19.1",
-            "32.8"
+            "28.1",
+            "---",
+            "34.3"
           ],
           "source": {
-            "column": "T_max",
+            "extract": {
+              "column": "T_max"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/T_min",
+          "@id": "6ff6ceae-b3eb-4a5f-a91f-e6d5c600f6d5",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/T_min"
-          },
           "name": "cities/T_min",
           "sample": [
-            "14.7",
-            "19.8",
-            "11.3"
+            "12.0",
+            "9.9",
+            "4.2"
           ],
           "source": {
-            "column": "T_min",
+            "extract": {
+              "column": "T_min"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/RH_mean",
+          "@id": "99ea491b-d204-47ad-85ad-546d20b4a276",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/RH_mean"
-          },
           "name": "cities/RH_mean",
           "sample": [
-            "69.7",
-            "63.6",
-            "62.8"
+            "64.0",
+            "73.9",
+            "76.9"
           ],
           "source": {
-            "column": "RH_mean",
+            "extract": {
+              "column": "RH_mean"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/RH_max",
+          "@id": "382f444a-602f-4e09-9fe8-d6db3f2a9c0c",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "cities/RH_max"
-          },
           "name": "cities/RH_max",
           "sample": [
-            "94",
             "95",
-            "71"
+            "75",
+            "97"
           ],
           "source": {
-            "column": "RH_max",
+            "extract": {
+              "column": "RH_max"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/RH_min",
+          "@id": "525b8e36-f314-4419-8a0a-5496270482c0",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
-          "key": {
-            "@id": "cities/RH_min"
-          },
           "name": "cities/RH_min",
           "sample": [
-            "65",
-            "40",
-            "60"
+            "46",
+            "67",
+            "56"
           ],
           "source": {
-            "column": "RH_min",
+            "extract": {
+              "column": "RH_min"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/Prs_mean",
+          "@id": "5ae5d413-4953-4a0d-8b36-a21f43239abb",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/Prs_mean"
-          },
           "name": "cities/Prs_mean",
           "sample": [
-            "1016.7",
-            "1010.7",
-            "1006.4"
+            "1014.4",
+            "1007.8",
+            "1029.7"
           ],
           "source": {
-            "column": "Prs_mean",
+            "extract": {
+              "column": "Prs_mean"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/Prs_max",
+          "@id": "63ab79a5-ee73-4963-9da1-5aa5e843558a",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/Prs_max"
-          },
           "name": "cities/Prs_max",
           "sample": [
-            "1018.8",
-            "1018.0",
-            "1010.6"
+            "1017.0",
+            "1014.6",
+            "1004.9"
           ],
           "source": {
-            "column": "Prs_max",
+            "extract": {
+              "column": "Prs_max"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/Prs_min",
+          "@id": "b18d441f-aaa5-4d83-ae91-2ae75e57230f",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/Prs_min"
-          },
           "name": "cities/Prs_min",
           "sample": [
-            "1018.6",
-            "1010.9",
-            "1018.7"
+            "1020.5",
+            "1014.6",
+            "1007.8"
           ],
           "source": {
-            "column": "Prs_min",
+            "extract": {
+              "column": "Prs_min"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/Ac_R",
+          "@id": "796d7232-66c9-4ded-b765-3a26e72af180",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/Ac_R"
-          },
           "name": "cities/Ac_R",
           "sample": [
             "0.0",
@@ -317,194 +305,183 @@
             "0.0"
           ],
           "source": {
-            "column": "Ac_R",
+            "extract": {
+              "column": "Ac_R"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/WS_mean",
+          "@id": "78a91a78-4b4f-4311-ac72-1fc66e1f698d",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/WS_mean"
-          },
           "name": "cities/WS_mean",
           "sample": [
-            "3.2",
-            "1.6",
-            "1.6"
+            "4.8",
+            "5.7",
+            "0.9"
           ],
           "source": {
-            "column": "WS_mean",
+            "extract": {
+              "column": "WS_mean"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/DWD",
+          "@id": "c823c524-04a1-4c5f-ba1b-73dbc3d67eb4",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "cities/DWD"
-          },
           "name": "cities/DWD",
           "sample": [
-            "---",
-            "SSW",
-            "ESE"
+            "NE",
+            "S",
+            "ENE"
           ],
           "source": {
-            "column": "DWD",
+            "extract": {
+              "column": "DWD"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/WG",
+          "@id": "648ce8e4-2abe-44c7-ae79-20248f86ff97",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "cities/WG"
-          },
           "name": "cities/WG",
           "sample": [
-            "27.4",
-            "27.4",
-            "45.1"
+            "---",
+            "45.1",
+            "20.9"
           ],
           "source": {
-            "column": "WG",
+            "extract": {
+              "column": "WG"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         },
         {
-          "@id": "cities/city",
+          "@id": "027bd217-807e-4cd1-a067-d58cb78b284c",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "cities/city"
-          },
           "name": "cities/city",
           "sample": [
-            "nevrokopi",
-            "xanthi",
-            "veroia"
+            "lemnos",
+            "amfiklia",
+            "rethymno"
           ],
           "source": {
-            "column": "city",
+            "extract": {
+              "column": "city"
+            },
             "fileObject": {
-              "@id": "cities.csv"
+              "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5"
             }
           }
         }
       ],
-      "key": {
-        "@id": "cities"
-      },
       "name": "cities"
     },
     {
+      "@id": "6e504f5a-db3d-4d1e-bcdb-2c354f2e686e",
       "@type": "cr:RecordSet",
       "description": "",
       "field": [
         {
-          "@id": "stations_list/stations",
+          "@id": "8888099e-a55f-4c57-b0d5-002b371882e2",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
-          "key": {
-            "@id": "stations_list/stations"
-          },
           "name": "stations_list/stations",
           "sample": [
-            "nevrokopi",
-            "notiopedio",
-            "xanthi"
+            "kea",
+            "ioannina",
+            "naousa"
           ],
           "source": {
-            "column": "stations",
+            "extract": {
+              "column": "stations"
+            },
             "fileObject": {
-              "@id": "stations_list.csv"
+              "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996"
             }
           }
         },
         {
-          "@id": "stations_list/latitude",
+          "@id": "167cf771-d9a5-43da-95b3-20b3a05bc928",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "stations_list/latitude"
-          },
           "name": "stations_list/latitude",
           "sample": [
+            35.369029,
             37.037222,
-            37.795072,
-            37.509202
+            37.053581
           ],
           "source": {
-            "column": "latitude",
+            "extract": {
+              "column": "latitude"
+            },
             "fileObject": {
-              "@id": "stations_list.csv"
+              "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996"
             }
           }
         },
         {
-          "@id": "stations_list/longitude",
+          "@id": "4496e87f-3d1e-4917-b2fc-727b417a67b5",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "stations_list/longitude"
-          },
           "name": "stations_list/longitude",
           "sample": [
-            22.122221,
-            25.85828,
-            22.437633
+            21.831631,
+            25.715552,
+            22.141593
           ],
           "source": {
-            "column": "longitude",
+            "extract": {
+              "column": "longitude"
+            },
             "fileObject": {
-              "@id": "stations_list.csv"
+              "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996"
             }
           }
         },
         {
-          "@id": "stations_list/altitude",
+          "@id": "8a7aca4a-02d8-427a-891d-60f307a20db0",
           "@type": "cr:Field",
           "dataType": "sc:Float",
           "description": "",
-          "key": {
-            "@id": "stations_list/altitude"
-          },
           "name": "stations_list/altitude",
           "sample": [
-            163.0,
-            133.0,
-            30.0
+            38.0,
+            432.0,
+            82.0
           ],
           "source": {
-            "column": "altitude",
+            "extract": {
+              "column": "altitude"
+            },
             "fileObject": {
-              "@id": "stations_list.csv"
+              "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996"
             }
           }
         }
       ],
-      "key": {
-        "@id": "stations_list"
-      },
       "name": "stations_list"
     }
   ],

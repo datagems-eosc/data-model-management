@@ -1,0 +1,93 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "3bb116775373b44744d451453671450b36817c0b5ce19fb13784e7fffcf25587",
+  "@type": "sc:Dataset",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "GR",
+  "datePublished": "24-05-2025",
+  "description": "The dataset includes daily meteorological parameters for the period 2010-2023 from 54 meteorological stations. You can see visualizations of the data from these stations on the page https://www.meteo.gr/climate/ The parameters are temperature (\u00b0C), relative humidity (%), pressure (hPa), rainfall (mm), wind speed (km/h), dominant wind direction, and wind gust (km/h). The measurements come from the network of automatic meteorological stations of the National Observatory of Athens/meteo.gr. Information about the stations and any malfunctions are provided at http://meteosearch.meteo.gr/ on the respective station's page. Reference to the network is made through the scientific publication https://rmets.onlinelibrary.wiley.com/doi/full/10.1002/gdj3.44",
+  "distribution": [
+    {
+      "@id": "1bbbee7d-f8c7-4596-93e3-3fab48c2cda5",
+      "@type": "cr:FileObject",
+      "contentSize": "22582102 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "cities.csv",
+      "sha256": "968ef7acc8f9cb5072e6c2c640d4c9afac2b48ebc0ce79f54604f8e141ec5725"
+    },
+    {
+      "@id": "432f22e1-7dac-4a4c-b061-6c1d22cd6996",
+      "@type": "cr:FileObject",
+      "contentSize": "1917 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "stations_list.csv",
+      "sha256": "c17e38ae3449ace3631ce7f2d8b7c7f59a6815979745f124f6d0138fa2f7094e"
+    }
+  ],
+  "fieldOfScience": [
+    "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+  ],
+  "headline": "Daily meteorological parameters for the period 2010-2023 from 54 meteorological stations in Greece.",
+  "inLanguage": [
+    "el"
+  ],
+  "keywords": [
+    "weather",
+    "greece",
+    "weather prediction"
+  ],
+  "license": "CC-BY-SA 4.0 - Creative Commons Attribution-ShareAlike 4.0 International",
+  "name": "Meteorological data time series (Daily - UTC)",
+  "recordSet": [],
+  "url": "https://data.climpact.gr/dataset/497dc26d-45e0-4ad5-b8f3-5f8890f65129",
+  "version": ""
+}
