@@ -61,23 +61,36 @@ This will also generate your `uv.lock` file
 
 ## 2. Running the API
 
-To run the Flask API, navigate to the dmm_api folder and execute the api.py file in your terminal:
+To start the API server, navigate to the dmm_api directory and run the api.py script:
 
 ```bash
 cd dmm_api
 python api.py
 ```
 
+
 ## API Usage Examples
 
-Once the API is running, you can interact with it using the following commands:
+Once the API is running, you can interact with it using curl commands:
 
-### 1) Dataset Operations
+### 1) Check if there is a dataset
+
+To start, you can check if there are any datasets already.
+#### GET all datasets
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset
+```
+This returns a list of all registered datasets. If none have been uploaded yet, it will return an empty array ([]).
+
+### 2) Upload a dataset
 
 #### POST a dataset
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset/register
 ```
+This registers a new dataset using the JSON payload from oasa.json.
+
+### 3) Check that the upload worked
 
 #### GET all datasets
 ```bash
@@ -86,26 +99,48 @@ curl http://127.0.0.1:5000/api/v1/dataset
 
 #### GET a specific dataset
 ```bash
-curl http://127.0.0.1:5000/api/v1/dataset/ds_1
+curl http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
 or
 ```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/ds_1
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
+Replace "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763" with the any other <dataset_id>.
 
-### 2) Dataset Profile Operations
+### 4) Update the dataset with the profile
 
 #### PUT a profile
 ```bash
 curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/api/v1/dataset/update
 ```
+This attaches a dataset profile to an existing dataset.
 
-### 3) Query Analytical Pattern
+### 5) Check that the update worked
+
+#### GET a specific dataset
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
+```
+or
+```bash
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
+```
+
+### 6) Query Analytical Pattern
 
 #### POST an Analytical Pattern
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
 ```
+This sends a query Analytical Pattern to the API. The result will be stored as a new dataset.
+
+### 7) Check that the results of the query are saved as a new dataset
+
+#### GET all datasets
+```bash
+curl http://127.0.0.1:5000/api/v1/dataset
+```
+You should now see the original dataset and a new dataset representing the query result.
 
 ---
 
