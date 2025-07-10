@@ -12,7 +12,14 @@
       "labels": [
         "receive_input"
       ],
-      "to": "CSV_1"
+      "to": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763"
+    },
+    {
+      "from": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
+      "labels": [
+        "hasDistribution"
+      ],
+      "to": "e590461a-a632-4ddb-abc0-bc341165e26c"
     },
     {
       "from": "USER_1",
@@ -34,22 +41,6 @@
         "request"
       ],
       "to": "TASK_1"
-    },
-    {
-      "end": "CSV1",
-      "labels": [
-        "contain"
-      ],
-      "properties": {},
-      "start": "CSVDB1"
-    },
-    {
-      "end": "CSV2",
-      "labels": [
-        "contain"
-      ],
-      "properties": {},
-      "start": "CSVDB1"
     }
   ],
   "nodes": [
@@ -59,7 +50,7 @@
         "Analytical_Pattern"
       ],
       "properties": {
-        "Description": "Anaytical Pattern to Query a dataset using SQL",
+        "Description": "Analytical Pattern to Query a dataset using SQL",
         "EndTime": "",
         "ExecutedBy": "user1",
         "ExecutionTime": "",
@@ -86,7 +77,7 @@
           "queryType": "SELECT"
         },
         "PublishedDate": "2025-06-30",
-        "Query": "SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding'",
+        "Query": "SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10",
         "Software": {
           "description": "In-process OLAP database for analytical queries",
           "name": "DuckDB",
@@ -98,62 +89,48 @@
       }
     },
     {
-      "id": "CSVDB1",
+      "id": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
       "labels": [
-        "CSVDB"
+        "Dataset"
       ],
       "properties": {
-        "Description": "Dataset of passengers per hour for Urban Rail Transport S.A stations and bus lines",
-        "Format": [
-          ""
+        "@type": "sc:Dataset",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "PT",
+        "datePublished": "24-05-2025",
+        "description": "Subway data",
+        "fieldOfScience": [
+          "CIVIL ENGINEERING"
         ],
-        "Identifier": "1",
-        "Keywords": [
-          "transportation",
-          "public transport",
-          "Athens",
-          "metro",
-          "bus"
+        "headline": "Subway data.",
+        "inLanguage": [
+          "el"
         ],
-        "License": "cc-by-4.0",
-        "License Holder": "DataGems",
-        "Name": "oasa",
-        "Num Items": 1,
-        "Published  Date": "2020-08-08",
-        "Publisher": "GOVGR",
-        "Purpose  ": "Descriptions of transportation data in Athens",
-        "Size": 2407043,
-        "URL": "https://data.gov.gr/datasets/oasa_ridership",
-        "Version": "1.0"
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "???",
+        "name": "oasa",
+        "recordSet": [],
+        "url": "",
+        "version": ""
       }
     },
     {
-      "id": "CSV_1",
+      "id": "e590461a-a632-4ddb-abc0-bc341165e26c",
       "labels": [
-        "CSV"
+        "FileObject"
       ],
       "properties": {
-        "Columns": [
-          "dv_agency",
-          "dv_platenum_station",
-          "dv_validations",
-          "dv_route",
-          "routes_per_hou",
-          "load_dt",
-          "date_hour",
-          "etl_extraction_dt",
-          "etl_load_dt",
-          "dv_agency_desc",
-          "boarding_disembark_desc"
-        ],
-        "Columns Num": 11,
-        "Description": "Passengers per hour for Urban Rail Transport S.A stations and bus lines",
-        "Identifier": "1",
-        "Name": "oasa_daily_ridership_1",
-        "PublishedDate": "2020-08-08",
-        "Rows Num": 20358,
-        "Size": 2407043,
-        "URL": "https://data.gov.gr/datasets/oasa_ridership/oasa_daily_ridership_1.csv"
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "oasa_daily_ridership_1.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
       }
     },
     {

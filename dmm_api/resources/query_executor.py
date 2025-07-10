@@ -1,52 +1,41 @@
-import json
+from datetime import datetime
+import os
 import duckdb
-import pandas as pd
 
 
 # We will implement different query execution methods based on the data type
-def execute_query_csv(dataset_name, query, software, csv_path):
+def execute_query_csv(csv_name, query, software, csv_path, user_id):
     software = software.lower()
     try:
         # Query with DuckDB
         if software == "duckdb":
+            table_name = csv_name.replace(".csv", "")
+
             conn = duckdb.connect()
-            # TO DO: change to a PreparedStatements
+            # TODO: change to a PreparedStatements
             replaced_query = query.replace(
-                f"FROM {dataset_name}", f"FROM read_csv_auto('{csv_path}')"
+                f"FROM {table_name}", f"FROM read_csv_auto('{csv_path}')"
             )
-            result = conn.execute(replaced_query).fetchall()
+            result_df = conn.execute(replaced_query).fetchdf()
             conn.close()
 
-            df = pd.DataFrame(result)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            results_path = os.path.join(
+                "dmm_api/data/results", f"{user_id}_{timestamp}"
+            )
+            os.makedirs(results_path, exist_ok=True)
+            output_path = os.path.join(results_path, csv_name)
+            result_df.to_csv(output_path, index=False, header=True)
 
-            output_path = csv_path.replace("data/oasa", "data/results/oasa")
-            output_path = output_path.replace(".csv", "_query_results.csv")
-            df.to_csv(output_path, index=False)
-
-            metadata = {
-                "dataset_name": dataset_name,
-                "executed_query": replaced_query,
-                "csv_results_path": output_path,
-            }
-
-            json_path = output_path.replace("_query_results.csv", "_metadata.json")
-            with open(json_path, "w") as f:
-                json.dump(metadata, f, indent=4)
-
-            return {
-                "query": replaced_query,
-                "result": pd.DataFrame(result).to_csv(index=False),
-                "message": f"Results saved to CSV at {output_path} (available in JSON metadata)",
-                "json_metadata_path": json_path,
-            }
+            return output_path
 
         else:
-            return {"message": f"Unsupported software: {software}"}, 400
+            raise Exception(f"Unsupported software: {software}")
 
     except Exception as e:
-        return {"message": f"Query execution failed: {str(e)}"}
+        raise Exception(f"Query execution failed: {str(e)}")
 
 
 # To be implemented
-def execute_query_xml(dataset_name, query, software, xml_path):
+def execute_query_xml(csv_name, query, software, xml_path):
     return {"message": "XML query execution not implemented yet"}, 501

@@ -4,6 +4,7 @@ from typing import Dict, Any, List
 
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
+from .json_format import create_json
 
 datasets = {}
 query_results = {}
@@ -15,10 +16,7 @@ class QueryRequest(BaseModel):
 
 
 class QueryResponse(BaseModel):
-    message: str
-    dataset_id: str
-    query: str
-    json_metadata_path: str
+    path: str
 
 
 router = APIRouter()
@@ -99,31 +97,30 @@ async def update_dataset(dataset: Dict[str, Any]):
         )
 
 
-@router.post("/dataset/query", response_model=QueryResponse)
+# @router.post("/dataset/query", response_model=QueryResponse)
+@router.post("/dataset/query")
 async def execute_query(query_data: QueryRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
         # Extract information from the JSON data
         dataset_id = None
         dataset_name = None
-        database_name = None
+        csv_name = None
         query = None
         software = None
+        user_id = None
 
         for node in query_data.nodes:
-            if node.get("labels") == ["CSVDB"]:
-                database_name = node.get("properties", {}).get("Name")
-            if node.get("labels") == ["CSV"]:
+            if node.get("labels") == ["Dataset"]:
+                dataset_name = node.get("properties", {}).get("name")
+            if node.get("labels") == ["FileObject"]:
                 dataset_id = node.get("id")
-                dataset_name = node.get("properties", {}).get("Name")
-            elif node.get("labels") == ["SQL_Operator"]:
+                csv_name = node.get("properties", {}).get("name")
+            if node.get("labels") == ["SQL_Operator"]:
                 query = node.get("properties", {}).get("Query")
-                software_info = node.get("properties", {}).get("Software", {})
-                software = (
-                    software_info.get("name")
-                    if isinstance(software_info, dict)
-                    else None
-                )
+                software = node.get("properties", {}).get("Software", {}).get("name")
+            elif node.get("labels") == ["User"]:
+                user_id = node.get("id")
 
         if not dataset_id:
             raise HTTPException(
@@ -140,24 +137,13 @@ async def execute_query(query_data: QueryRequest):
                 detail="Database software must be specified in the Operator node.",
             )
 
-        path = resolve_dataset(dataset_id, database_name)
+        path = resolve_dataset(dataset_name, csv_name)
 
         # execute_query gets called based on the dataset type
-        query_result = execute_query_csv(dataset_name, query, software, path)
+        csv_path = execute_query_csv(csv_name, query, software, path, user_id)
+        dataste_json = create_json(csv_path)
 
-        query_results[dataset_id] = {
-            "dataset_id": dataset_id,
-            "query": query_result["query"],
-            "result": query_result["result"],
-            "json_metadata_path": query_result["json_metadata_path"],
-        }
-
-        return QueryResponse(
-            message="The query results have been saved in CSV format. The CSV path is available in the JSON metadata file.",
-            dataset_id=dataset_id,
-            query=query_result["query"],
-            json_metadata_path=query_result["json_metadata_path"],
-        )
+        return dataste_json
 
     except HTTPException:
         raise
@@ -174,20 +160,4 @@ async def get_all_query_results():
     return {
         "available_dataset_ids": list(query_results.keys()),
         "message": "Access specific dataset at /api/v1/dataset/query/{dataset_id}",
-    }
-
-
-@router.get("/dataset/query/{dataset_id}")
-async def get_query_results(dataset_id: str):
-    """Get query results for a specific dataset"""
-    if dataset_id not in query_results:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No query results available for dataset {dataset_id}",
-        )
-
-    return {
-        "dataset_id": dataset_id,
-        "query": query_results[dataset_id]["query"],
-        "result": query_results[dataset_id]["result"],
     }
