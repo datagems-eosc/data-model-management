@@ -1,6 +1,54 @@
 {
-  "@id": "2cb73873-aaa7-448c-808f-4ef06d557ed1",
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "3a84e4df-a968-47d9-b23e-4457ead63ec5",
   "@type": "sc:Dataset",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "PT",
   "data": [
     {
       "boarding_disembark_desc": "Boarding",
@@ -133,5 +181,22 @@
       "routes_per_hour": null
     }
   ],
-  "name": "Query Result"
+  "datePublished": "24-05-2025",
+  "description": "Dataset generated from CSV file",
+  "fieldOfScience": [
+    "CIVIL ENGINEERING"
+  ],
+  "headline": "Subway data.",
+  "inLanguage": [
+    "el"
+  ],
+  "keywords": [
+    "dev",
+    "keyword"
+  ],
+  "license": "???",
+  "name": "Query Result",
+  "recordSet": [],
+  "url": "",
+  "version": ""
 }

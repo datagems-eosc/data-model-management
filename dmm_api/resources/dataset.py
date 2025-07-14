@@ -152,12 +152,3 @@ async def execute_query(query_data: QueryRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute query: {str(e)}",
         )
-
-
-@router.get("/dataset/query")
-async def get_all_query_results():
-    """Get all available query results"""
-    return {
-        "available_dataset_ids": list(query_results.keys()),
-        "message": "Access specific dataset at /api/v1/dataset/query/{dataset_id}",
-    }
