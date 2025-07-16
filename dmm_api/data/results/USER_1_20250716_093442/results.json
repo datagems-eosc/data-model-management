@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "ec193f9e-d14f-42cd-82d8-ff7671f64922",
+  "@id": "770b8977-462c-4571-b21b-a488eee2997e",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",
@@ -185,10 +185,10 @@
   "description": "Dataset generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10",
   "distribution": [
     {
-      "@id": "078992a7-cd61-4485-bef2-5cfd7ce4494c",
+      "@id": "c4c652ba-6a73-4def-97b1-ba46d2f74d9b",
       "@type": "cr:FileObject",
       "contentSize": "2407043 B",
-      "contentUrl": "dmm_api/data/results/USER_1_20250716_092753/oasa_daily_ridership_1.csv",
+      "contentUrl": "dmm_api/data/results/USER_1_20250716_093442",
       "description": "CSV generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10",
       "encodingFormat": "text/csv",
       "name": "csv_1.csv",

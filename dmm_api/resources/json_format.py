@@ -67,7 +67,7 @@ def create_json(csv_path, query):
                     "@id": new_csv_uuid,
                     "@type": "cr:FileObject",
                     "contentSize": "2407043 B",
-                    "contentUrl": csv_path,
+                    "contentUrl": os.path.dirname(csv_path),
                     "description": f"CSV generated from the query: {query}",
                     "encodingFormat": "text/csv",
                     "name": "csv_1.csv",
