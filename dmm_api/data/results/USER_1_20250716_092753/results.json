@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "3a84e4df-a968-47d9-b23e-4457ead63ec5",
+  "@id": "ec193f9e-d14f-42cd-82d8-ff7671f64922",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",
@@ -182,7 +182,19 @@
     }
   ],
   "datePublished": "24-05-2025",
-  "description": "Dataset generated from CSV file",
+  "description": "Dataset generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10",
+  "distribution": [
+    {
+      "@id": "078992a7-cd61-4485-bef2-5cfd7ce4494c",
+      "@type": "cr:FileObject",
+      "contentSize": "2407043 B",
+      "contentUrl": "dmm_api/data/results/USER_1_20250716_092753/oasa_daily_ridership_1.csv",
+      "description": "CSV generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10",
+      "encodingFormat": "text/csv",
+      "name": "csv_1.csv",
+      "sha256": ""
+    }
+  ],
   "fieldOfScience": [
     "CIVIL ENGINEERING"
   ],
@@ -195,8 +207,7 @@
     "keyword"
   ],
   "license": "???",
-  "name": "Query Result",
-  "recordSet": [],
+  "name": "Query_result",
   "url": "",
   "version": ""
 }

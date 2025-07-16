@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 
-def create_json(csv_path):
+def create_json(csv_path, query):
     """
     Convert a CSV file to JSON format compatible with the API (requires 'nodes' field).
     """
@@ -15,7 +15,9 @@ def create_json(csv_path):
         data_records = df.to_dict(orient="records")
 
         new_dataset_uuid = str(uuid.uuid4())
+        new_csv_uuid = str(uuid.uuid4())
 
+        # "data": data_records is a fake RecordSet
         dataset_node = {
             "@context": {
                 "@language": "en",
@@ -59,15 +61,26 @@ def create_json(csv_path):
             "conformsTo": "",
             "country": "PT",
             "datePublished": "24-05-2025",
-            "description": "Dataset generated from CSV file",
+            "description": f"Dataset generated from the query: {query}",
+            "distribution": [
+                {
+                    "@id": new_csv_uuid,
+                    "@type": "cr:FileObject",
+                    "contentSize": "2407043 B",
+                    "contentUrl": csv_path,
+                    "description": f"CSV generated from the query: {query}",
+                    "encodingFormat": "text/csv",
+                    "name": "csv_1.csv",
+                    "sha256": "",
+                }
+            ],
             "data": data_records,
             "fieldOfScience": ["CIVIL ENGINEERING"],
             "headline": "Subway data.",
             "inLanguage": ["el"],
             "keywords": ["dev", "keyword"],
             "license": "???",
-            "name": "Query Result",
-            "recordSet": [],
+            "name": "Query_result",
             "url": "",
             "version": "",
         }

@@ -137,11 +137,13 @@ async def execute_query(query_data: QueryRequest):
                 detail="Database software must be specified in the Operator node.",
             )
 
-        path = resolve_dataset(dataset_name, csv_name)
+        data_path = resolve_dataset(dataset_name, csv_name)
 
         # execute_query gets called based on the dataset type
-        csv_path = execute_query_csv(csv_name, query, software, path, user_id)
-        dataste_json = create_json(csv_path)
+        csv_path, query = execute_query_csv(
+            csv_name, query, software, data_path, user_id
+        )
+        dataste_json = create_json(csv_path, query)
 
         return dataste_json
 

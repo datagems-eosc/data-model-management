@@ -4,7 +4,7 @@ import duckdb
 
 
 # We will implement different query execution methods based on the data type
-def execute_query_csv(csv_name, query, software, csv_path, user_id):
+def execute_query_csv(csv_name, query, software, data_path, user_id):
     software = software.lower()
     try:
         # Query with DuckDB
@@ -14,7 +14,7 @@ def execute_query_csv(csv_name, query, software, csv_path, user_id):
             conn = duckdb.connect()
             # TODO: change to a PreparedStatements
             replaced_query = query.replace(
-                f"FROM {table_name}", f"FROM read_csv_auto('{csv_path}')"
+                f"FROM {table_name}", f"FROM read_csv_auto('{data_path}')"
             )
             result_df = conn.execute(replaced_query).fetchdf()
             conn.close()
@@ -27,7 +27,7 @@ def execute_query_csv(csv_name, query, software, csv_path, user_id):
             output_path = os.path.join(results_path, csv_name)
             result_df.to_csv(output_path, index=False, header=True)
 
-            return output_path
+            return output_path, query
 
         else:
             raise Exception(f"Unsupported software: {software}")
