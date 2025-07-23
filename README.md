@@ -105,7 +105,7 @@ or
 ```bash
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
-Replace "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763" with the any other <dataset_id>.
+Replace `f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763` with the any other <dataset_id>.
 
 ### 4) Update the dataset with the profile
 
