@@ -143,9 +143,9 @@ async def execute_query(query_data: QueryRequest):
         csv_path, query = execute_query_csv(
             csv_name, query, software, data_path, user_id
         )
-        dataste_json = create_json(csv_path, query)
+        dataset_json = create_json(csv_path, query)
 
-        return dataste_json
+        return dataset_json
 
     except HTTPException:
         raise
