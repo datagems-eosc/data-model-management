@@ -60,27 +60,56 @@ This will also generate your `uv.lock` file
 
 
 ## 2. Running the API
+You can run the API either directly via Python or using Docker.
 
-To start the API server, navigate to the dmm_api directory and run the api.py script:
+### Terminal
+
+To start the API server, open your terminal and navigate to the dmm_api directory.
+
+Run the api.py script:
 
 ```bash
 cd dmm_api
 python api.py
 ```
 
+---
+
+### Docker
+
+Alternatively, run the API using Docker.
+
+Use the provided Dockerfile to build the image:
+```bash
+docker build -t fastapi-image .
+```
+Start a container from the image and mount the results directory:
+```bash
+docker run -d -p 5000:5000 -v /path/to/your/local/results:/app/dmm_api/data/results --name fastapi-container fastapi-image
+```
+Replace `/path/to/your/local/results` with the actual path to your local results directory, e.g., `desktop/repositories/data-model-management/dmm_api/data/results`.
+
 
 ## API Usage Examples
 
-Once the API is running, you can interact with it using curl commands:
+
+Once the API is running, it should be accessible at:
+http://127.0.0.1:5001/api/v1
+
+You can interact with it using curl commands:
 
 ### 1) Check if there is a dataset
 
 To start, you can check if there are any datasets already.
 #### GET all datasets
 ```bash
-curl http://127.0.0.1:5000/api/v1/dataset
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
 ```
-This returns a list of all registered datasets. If none have been uploaded yet, it will return an empty array ([]).
+
+This returns a list of all registered datasets. If none have been uploaded yet, it will return an empty JSON:
+```bash
+{}
+```
 
 ### 2) Upload a dataset
 
@@ -88,24 +117,29 @@ This returns a list of all registered datasets. If none have been uploaded yet, 
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset/register
 ```
-This registers a new dataset using the JSON payload from oasa.json.
+This registers a new dataset using the JSON payload from oasa.json. The output looks like:
+```bash
+{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}
+```
 
 ### 3) Check that the upload worked
 
 #### GET all datasets
 ```bash
-curl http://127.0.0.1:5000/api/v1/dataset
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
+```
+The output looks like:
+```bash
+{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}
 ```
 
 #### GET a specific dataset
 ```bash
-curl http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
-```
-or
-```bash
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
 Replace `f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763` with the any other <dataset_id>.
+
+The output is be the same as the one above, since for now we only have that dataset.
 
 ### 4) Update the dataset with the profile
 
@@ -113,17 +147,20 @@ Replace `f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763` with 
 ```bash
 curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/api/v1/dataset/update
 ```
-This attaches a dataset profile to an existing dataset.
+This attaches a dataset profile to an existing dataset. The output looks like:
+```bash
+{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}
+```
 
 ### 5) Check that the update worked
 
 #### GET a specific dataset
 ```bash
-curl http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
-```
-or
-```bash
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
+```
+The output looks like:
+```bash
+{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}
 ```
 
 ### 6) Query Analytical Pattern
@@ -132,7 +169,16 @@ curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dat
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
 ```
-This sends a query Analytical Pattern to the API. The result will be stored as a new dataset.
+This sends a query Analytical Pattern to the API. The ouput looks like:
+```bash
+{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo" ...},"@id":"6605eaf0-ad44-48df-91fe-0e8a84e658c9","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Dataset generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10","distribution":[{"@id":"d66d7eec-f42b-465f-8525-0bd5112aca3c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"dmm_api/data/results/USER_1_20250716_094408","description":"CSV generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10","encodingFormat":"text/csv","name":"csv_1.csv","sha256":""}], ...}
+```
+
+#### POST a new dataset
+```bash
+TODO
+```
+The result of the Analytical Pattern will be stored as a new dataset.
 
 ### 7) Check that the results of the query are saved as a new dataset
 
@@ -140,13 +186,12 @@ This sends a query Analytical Pattern to the API. The result will be stored as a
 ```bash
 curl http://127.0.0.1:5000/api/v1/dataset
 ```
-You should now see the original dataset and a new dataset representing the query result.
-
+You should now see the original dataset and a new dataset representing the query result. The ouput looks like:
+```bash
+TODO
+```
 ---
 
-## Docker
+## License
 
-To be implemented
-
----
-The uv-python cookiecutter was originally created in [https://github.com/fpgmaas/cookiecutter-uv](https://github.com/fpgmaas/cookiecutter-uv).
+See the [LICENSE](LICENSE) file for license rights and limitations (MIT).
