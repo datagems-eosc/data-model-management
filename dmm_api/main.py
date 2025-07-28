@@ -48,7 +48,7 @@ async def api_home():
             },
             "dataset_query": {
                 "description": "Execute queries on datasets",
-                "methods": ["GET", "POST"],
+                "methods": ["POST"],
                 "url": "/api/v1/dataset/query",
             },
         },

@@ -106,9 +106,9 @@ To start, you can check if there are any datasets already.
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
 ```
 
-This returns a list of all registered datasets. If none have been uploaded yet, it will return an empty JSON:
+This returns a list of all registered datasets. If none have been uploaded yet, it will return:
 ```bash
-{}
+{"status":{"code":200,"message":"Datasets retrieved successfully."},"datasets":[]}
 ```
 
 ### 2) Upload a dataset
@@ -119,7 +119,7 @@ curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.j
 ```
 This registers a new dataset using the JSON payload from oasa.json. The output looks like:
 ```bash
-{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}
+{"status":{"code":201,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 uploaded successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}}
 ```
 
 ### 3) Check that the upload worked
@@ -130,7 +130,7 @@ curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dat
 ```
 The output looks like:
 ```bash
-{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}
+{"status":{"code":200,"message":"Datasets retrieved successfully."},"datasets":[{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}]}
 ```
 
 #### GET a specific dataset
@@ -149,7 +149,7 @@ curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile
 ```
 This attaches a dataset profile to an existing dataset. The output looks like:
 ```bash
-{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}
+{"status":{"code":201,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 updated successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}}
 ```
 
 ### 5) Check that the update worked
@@ -160,7 +160,7 @@ curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dat
 ```
 The output looks like:
 ```bash
-{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}
+{"status":{"code":200,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 retrieved successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}}
 ```
 
 ### 6) Query Analytical Pattern
@@ -171,7 +171,7 @@ curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/
 ```
 This sends a query Analytical Pattern to the API. The ouput looks like:
 ```bash
-{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo" ...},"@id":"6605eaf0-ad44-48df-91fe-0e8a84e658c9","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Dataset generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10","distribution":[{"@id":"d66d7eec-f42b-465f-8525-0bd5112aca3c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"dmm_api/data/results/USER_1_20250716_094408","description":"CSV generated from the query: SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc = 'Boarding' LIMIT 10","encodingFormat":"text/csv","name":"csv_1.csv","sha256":""}], ...}
+TODO
 ```
 
 #### POST a new dataset

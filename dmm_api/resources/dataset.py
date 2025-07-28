@@ -15,89 +15,118 @@ class QueryRequest(BaseModel):
     nodes: List[Dict[str, Any]]
 
 
-class QueryResponse(BaseModel):
-    path: str
+class Status(BaseModel):
+    code: int
+    message: str
+
+
+class DatasetSuccessEnvelope(BaseModel):
+    status: Status
+    dataset: Dict[str, Any]
+
+
+class DatasetsSuccessEnvelope(BaseModel):
+    status: Status
+    datasets: List[Dict[str, Any]]
+
+
+class ErrorEnvelope(BaseModel):
+    status: Status
+    errors: List[str]
 
 
 router = APIRouter()
 
 
 # Endpoints
-@router.get("/dataset")
+@router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_all_datasets():
     """Return all datasets"""
-    return datasets
+    return DatasetsSuccessEnvelope(
+        status=Status(
+            code=status.HTTP_200_OK, message="Datasets retrieved successfully."
+        ),
+        datasets=list(datasets.values()),
+    )
 
 
-@router.get("/dataset/{dataset_id}")
+@router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID"""
     if dataset_id not in datasets:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Dataset not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorEnvelope(
+                status=Status(
+                    code=status.HTTP_404_NOT_FOUND, message="Dataset not found."
+                ),
+                errors=[f"Dataset with UUID {dataset_id} not found."],
+            ).model_dump(),
         )
-    return datasets[dataset_id]
+
+    return DatasetSuccessEnvelope(
+        status=Status(
+            code=status.HTTP_200_OK,
+            message=f"Dataset with UUID {dataset_id} retrieved successfully.",
+        ),
+        dataset=datasets[dataset_id],
+    )
 
 
-@router.post("/dataset/register")
+@router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
 async def register_dataset(dataset: Dict[str, Any]):
     """Receive and store a dataset"""
-    try:
-        if "@id" not in dataset:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required field '@id'",
-            )
+    dataset_id = dataset["@id"]
 
-        dataset_id = dataset["@id"]
-        if dataset_id in datasets:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Dataset with this ID already exists",
-            )
-
-        datasets[dataset_id] = dataset
-        return dataset
-
-    except HTTPException:
-        raise
-    except Exception as e:
+    if dataset_id in datasets:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to store dataset: {str(e)}",
+            status_code=status.HTTP_409_CONFLICT,
+            detail=ErrorEnvelope(
+                status=Status(
+                    code=status.HTTP_409_CONFLICT, message="Dataset already exists."
+                ),
+                errors=[f"Dataset with UUID {dataset_id} already exists."],
+            ).model_dump(),
         )
+
+    datasets[dataset_id] = dataset
+
+    return DatasetSuccessEnvelope(
+        status=Status(
+            code=status.HTTP_201_CREATED,
+            message=f"Dataset with UUID {dataset_id} uploaded successfully.",
+        ),
+        dataset=dataset,
+    )
 
 
 @router.put("/dataset/update")
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
-    try:
-        if "@id" not in dataset:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required field '@id'",
-            )
+    dataset_id = dataset["@id"]
 
-        dataset_id = dataset["@id"]
-        if dataset_id not in datasets:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Dataset with this ID does not exist",
-            )
-
-        datasets[dataset_id] = dataset
-        return dataset
-
-    except HTTPException:
-        raise
-    except Exception as e:
+    if dataset_id not in datasets:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update dataset: {str(e)}",
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorEnvelope(
+                status=Status(
+                    code=status.HTTP_404_NOT_FOUND, message="Dataset does not exist."
+                ),
+                errors=[f"Dataset with UUID {dataset_id} does not exists."],
+            ).model_dump(),
         )
 
+    datasets[dataset_id] = dataset
 
-# @router.post("/dataset/query", response_model=QueryResponse)
+    return DatasetSuccessEnvelope(
+        status=Status(
+            code=status.HTTP_201_CREATED,
+            message=f"Dataset with UUID {dataset_id} updated successfully.",
+        ),
+        dataset=dataset,
+    )
+
+
 @router.post("/dataset/query")
 async def execute_query(query_data: QueryRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
