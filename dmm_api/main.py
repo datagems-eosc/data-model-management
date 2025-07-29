@@ -8,6 +8,7 @@ app = FastAPI(
     title="Dataset API",
     description="API for data and model management",
     version="1.0.0",
+    openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/swagger",
     redoc_url="/api/v1/redoc",
 )
