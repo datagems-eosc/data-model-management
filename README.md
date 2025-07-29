@@ -94,7 +94,7 @@ Replace `/path/to/your/local/results` with the actual path to your local results
 
 
 Once the API is running, it should be accessible at:
-http://127.0.0.1:5001/dmm/api/v1
+http://127.0.0.1:5001/api/v1
 
 You can interact with it using curl commands:
 
@@ -103,7 +103,7 @@ You can interact with it using curl commands:
 To start, you can check if there are any datasets already.
 #### GET all datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/dmm/api/v1/dataset
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
 ```
 
 This returns a list of all registered datasets. If none have been uploaded yet, it will return:
@@ -115,7 +115,7 @@ This returns a list of all registered datasets. If none have been uploaded yet, 
 
 #### POST a dataset
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/dmm/api/v1/dataset/register
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset/register
 ```
 This registers a new dataset using the JSON payload from oasa.json. The output looks like:
 ```bash
@@ -126,7 +126,7 @@ This registers a new dataset using the JSON payload from oasa.json. The output l
 
 #### GET all datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/dmm/api/v1/dataset
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
 ```
 The output looks like:
 ```bash
@@ -135,7 +135,7 @@ The output looks like:
 
 #### GET a specific dataset
 ```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/dmm/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
 Replace `f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763` with the any other <dataset_id>.
 
@@ -145,7 +145,7 @@ The output is be the same as the one above, since for now we only have that data
 
 #### PUT a profile
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/dmm/api/v1/dataset/update
+curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/api/v1/dataset/update
 ```
 This attaches a dataset profile to an existing dataset. The output looks like:
 ```bash
@@ -156,7 +156,7 @@ This attaches a dataset profile to an existing dataset. The output looks like:
 
 #### GET a specific dataset
 ```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/dmm/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
+curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
 ```
 The output looks like:
 ```bash
@@ -167,7 +167,7 @@ The output looks like:
 
 #### POST an Analytical Pattern
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/dmm/api/v1/dataset/query
+curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
 ```
 This sends a query Analytical Pattern to the API. The ouput looks like:
 ```bash
@@ -184,7 +184,7 @@ The result of the Analytical Pattern will be stored as a new dataset.
 
 #### GET all datasets
 ```bash
-curl http://127.0.0.1:5000/dmm/api/v1/dataset
+curl http://127.0.0.1:5000/api/v1/dataset
 ```
 You should now see the original dataset and a new dataset representing the query result. The ouput looks like:
 ```bash
