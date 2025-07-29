@@ -8,24 +8,24 @@ app = FastAPI(
     title="Dataset API",
     description="API for data and model management",
     version="1.0.0",
-    openapi_url="/api/v1/openapi.json",
-    docs_url="/api/v1/swagger",
-    redoc_url="/api/v1/redoc",
+    openapi_url="/dmm/api/v1/openapi.json",
+    docs_url="/dmm/api/v1/swagger",
+    redoc_url="/dmm/api/v1/redoc",
 )
 
 # TODO: check if we need to change the API path prefix
-app.include_router(dataset_router, prefix="/api/v1")
+app.include_router(dataset_router, prefix="/dmm/api/v1")
 
 
 # Root
 @app.get("/", include_in_schema=False)
 async def home():
     """Root endpoint to redirect to API home"""
-    return RedirectResponse(url="/api/v1")
+    return RedirectResponse(url="/dmm/api/v1")
 
 
 # API
-@app.get("/api/v1")
+@app.get("/dmm/api/v1")
 async def api_home():
     """API root endpoint showing available endpoints"""
     return {
@@ -34,23 +34,23 @@ async def api_home():
             "dataset": {
                 "description": "Get all datasets or specific dataset by ID",
                 "methods": ["GET"],
-                "url": "/api/v1/dataset",
-                "example_url": "/api/v1/dataset/dataset_id",
+                "url": "/dmm/api/v1/dataset",
+                "example_url": "/dmm/api/v1/dataset/dataset_id",
             },
             "dataset_register": {
                 "description": "Register a new dataset (POST)",
                 "methods": ["POST"],
-                "url": "/api/v1/dataset/register",
+                "url": "/dmm/api/v1/dataset/register",
             },
             "dataset_update": {
                 "description": "Update an existing dataset after profiling (PUT)",
                 "methods": ["PUT"],
-                "url": "/api/v1/dataset/update",
+                "url": "/dmm/api/v1/dataset/update",
             },
             "dataset_query": {
                 "description": "Execute queries on datasets",
                 "methods": ["POST"],
-                "url": "/api/v1/dataset/query",
+                "url": "/dmm/api/v1/dataset/query",
             },
         },
     }
