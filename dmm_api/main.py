@@ -20,8 +20,8 @@ app.include_router(dataset_router, prefix="/dmm/api/v1")
 # Root
 @app.get("/", include_in_schema=False)
 async def home():
-    """Root endpoint to redirect to API home"""
-    return RedirectResponse(url="/dmm/api/v1")
+    """Root endpoint to redirect to the API home"""
+    return RedirectResponse(url="/api/v1")
 
 
 # API
