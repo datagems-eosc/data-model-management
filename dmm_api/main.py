@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
@@ -11,6 +12,7 @@ app = FastAPI(
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/swagger",
     redoc_url="/api/v1/redoc",
+    root_path=os.getenv("ROOT_PATH", ""),
 )
 
 # TODO: check if we need to change the API path prefix

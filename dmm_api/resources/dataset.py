@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from pydantic import BaseModel
+import httpx
+from pydantic import UUID4, BaseModel, Field
 from typing import Dict, Any, List
 
 from .query_executor import execute_query_csv
@@ -33,6 +34,11 @@ class DatasetsSuccessEnvelope(BaseModel):
 class ErrorEnvelope(BaseModel):
     status: Status
     errors: List[str]
+
+
+# TODO: Use it
+class DatasetRegistration(BaseModel):
+    id: UUID4 = Field(..., alias="@id", description="The unique UUID for the dataset.")
 
 
 router = APIRouter()
@@ -75,29 +81,88 @@ async def get_dataset(dataset_id: str):
 
 @router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
 async def register_dataset(dataset: Dict[str, Any]):
-    """Receive and store a dataset"""
-    dataset_id = dataset["@id"]
+    """Register dataset through MoMa API which stores it in Neo4j"""
+    url = "http://localhost:8000/ingestProfile2MoMa"
+    dataset_id = dataset.get("@id")
+    check_url = f"http://localhost:8000/retrieveMoMaMetadata?id={dataset_id}"
 
-    if dataset_id in datasets:
+    # TODO: use Pydantic Model to validate the JSON
+    if not dataset_id:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
                 status=Status(
-                    code=status.HTTP_409_CONFLICT, message="Dataset already exists."
+                    code=status.HTTP_400_BAD_REQUEST, message="Dataset ID missing"
                 ),
-                errors=[f"Dataset with UUID {dataset_id} already exists."],
+                errors=["Dataset must contain an '@id' field"],
             ).model_dump(),
         )
 
-    datasets[dataset_id] = dataset
+    async with httpx.AsyncClient() as client:
+        try:
+            # Check if a Dataset with such UUID is already stored in the Neo4j
+            check_response = await client.get(check_url)
+            if check_response.status_code == 200:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=ErrorEnvelope(
+                        status=Status(
+                            code=status.HTTP_409_CONFLICT,
+                            message="Dataset already exists",
+                        ),
+                        errors=[
+                            f"Dataset with ID {dataset_id} already exists in Neo4j"
+                        ],
+                    ).model_dump(),
+                )
 
-    return DatasetSuccessEnvelope(
-        status=Status(
-            code=status.HTTP_201_CREATED,
-            message=f"Dataset with UUID {dataset_id} uploaded successfully.",
-        ),
-        dataset=dataset,
-    )
+            # If not, register the new dataset
+            response = await client.post(url, json=dataset)
+            response.raise_for_status()
+
+            return DatasetSuccessEnvelope(
+                status=Status(
+                    code=status.HTTP_201_CREATED,
+                    message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
+                ),
+                dataset=dataset,
+            )
+
+        except httpx.HTTPStatusError as exc:
+            error_detail = exc.response.json().get("detail", exc.response.text)
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    status=Status(
+                        code=status.HTTP_502_BAD_GATEWAY, message="MoMa API error"
+                    ),
+                    errors=[f"Error from MoMa API: {error_detail}"],
+                ).model_dump(),
+            )
+
+        except httpx.RequestError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    status=Status(
+                        code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        message="Service unavailable",
+                    ),
+                    errors=[f"Failed to connect to MoMa API: {str(exc)}"],
+                ).model_dump(),
+            )
+
+        except Exception as exc:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    status=Status(
+                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        message="Internal server error",
+                    ),
+                    errors=[f"Unexpected error: {str(exc)}"],
+                ).model_dump(),
+            )
 
 
 @router.put("/dataset/update")
@@ -123,7 +188,7 @@ async def update_dataset(dataset: Dict[str, Any]):
             code=status.HTTP_201_CREATED,
             message=f"Dataset with UUID {dataset_id} updated successfully.",
         ),
-        dataset=dataset,
+        dataset=dataset.model_dump(by_alias=True),
     )
 
 
