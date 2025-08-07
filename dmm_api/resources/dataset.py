@@ -6,14 +6,10 @@ from typing import Dict, Any, List
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
+from .AP_parser import extract_from_AP, QueryRequest
 
 datasets = {}
 query_results = {}
-
-
-# Pydantic models
-class QueryRequest(BaseModel):
-    nodes: List[Dict[str, Any]]
 
 
 class Status(BaseModel):
@@ -188,6 +184,8 @@ async def update_dataset(dataset: Dict[str, Any]):
             code=status.HTTP_201_CREATED,
             message=f"Dataset with UUID {dataset_id} updated successfully.",
         ),
+        # Check
+        # dataset=dataset,
         dataset=dataset.model_dump(by_alias=True),
     )
 
@@ -196,40 +194,13 @@ async def update_dataset(dataset: Dict[str, Any]):
 async def execute_query(query_data: QueryRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
-        # Extract information from the JSON data
-        dataset_id = None
-        dataset_name = None
-        csv_name = None
-        query = None
-        software = None
-        user_id = None
-
-        for node in query_data.nodes:
-            if node.get("labels") == ["Dataset"]:
-                dataset_name = node.get("properties", {}).get("name")
-            if node.get("labels") == ["FileObject"]:
-                dataset_id = node.get("id")
-                csv_name = node.get("properties", {}).get("name")
-            if node.get("labels") == ["SQL_Operator"]:
-                query = node.get("properties", {}).get("Query")
-                software = node.get("properties", {}).get("Software", {}).get("name")
-            elif node.get("labels") == ["User"]:
-                user_id = node.get("id")
-
-        if not dataset_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Dataset node not found.",
-            )
-        if not query:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Query not found."
-            )
-        if not software:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Database software must be specified in the Operator node.",
-            )
+        extracted_info = extract_from_AP(query_data)
+        # dataset_id = extracted_info.get("dataset_id")
+        dataset_name = extracted_info.get("dataset_name")
+        csv_name = extracted_info.get("csv_name")
+        query = extracted_info.get("query")
+        software = extracted_info.get("software")
+        user_id = extracted_info.get("user_id")
 
         data_path = resolve_dataset(dataset_name, csv_name)
 
