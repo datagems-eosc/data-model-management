@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 import httpx
-from pydantic import UUID4, BaseModel, Field
+from pydantic import BaseModel
 from typing import Dict, Any, List
 
 from .query_executor import execute_query_csv
@@ -12,29 +12,21 @@ datasets = {}
 query_results = {}
 
 
-class Status(BaseModel):
+class DatasetSuccessEnvelope(BaseModel):
     code: int
     message: str
-
-
-class DatasetSuccessEnvelope(BaseModel):
-    status: Status
     dataset: Dict[str, Any]
 
 
 class DatasetsSuccessEnvelope(BaseModel):
-    status: Status
+    code: int
+    message: str
     datasets: List[Dict[str, Any]]
 
 
 class ErrorEnvelope(BaseModel):
-    status: Status
-    errors: List[str]
-
-
-# TODO: Use it
-class DatasetRegistration(BaseModel):
-    id: UUID4 = Field(..., alias="@id", description="The unique UUID for the dataset.")
+    code: int
+    error: str
 
 
 router = APIRouter()
@@ -45,9 +37,8 @@ router = APIRouter()
 async def get_all_datasets():
     """Return all datasets"""
     return DatasetsSuccessEnvelope(
-        status=Status(
-            code=status.HTTP_200_OK, message="Datasets retrieved successfully."
-        ),
+        code=status.HTTP_200_OK,
+        message="Datasets retrieved successfully",
         datasets=list(datasets.values()),
     )
 
@@ -59,18 +50,14 @@ async def get_dataset(dataset_id: str):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorEnvelope(
-                status=Status(
-                    code=status.HTTP_404_NOT_FOUND, message="Dataset not found."
-                ),
-                errors=[f"Dataset with UUID {dataset_id} not found."],
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"Dataset with UUID {dataset_id} not found",
             ).model_dump(),
         )
 
     return DatasetSuccessEnvelope(
-        status=Status(
-            code=status.HTTP_200_OK,
-            message=f"Dataset with UUID {dataset_id} retrieved successfully.",
-        ),
+        code=status.HTTP_200_OK,
+        message=f"Dataset with UUID {dataset_id} retrieved successfully",
         dataset=datasets[dataset_id],
     )
 
@@ -87,10 +74,8 @@ async def register_dataset(dataset: Dict[str, Any]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
-                status=Status(
-                    code=status.HTTP_400_BAD_REQUEST, message="Dataset ID missing"
-                ),
-                errors=["Dataset must contain an '@id' field"],
+                code=status.HTTP_400_BAD_REQUEST,
+                error="Dataset must contain an '@id' field",
             ).model_dump(),
         )
 
@@ -102,13 +87,8 @@ async def register_dataset(dataset: Dict[str, Any]):
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=ErrorEnvelope(
-                        status=Status(
-                            code=status.HTTP_409_CONFLICT,
-                            message="Dataset already exists",
-                        ),
-                        errors=[
-                            f"Dataset with ID {dataset_id} already exists in Neo4j"
-                        ],
+                        code=status.HTTP_409_CONFLICT,
+                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
                     ).model_dump(),
                 )
 
@@ -117,46 +97,35 @@ async def register_dataset(dataset: Dict[str, Any]):
             response.raise_for_status()
 
             return DatasetSuccessEnvelope(
-                status=Status(
-                    code=status.HTTP_201_CREATED,
-                    message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
-                ),
+                code=status.HTTP_201_CREATED,
+                message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
                 dataset=dataset,
             )
 
-        except httpx.HTTPStatusError as exc:
-            error_detail = exc.response.json().get("detail", exc.response.text)
+        except httpx.HTTPStatusError:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
-                    status=Status(
-                        code=status.HTTP_502_BAD_GATEWAY, message="MoMa API error"
-                    ),
-                    errors=[f"Error from MoMa API: {error_detail}"],
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error="Error from MoMa API",
                 ).model_dump(),
             )
 
-        except httpx.RequestError as exc:
+        except httpx.RequestError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=ErrorEnvelope(
-                    status=Status(
-                        code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                        message="Service unavailable",
-                    ),
-                    errors=[f"Failed to connect to MoMa API: {str(exc)}"],
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
                 ).model_dump(),
             )
 
-        except Exception as exc:
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
-                    status=Status(
-                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        message="Internal server error",
-                    ),
-                    errors=[f"Unexpected error: {str(exc)}"],
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error="Unexpected Internal Server error",
                 ).model_dump(),
             )
 
@@ -164,29 +133,23 @@ async def register_dataset(dataset: Dict[str, Any]):
 @router.put("/dataset/update")
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
-    dataset_id = dataset["@id"]
+    dataset_id = dataset.get("@id")
 
     if dataset_id not in datasets:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorEnvelope(
-                status=Status(
-                    code=status.HTTP_404_NOT_FOUND, message="Dataset does not exist."
-                ),
-                errors=[f"Dataset with UUID {dataset_id} does not exists."],
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"Dataset with UUID {dataset_id} does not exists.",
             ).model_dump(),
         )
 
     datasets[dataset_id] = dataset
 
     return DatasetSuccessEnvelope(
-        status=Status(
-            code=status.HTTP_201_CREATED,
-            message=f"Dataset with UUID {dataset_id} updated successfully.",
-        ),
-        # Check
-        # dataset=dataset,
-        dataset=dataset.model_dump(by_alias=True),
+        code=status.status.HTTP_200_OK,
+        message=f"Dataset with ID {dataset_id} updated successfully.",
+        dataset=dataset,
     )
 
 
