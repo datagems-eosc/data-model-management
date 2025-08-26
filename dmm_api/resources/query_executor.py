@@ -21,7 +21,7 @@ def execute_query_csv(csv_name, query, software, data_path, user_id):
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             results_path = os.path.join(
-                "dmm_api/data/results", f"{user_id}_{timestamp}"
+                os.environ.get("RESULTS_PATH"), f"{user_id}_{timestamp}"
             )
             os.makedirs(results_path, exist_ok=True)
             output_path = os.path.join(results_path, csv_name)
