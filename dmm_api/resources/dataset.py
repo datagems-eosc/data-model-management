@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 import httpx
 from pydantic import BaseModel
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
@@ -33,14 +33,56 @@ router = APIRouter()
 
 
 # Endpoints
+# @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
+# async def get_all_datasets():
+#     """Return all datasets"""
+#     return DatasetsSuccessEnvelope(
+#         code=status.HTTP_200_OK,
+#         message="Datasets retrieved successfully",
+#         datasets=list(datasets.values()),
+#     )
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
-async def get_all_datasets():
-    """Return all datasets"""
-    return DatasetsSuccessEnvelope(
-        code=status.HTTP_200_OK,
-        message="Datasets retrieved successfully",
-        datasets=list(datasets.values()),
-    )
+async def get_all_datasets(
+    encoding_format: Optional[str] = Query(
+        None, description="Filter by encoding format (e.g., text/csv)"
+    ),
+):
+    """Return all datasets, with optional filtering"""
+    query_params = {}
+    if encoding_format:
+        query_params["encodingFormat"] = encoding_format
+    # Neo4j API endpoint to be created
+    url = "http://localhost:8000/retrieveMoMaDatasets"
+
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=query_params)
+            response.raise_for_status()
+
+            datasets_from_neo4j = response.json()
+
+            return DatasetsSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message="Datasets retrieved successfully",
+                datasets=datasets_from_neo4j,
+            )
+
+        except httpx.HTTPStatusError:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error="Error from MoMa API",
+                ).model_dump(),
+            )
+        except httpx.RequestError:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
+                ).model_dump(),
+            )
 
 
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
