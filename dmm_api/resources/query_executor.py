@@ -19,10 +19,14 @@ def execute_query_csv(csv_name, query, software, data_path, user_id):
             result_df = conn.execute(replaced_query).fetchdf()
             conn.close()
 
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            results_path = os.path.join(
-                os.environ.get("RESULTS_PATH"), f"{user_id}_{timestamp}"
+            results_base_path = os.environ.get("RESULTS_PATH")
+            results_folder = os.environ.get("RESULTS_FOLDER")
+            final_results_path = os.path.join(
+                results_base_path, results_folder.strip("/")
             )
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            results_path = os.path.join(final_results_path, f"{user_id}_{timestamp}")
             os.makedirs(results_path, exist_ok=True)
             output_path = os.path.join(results_path, csv_name)
             result_df.to_csv(output_path, index=False, header=True)
