@@ -1,3 +1,4 @@
+from enum import Enum
 from fastapi import APIRouter, HTTPException, Query, status
 import httpx
 from pydantic import BaseModel
@@ -41,16 +42,24 @@ router = APIRouter()
 #         message="Datasets retrieved successfully",
 #         datasets=list(datasets.values()),
 #     )
+
+
+class EncodingFormat(str, Enum):
+    csv = "text/csv"
+    pdf = "application/pdf"
+
+
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_all_datasets(
-    encoding_format: Optional[str] = Query(
-        None, description="Filter by encoding format (e.g., text/csv)"
+    encoding_format: Optional[List[EncodingFormat]] = Query(
+        None, description="Filter by encoding format (e.g., text/csv, application/pdf)"
     ),
 ):
     """Return all datasets, with optional filtering"""
     query_params = {}
     if encoding_format:
-        query_params["encodingFormat"] = encoding_format
+        query_params["encodingFormat"] = [ef.value for ef in encoding_format]
+
     # Neo4j API endpoint to be created
     url = "http://localhost:8000/retrieveMoMaDatasets"
 
