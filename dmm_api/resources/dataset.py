@@ -1,4 +1,5 @@
 from enum import Enum
+import os
 from fastapi import APIRouter, HTTPException, Query, status
 import httpx
 from pydantic import BaseModel
@@ -33,15 +34,7 @@ class ErrorEnvelope(BaseModel):
 router = APIRouter()
 
 
-# Endpoints
-# @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
-# async def get_all_datasets():
-#     """Return all datasets"""
-#     return DatasetsSuccessEnvelope(
-#         code=status.HTTP_200_OK,
-#         message="Datasets retrieved successfully",
-#         datasets=list(datasets.values()),
-#     )
+MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
 
 
 class EncodingFormat(str, Enum):
@@ -49,6 +42,7 @@ class EncodingFormat(str, Enum):
     pdf = "application/pdf"
 
 
+# Endpoints
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_all_datasets(
     encoding_format: Optional[List[EncodingFormat]] = Query(
@@ -61,7 +55,7 @@ async def get_all_datasets(
         query_params["encodingFormat"] = [ef.value for ef in encoding_format]
 
     # Neo4j API endpoint to be created
-    url = "http://localhost:8000/retrieveMoMaDatasets"
+    url = f"{MOMA_URL}/retrieveMoMaDatasets"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -96,29 +90,63 @@ async def get_all_datasets(
 
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
-    """Return dataset with a specific ID"""
-    if dataset_id not in datasets:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ErrorEnvelope(
-                code=status.HTTP_404_NOT_FOUND,
-                error=f"Dataset with UUID {dataset_id} not found",
-            ).model_dump(),
-        )
+    """Return dataset with a specific ID from Neo4j via MoMa API"""
+    url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
 
-    return DatasetSuccessEnvelope(
-        code=status.HTTP_200_OK,
-        message=f"Dataset with UUID {dataset_id} retrieved successfully",
-        dataset=datasets[dataset_id],
-    )
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            response.raise_for_status()
+            dataset = response.json()
+            return DatasetSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
+                dataset=dataset,
+            )
+
+        except httpx.HTTPStatusError as exc:
+            if exc.response.status_code == 404:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error=f"Dataset with ID {dataset_id} not found in Neo4j",
+                    ).model_dump(),
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Error from MoMa API: {exc.response.status_code}",
+                    ).model_dump(),
+                )
+
+        except httpx.RequestError:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
+                ).model_dump(),
+            )
+
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error="Unexpected Internal Server error",
+                ).model_dump(),
+            )
 
 
 @router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
 async def register_dataset(dataset: Dict[str, Any]):
     """Register dataset through MoMa API which stores it in Neo4j"""
-    url = "http://localhost:8000/ingestProfile2MoMa"
+    url = f"{MOMA_URL}/ingestProfile2MoMa"
     dataset_id = dataset.get("@id")
-    check_url = f"http://localhost:8000/retrieveMoMaMetadata?id={dataset_id}"
+    check_url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
 
     # TODO: use Pydantic Model to validate the JSON
     if not dataset_id:
@@ -134,7 +162,7 @@ async def register_dataset(dataset: Dict[str, Any]):
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
             check_response = await client.get(check_url)
-            if check_response.status_code == 200:
+            if check_response.status_code != 404:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=ErrorEnvelope(
