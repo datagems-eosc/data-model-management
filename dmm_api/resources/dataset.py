@@ -146,7 +146,7 @@ async def register_dataset(dataset: Dict[str, Any]):
     """Register dataset through MoMa API which stores it in Neo4j"""
     url = f"{MOMA_URL}/ingestProfile2MoMa"
     dataset_id = dataset.get("@id")
-    check_url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
+    # check_url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
 
     # TODO: use Pydantic Model to validate the JSON
     if not dataset_id:
@@ -161,15 +161,15 @@ async def register_dataset(dataset: Dict[str, Any]):
     async with httpx.AsyncClient() as client:
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
-            check_response = await client.get(check_url)
-            if check_response.status_code != 404:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_409_CONFLICT,
-                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                    ).model_dump(),
-                )
+            # check_response = await client.get(check_url)
+            # if check_response.status_code != 404:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_409_CONFLICT,
+            #         detail=ErrorEnvelope(
+            #             code=status.HTTP_409_CONFLICT,
+            #             error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+            #         ).model_dump(),
+            #     )
 
             # If not, register the new dataset
             response = await client.post(url, json=dataset)
