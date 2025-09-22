@@ -1,0 +1,257 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "access": "dg:access",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dg": "http://datagems.eu/TBD",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "uploadedBy": "dg:uploadedBy",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "72d69962ac7de3eced157c8dddacbcc73b7c82bf5581e57586e5ef2ee5b33bcc",
+  "@type": "sc:Dataset",
+  "access": "PUBLIC",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "PT",
+  "datePublished": "24-05-2025",
+  "description": "This dataset was extracted from the MathE platform, an online educational platform developed to support mathematics teaching and learning in higher education. It contains 546 student responses to questions on several mathematical topics. Each record corresponds to an individual answer and includes the following features: Student ID, Student Country, Question ID, Type of Answer (correct or incorrect), Question Level (basic or advanced based on the assessment of the contributing professor), Math Topic (broader mathematical area of the question), Math Subtopic, and Question Keywords. The data spans from February 2019 to December 2023.",
+  "distribution": [
+    {
+      "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b",
+      "@type": "cr:FileObject",
+      "contentSize": "1057461 B",
+      "contentUrl": "",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "mathe_assessment_dataset.csv",
+      "sha256": "1cadacd304e2a9367a4f8effdfa0a7d70bee723d6f4b08b70c58d75e9aae6440"
+    }
+  ],
+  "fieldOfScience": [
+    "MATHEMATICS"
+  ],
+  "headline": "Dataset for Assessing Mathematics Learning in Higher Education.",
+  "inLanguage": [
+    "en"
+  ],
+  "keywords": [
+    "math",
+    "student",
+    "higher education"
+  ],
+  "license": "CC0 1.0",
+  "name": "Mathematics Learning Assessment",
+  "recordSet": [
+    {
+      "@id": "8debcf85-91dc-4fc6-9c55-4da0636c3752",
+      "@type": "cr:RecordSet",
+      "description": "",
+      "field": [
+        {
+          "@id": "bca69aeb-f4f2-4b12-a573-a4201975bade",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "name": "Student ID",
+          "sample": [
+            411,
+            966,
+            591
+          ],
+          "source": {
+            "extract": {
+              "column": "Student ID"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "dcbfb597-c259-43c3-926a-968f93734073",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Student Country",
+          "sample": [
+            "Portugal",
+            "Portugal",
+            "Portugal"
+          ],
+          "source": {
+            "extract": {
+              "column": "Student Country"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "ffc4e597-f3a8-43c4-b34d-b1ec6bdb355a",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "name": "Question ID",
+          "sample": [
+            290,
+            450,
+            317
+          ],
+          "source": {
+            "extract": {
+              "column": "Question ID"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "c92791f0-7594-42c6-8108-6c091093fb1f",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "name": "Type of Answer",
+          "sample": [
+            0,
+            1,
+            0
+          ],
+          "source": {
+            "extract": {
+              "column": "Type of Answer"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "00970ba9-bdf8-4451-83cd-7c24a6311bd0",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Question Level",
+          "sample": [
+            "Advanced",
+            "Basic",
+            "Basic"
+          ],
+          "source": {
+            "extract": {
+              "column": "Question Level"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "26d9b664-2674-47fb-aee0-9568712e4bd6",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Topic",
+          "sample": [
+            "Linear Algebra",
+            "Linear Algebra",
+            "Differentiation"
+          ],
+          "source": {
+            "extract": {
+              "column": "Topic"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "29576281-6d6a-4049-9714-d41821d74226",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Subtopic",
+          "sample": [
+            "Complex Numbers",
+            "Graph Theory",
+            "Vector Spaces"
+          ],
+          "source": {
+            "extract": {
+              "column": "Subtopic"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        },
+        {
+          "@id": "ee3517a2-b5bb-4027-9923-39c3ad15fd4d",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Keywords",
+          "sample": [
+            "Basis,Span,Change-of-basis matrix",
+            "Linear programming,Assignment problem,Excel solver add-in,Simplex method",
+            "Subspace,Basis,Dimension"
+          ],
+          "source": {
+            "extract": {
+              "column": "Keywords"
+            },
+            "fileObject": {
+              "@id": "f879c737-c05d-4dc4-bf20-64ef7741b03b"
+            }
+          }
+        }
+      ],
+      "name": "mathe_assessment_dataset"
+    }
+  ],
+  "uploadedBy": "ADMIN",
+  "url": "https://dados.ipb.pt//dataset.xhtml?persistentId=doi:10.34620/dadosipb/PW3OWY",
+  "version": ""
+}
