@@ -154,16 +154,6 @@ async def register_dataset(dataset: Dict[str, Any]):
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     check_url = f"{MOMA_URL}/getCollection?id={dataset_id}"
 
-    # TODO: use Pydantic Model to validate the JSON
-    # if not dataset_id:
-    #     raise HTTPException(
-    #         status_code=status.HTTP_400_BAD_REQUEST,
-    #         detail=ErrorEnvelope(
-    #             code=status.HTTP_400_BAD_REQUEST,
-    #             error="Dataset must contain an '@id' field",
-    #         ).model_dump(),
-    #     )
-
     async with httpx.AsyncClient() as client:
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
@@ -218,6 +208,7 @@ async def register_dataset(dataset: Dict[str, Any]):
 
 
 @router.put("/dataset/update")
+@router.put("/dataset/final_update")
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
     dataset_id = dataset.get("@id")
