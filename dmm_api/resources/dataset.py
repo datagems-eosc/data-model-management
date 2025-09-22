@@ -37,37 +37,42 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
 
 
-class EncodingFormat(str, Enum):
-    csv = "text/csv"
-    pdf = "application/pdf"
+class DatasetType(str, Enum):
+    PDF = "PDF"
+    RelationalDatabase = "RelationalDatabase"
+    CSV = "CSV"
+    ImageSet = "ImageSet"
+    TextSet = "TextSet"
+    Table = "Table"
 
 
 # Endpoints
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
-async def get_all_datasets(
-    encoding_format: Optional[List[EncodingFormat]] = Query(
-        None, description="Filter by encoding format (e.g., text/csv, application/pdf)"
+async def get_datasets(
+    type: Optional[DatasetType] = Query(
+        None,
+        description="Optional dataset type to filter on. If omitted, all collections are returned.",
     ),
 ):
     """Return all datasets, with optional filtering"""
-    query_params = {}
-    if encoding_format:
-        query_params["encodingFormat"] = [ef.value for ef in encoding_format]
 
-    # Neo4j API endpoint to be created
-    url = f"{MOMA_URL}/retrieveMoMaDatasets"
+    if type:
+        url = f"{MOMA_URL}/listCollectionsByType"
+        params = {"type": type.value}
+        success_msg = f"All datasets of type {type} retrieved successfully"
+    else:
+        url = f"{MOMA_URL}/listCollections"
+        params = {}
+        success_msg = "All datasets retrieved successfully"
 
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(url, params=query_params)
-            response.raise_for_status()
-
-            datasets_from_neo4j = response.json()
-
+            resp = await client.get(url, params=params)
+            resp.raise_for_status()
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
-                message="Datasets retrieved successfully",
-                datasets=datasets_from_neo4j,
+                message=success_msg,
+                datasets=resp.json(),
             )
 
         except httpx.HTTPStatusError:
@@ -78,6 +83,7 @@ async def get_all_datasets(
                     error="Error from MoMa API",
                 ).model_dump(),
             )
+
         except httpx.RequestError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -91,21 +97,14 @@ async def get_all_datasets(
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
+    url = f"{MOMA_URL}/getCollection?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url)
             response.raise_for_status()
             dataset = response.json()
-            return DatasetSuccessEnvelope(
-                code=status.HTTP_200_OK,
-                message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
-                dataset=dataset,
-            )
-
-        except httpx.HTTPStatusError as exc:
-            if exc.response.status_code == 404:
+            if not dataset:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=ErrorEnvelope(
@@ -113,14 +112,21 @@ async def get_dataset(dataset_id: str):
                         error=f"Dataset with ID {dataset_id} not found in Neo4j",
                     ).model_dump(),
                 )
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_502_BAD_GATEWAY,
-                        error=f"Error from MoMa API: {exc.response.status_code}",
-                    ).model_dump(),
-                )
+
+            return DatasetSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
+                dataset=dataset,
+            )
+
+        except httpx.HTTPStatusError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Error from MoMa API: {exc.response.status_code}",
+                ).model_dump(),
+            )
 
         except httpx.RequestError:
             raise HTTPException(
