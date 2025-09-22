@@ -51,17 +51,17 @@ class DatasetType(str, Enum):
 async def get_datasets(
     type: Optional[DatasetType] = Query(
         None,
-        description="Optional dataset type to filter on. If omitted, all collections are returned.",
+        description="Optional dataset type to filter on. If omitted, all datasets are returned.",
     ),
 ):
     """Return all datasets, with optional filtering"""
 
     if type:
-        url = f"{MOMA_URL}/listCollectionsByType"
+        url = f"{MOMA_URL}/listDatasetsByType"
         params = {"type": type.value}
         success_msg = f"All datasets of type {type} retrieved successfully"
     else:
-        url = f"{MOMA_URL}/listCollections"
+        url = f"{MOMA_URL}/listDatasets"
         params = {}
         success_msg = "All datasets retrieved successfully"
 
@@ -97,7 +97,7 @@ async def get_datasets(
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    url = f"{MOMA_URL}/getCollection?id={dataset_id}"
+    url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -152,7 +152,7 @@ async def register_dataset(dataset: Dict[str, Any]):
     """Register dataset through MoMa API which stores it in Neo4j"""
     dataset_id = dataset.get("@id")
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
-    check_url = f"{MOMA_URL}/getCollection?id={dataset_id}"
+    check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -213,7 +213,7 @@ async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
     dataset_id = dataset.get("@id")
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
-    check_url = f"{MOMA_URL}/getCollection?id={dataset_id}"
+    check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
