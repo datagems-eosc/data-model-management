@@ -150,35 +150,37 @@ async def get_dataset(dataset_id: str):
 @router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
 async def register_dataset(dataset: Dict[str, Any]):
     """Register dataset through MoMa API which stores it in Neo4j"""
-    url = f"{MOMA_URL}/ingestProfile2MoMa"
     dataset_id = dataset.get("@id")
-    # check_url = f"{MOMA_URL}/retrieveMoMaMetadata?id={dataset_id}"
+    ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
+    check_url = f"{MOMA_URL}/getCollection?id={dataset_id}"
 
     # TODO: use Pydantic Model to validate the JSON
-    if not dataset_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorEnvelope(
-                code=status.HTTP_400_BAD_REQUEST,
-                error="Dataset must contain an '@id' field",
-            ).model_dump(),
-        )
+    # if not dataset_id:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_400_BAD_REQUEST,
+    #         detail=ErrorEnvelope(
+    #             code=status.HTTP_400_BAD_REQUEST,
+    #             error="Dataset must contain an '@id' field",
+    #         ).model_dump(),
+    #     )
 
     async with httpx.AsyncClient() as client:
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
-            # check_response = await client.get(check_url)
-            # if check_response.status_code != 404:
-            #     raise HTTPException(
-            #         status_code=status.HTTP_409_CONFLICT,
-            #         detail=ErrorEnvelope(
-            #             code=status.HTTP_409_CONFLICT,
-            #             error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-            #         ).model_dump(),
-            #     )
+            check_response = await client.get(check_url)
+            check_response.raise_for_status()
+            existing_dataset = check_response.json()
+            if existing_dataset:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_409_CONFLICT,
+                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+                    ).model_dump(),
+                )
 
             # If not, register the new dataset
-            response = await client.post(url, json=dataset)
+            response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
 
             return DatasetSuccessEnvelope(
@@ -219,23 +221,58 @@ async def register_dataset(dataset: Dict[str, Any]):
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
     dataset_id = dataset.get("@id")
+    ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
+    check_url = f"{MOMA_URL}/getCollection?id={dataset_id}"
 
-    if dataset_id not in datasets:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ErrorEnvelope(
-                code=status.HTTP_404_NOT_FOUND,
-                error=f"Dataset with UUID {dataset_id} does not exists.",
-            ).model_dump(),
-        )
+    async with httpx.AsyncClient() as client:
+        try:
+            check_response = await client.get(check_url)
+            check_response.raise_for_status()
+            existing_dataset = check_response.json()
 
-    datasets[dataset_id] = dataset
+            if not existing_dataset:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+                    ).model_dump(),
+                )
 
-    return DatasetSuccessEnvelope(
-        code=status.status.HTTP_200_OK,
-        message=f"Dataset with ID {dataset_id} updated successfully.",
-        dataset=dataset,
-    )
+            response = await client.post(ingest_url, json=dataset)
+            response.raise_for_status()
+
+            return DatasetSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Dataset with ID {dataset_id} updated successfully in Neo4j",
+                dataset=dataset,
+            )
+        except httpx.HTTPStatusError as exc:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Error from MoMa API: {exc.response.status_code}",
+                ).model_dump(),
+            )
+
+        except httpx.RequestError:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
+                ).model_dump(),
+            )
+
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error="Unexpected internal server error",
+                ).model_dump(),
+            )
 
 
 @router.post("/dataset/query")
