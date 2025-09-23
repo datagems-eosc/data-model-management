@@ -67,12 +67,14 @@ async def get_datasets(
 
     async with httpx.AsyncClient() as client:
         try:
-            resp = await client.get(url, params=params)
-            resp.raise_for_status()
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            datasets = data.get("metadata", {}).get("nodes", [])
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message=success_msg,
-                datasets=resp.json(),
+                datasets=datasets,
             )
 
         except httpx.HTTPStatusError:
