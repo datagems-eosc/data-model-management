@@ -152,22 +152,22 @@ async def register_dataset(dataset: Dict[str, Any]):
     """Register dataset through MoMa API which stores it in Neo4j"""
     dataset_id = dataset.get("@id")
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
-    check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+    # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
-            check_response = await client.get(check_url)
-            check_response.raise_for_status()
-            existing_dataset = check_response.json()
-            if existing_dataset:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_409_CONFLICT,
-                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                    ).model_dump(),
-                )
+            # check_response = await client.get(check_url)
+            # check_response.raise_for_status()
+            # existing_dataset = check_response.json()
+            # if existing_dataset:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_409_CONFLICT,
+            #         detail=ErrorEnvelope(
+            #             code=status.HTTP_409_CONFLICT,
+            #             error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+            #         ).model_dump(),
+            #     )
 
             # If not, register the new dataset
             response = await client.post(ingest_url, json=dataset)
@@ -213,22 +213,22 @@ async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
     dataset_id = dataset.get("@id")
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
-    check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+    # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
-            check_response = await client.get(check_url)
-            check_response.raise_for_status()
-            existing_dataset = check_response.json()
+            # check_response = await client.get(check_url)
+            # check_response.raise_for_status()
+            # existing_dataset = check_response.json()
 
-            if not existing_dataset:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_404_NOT_FOUND,
-                        error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
-                    ).model_dump(),
-                )
+            # if not existing_dataset:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_404_NOT_FOUND,
+            #         detail=ErrorEnvelope(
+            #             code=status.HTTP_404_NOT_FOUND,
+            #             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+            #         ).model_dump(),
+            #     )
 
             response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
