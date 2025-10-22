@@ -140,3 +140,4 @@ cython_debug/
 #.idea/
 
 dmm_api/data/results
+dmm_api/tests/deliverable
