@@ -49,11 +49,6 @@ async def api_home():
                 "methods": ["PUT"],
                 "url": "/api/v1/dataset/update",
             },
-            "dataset_final_update": {
-                "description": "Update an existing dataset after heavy profiling (PUT)",
-                "methods": ["PUT"],
-                "url": "/api/v1/dataset/final_update",
-            },
             "dataset_query": {
                 "description": "Execute queries on datasets",
                 "methods": ["POST"],
