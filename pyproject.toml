@@ -24,6 +24,8 @@ dependencies = [
     "networkx>=3.2.1",
     "pandas>=2.3.0",
     "uvicorn>=0.35.0",
+    "rdflib>=6.3.2",
+    "pydantic>=1.10.0"
 ]
 
 [dependency-groups]
@@ -43,3 +45,7 @@ py-modules = ["dmm_api"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+filterwarnings = [
+    "ignore:ConjunctiveGraph is deprecated, use Dataset instead:DeprecationWarning",
+    "ignore:Dataset.default_context is deprecated, use Dataset.default_graph instead:DeprecationWarning"
+]

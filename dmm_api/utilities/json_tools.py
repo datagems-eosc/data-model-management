@@ -346,3 +346,81 @@ class _JsonLDToPGJSONConverter:
         if "/" in t:
             return t.split("/")[-1]
         return t
+
+
+def convert_pgjson_to_jsonld(
+    pgjson: Dict[str, Any], context: Dict[str, Any] = None
+) -> Dict[str, Any]:
+    """
+    Convert a Property Graph JSON dict back to a JSON-LD dict.
+
+    - If context is provided as an argument, it is used.
+    - Otherwise, context is taken from pgjson['metadata']['context'] if present.
+    - Only the root node and its reachable structure are reconstructed (flat, not full graph traversal).
+    - Edges are used to reconstruct relationships as object properties.
+    """
+    converter = _PGJSONToJsonLDConverter(context=context)
+    return converter.convert(pgjson)
+
+
+class _PGJSONToJsonLDConverter:
+    """
+    Internal class to convert Property Graph JSON (PG-JSON) dicts to JSON-LD dicts.
+
+    - Uses context from argument or from PG-JSON metadata.
+    - Reconstructs the root node and its reachable structure.
+    - Edges are used to reconstruct relationships as object properties.
+    """
+
+    def __init__(self, context: Dict[str, Any] = None) -> None:
+        self.context = context
+
+    def convert(self, pgjson: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(pgjson, dict):
+            raise ValueError(f"Input must be a dictionary, got {type(pgjson)}")
+
+        graph = pgjson.get("graph", {})
+        nodes = {node["id"]: node for node in graph.get("nodes", [])}
+        edges = graph.get("edges", [])
+        metadata = pgjson.get("metadata", {})
+        root_id = metadata.get("root_node")
+
+        # Determine context
+        context = self.context if self.context is not None else metadata.get("context")
+        if context is None:
+            raise ValueError("No context provided in argument or metadata.")
+
+        # Build adjacency for edges
+        from collections import defaultdict
+
+        children = defaultdict(list)
+        relationships = defaultdict(list)
+        for edge in edges:
+            source = edge["source"]
+            target = edge["target"]
+            rel = edge["type"]
+            children[source].append((rel, target))
+            relationships[(source, rel)].append(target)
+
+        def build_jsonld(node_id):
+            node = nodes[node_id]
+            obj = {"@id": node_id}
+            labels = node.get("labels", [])
+            if labels:
+                obj["@type"] = labels[0]
+            # Add properties
+            for k, v in node.get("properties", {}).items():
+                obj[k] = v
+            # Add relationships as object properties
+            for rel, target_id in children.get(node_id, []):
+                # If multiple targets for same rel, make array
+                targets = relationships[(node_id, rel)]
+                if len(targets) == 1:
+                    obj[rel] = build_jsonld(target_id)
+                else:
+                    obj[rel] = [build_jsonld(tid) for tid in targets]
+            return obj
+
+        jsonld = build_jsonld(root_id)
+        jsonld["@context"] = context
+        return jsonld
