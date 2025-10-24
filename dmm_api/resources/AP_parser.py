@@ -2,10 +2,16 @@ import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
+import json
+import uuid
+from dmm_api.config.constants import (
+    CONTEXT_TEMPLATE,
+    REFERENCES_TEMPLATE,
+)
 
 
 class Node(BaseModel):
-    id: str | int
+    id: str | int = Field(..., alias="@id")
     labels: List[str]
     properties: Dict[str, Any]
 
@@ -16,7 +22,7 @@ class Edge(BaseModel):
     labels: List[str] = []
 
 
-class QueryRequest(BaseModel):
+class APRequest(BaseModel):
     nodes: List[Node]
     edges: List[Edge]
     directed: bool = True
@@ -24,16 +30,34 @@ class QueryRequest(BaseModel):
     graph: Dict[str, Any] = {}
 
 
-def json_to_graph(query_data: QueryRequest) -> nx.DiGraph | nx.MultiDiGraph:
+def is_valid_uuid_strict(value):
+    try:
+        uuid.UUID(value)
+        return True
+    except ValueError:
+        return False
+
+
+def json_to_graph(query_data: APRequest) -> nx.DiGraph | nx.MultiDiGraph:
     graph_data = query_data.model_dump(by_alias=True)
-    G = nx.node_link_graph(
-        graph_data, nodes="nodes", edges="edges", source="from", target="to"
-    )
+
+    G = nx.MultiDiGraph() if graph_data.get("multigraph", True) else nx.DiGraph()
+
+    for node in graph_data["nodes"]:
+        G.add_node(
+            node["@id"],
+            labels=node.get("labels", []),
+            properties=node.get("properties", {}),
+        )
+
+    for edge in graph_data["edges"]:
+        G.add_edge(edge["from"], edge["to"], labels=edge.get("labels", []))
+
     return G
 
 
 # Simplified case with only one SQL_Operator, Dataset and FileObject in the AP
-def extract_from_AP(query_data: QueryRequest):
+def extract_from_AP(query_data: APRequest):
     try:
         G = json_to_graph(query_data)
     except Exception as e:
@@ -87,6 +111,7 @@ def extract_from_AP(query_data: QueryRequest):
     file_properties = G.nodes[fileobject_id].get("properties", {})
     extracted_data["dataset_id"] = fileobject_id
     extracted_data["csv_name"] = file_properties.get("name")
+    extracted_data["contentUrl"] = file_properties.get("contentUrl")
 
     user_predecessors = []
     for predecessor_id in G.predecessors(operator_id):
@@ -101,3 +126,87 @@ def extract_from_AP(query_data: QueryRequest):
     extracted_data["user_id"] = user_predecessors[0]
 
     return extracted_data
+
+
+# should I check the edges?
+def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
+    valid_processes = {"register", "update", "load"}
+
+    try:
+        query_data = APRequest.model_validate(ap_payload)
+        G = json_to_graph(query_data)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to parse the Analytical Pattern: {str(e)}",
+        )
+    AP_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "Analytical_Pattern" in attributes.get("labels", []):
+            AP_nodes.append(node_id)
+
+    operator_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "DataModelManagement_Operator" in attributes.get("labels", []):
+            operator_nodes.append(node_id)
+
+    dataset_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "Dataset" in attributes.get("labels", []):
+            dataset_nodes.append(node_id)
+
+    user_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "User" in attributes.get("labels", []):
+            user_nodes.append(node_id)
+
+    if len(AP_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'Analytical_Pattern' node.",
+        )
+
+    if len(operator_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'DataModelManagement_Operator' node.",
+        )
+
+    if len(dataset_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+        )
+
+    if len(user_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'User' node.",
+        )
+
+    # If the dataset_id is not a valid UUID, generate a new one
+    dataset_id = dataset_nodes[0]
+    if not is_valid_uuid_strict(dataset_id):
+        new_dataset_id = str(uuid.uuid4())
+        G = nx.relabel_nodes(G, {dataset_id: new_dataset_id})
+        dataset_id = new_dataset_id
+
+    AP_id = AP_nodes[0]
+    AP_properties = G.nodes[AP_id].get("properties", {})
+    AP_process = AP_properties.get("Process")
+
+    if AP_process not in valid_processes:
+        valid_list = ", ".join(sorted(valid_processes))
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The Analytical Pattern 'Process' must be one of {valid_list}, but found '{AP_process}'.",
+        )
+
+    dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
+    ordered_dataset = {
+        "@context": {**CONTEXT_TEMPLATE, **REFERENCES_TEMPLATE},
+        "@id": dataset_id,
+    }
+    ordered_dataset.update(dataset_properties)
+
+    return json.dumps(ordered_dataset, indent=2)
