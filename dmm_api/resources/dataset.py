@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
-from .AP_parser import extract_from_AP, QueryRequest
+from .AP_parser import extract_from_AP, extract_dataset_from_AP, QueryRequest
 
 datasets = {}
 query_results = {}
@@ -149,12 +149,34 @@ async def get_dataset(dataset_id: str):
             )
 
 
+# TODO: check if dataset with such ID already exists in Neo4j
 @router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
-async def register_dataset(dataset: Dict[str, Any]):
-    """Register dataset through MoMa API which stores it in Neo4j"""
-    dataset_id = dataset.get("@id")
+async def register_dataset(ap_payload: Dict[str, Any]):
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+
+    try:
+        dataset = extract_dataset_from_AP(ap_payload)
+        dataset_id = dataset.get("@id")
+        # This check will be removed after we define JSON validation rules
+        if not dataset_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="Dataset ID is missing",
+                ).model_dump(),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during the dataset extraction: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
 
     async with httpx.AsyncClient() as client:
         try:
@@ -177,7 +199,7 @@ async def register_dataset(dataset: Dict[str, Any]):
 
             return DatasetSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
-                message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
+                message=f"Dataset with ID {dataset_id} registered successfully in Neo4j (via AP)",
                 dataset=dataset,
             )
 
@@ -210,7 +232,6 @@ async def register_dataset(dataset: Dict[str, Any]):
 
 
 @router.put("/dataset/update")
-@router.put("/dataset/final_update")
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
     dataset_id = dataset.get("@id")
