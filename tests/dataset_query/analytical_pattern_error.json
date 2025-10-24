@@ -1,0 +1,165 @@
+{
+  "edges": [
+    {
+      "from": "AP_1",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "OP_1"
+    },
+    {
+      "from": "OP_1",
+      "labels": [
+        "receive_input"
+      ],
+      "to": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763"
+    },
+    {
+      "from": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
+      "labels": [
+        "hasDistribution"
+      ],
+      "to": "e590461a-a632-4ddb-abc0-bc341165e26c"
+    },
+    {
+      "from": "USER_1",
+      "labels": [
+        "intervene"
+      ],
+      "to": "OP_1"
+    },
+    {
+      "from": "TASK_1",
+      "labels": [
+        "is_achieved"
+      ],
+      "to": "AP_1"
+    },
+    {
+      "from": "USER_1",
+      "labels": [
+        "request"
+      ],
+      "to": "TASK_1"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "AP_1",
+      "labels": [
+        "Analytical_Pattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to Query a dataset using SQL",
+        "EndTime": "",
+        "ExecutedBy": "user1",
+        "ExecutionTime": "",
+        "Identifier": "1",
+        "Name": "SQL Dataset Query",
+        "Process": "Query",
+        "PublishedDate": "2025-06-30",
+        "StartTime": "10:00:00"
+      }
+    },
+    {
+      "id": "OP_1",
+      "labels": [
+        "SQL_Operator"
+      ],
+      "properties": {
+        "Description": "Query executed via DuckDB",
+        "EndTime": "",
+        "ExecutedBy": "user1",
+        "ExecutionTime": "",
+        "Identifier": "1",
+        "Name": "DuckDB Query Operator",
+        "Parameters": {
+          "queryType": "SELECT"
+        },
+        "PublishedDate": "2025-06-30",
+        "Query": "SELECT * FROM oasa_daily_ridership_1 WHERE boarding_disembark_desc XERRORX 'Boarding' LIMIT 10",
+        "Software": {
+          "description": "In-process OLAP database for analytical queries",
+          "name": "DuckDB",
+          "url": "https://duckdb.org/"
+        },
+        "StartTime": "10:00:00",
+        "Step": 1,
+        "Type": "SQL Query"
+      }
+    },
+    {
+      "id": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "PT",
+        "datePublished": "24-05-2025",
+        "description": "Subway data",
+        "fieldOfScience": [
+          "CIVIL ENGINEERING"
+        ],
+        "headline": "Subway data.",
+        "inLanguage": [
+          "el"
+        ],
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "???",
+        "name": "oasa",
+        "recordSet": [],
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "id": "e590461a-a632-4ddb-abc0-bc341165e26c",
+      "labels": [
+        "FileObject"
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "oasa_daily_ridership_1.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
+      }
+    },
+    {
+      "id": "USER_1",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Identifier": "USER_1",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "id": "TASK_1",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "APNum": 1,
+        "Description": "Task to execute the SQL query",
+        "Identifier": "1",
+        "Name": "SQL Query Task"
+      }
+    }
+  ]
+}
