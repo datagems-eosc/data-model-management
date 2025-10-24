@@ -25,21 +25,21 @@ class JsonLDValidationError(Exception):
 def _validate_uuid(value: str, field_name: str) -> None:
     """Validate that a string is a valid UUID format."""
     try:
-        uuid.UUID(value)
+        uuid.UUID(value, version=4)
     except (ValueError, AttributeError):
         raise JsonLDValidationError(
-            f"'{field_name}' must be a valid UUID, got '{value}'"
+            f"'{field_name}' must be a valid UUID v4, got '{value}'"
         )
 
 
-def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any]:
+def validate_jsonld(data: Dict[str, Any], strict: bool = True) -> Dict[str, Any]:
     """
     Validate a JSON-LD document provided as a nested dictionary.
 
     Requirements:
     - Must be a dict
     - Must contain '@context' (string | dict | list)
-    - If strict=True, must also contain '@type'
+    - If strict=True, must also contain '@type', default True
     - If '@type' present: str | list[str]
     - If '@id' present: str
     - If Croissant detected in @context and strict=True, check common fields
@@ -53,6 +53,35 @@ def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any
 
     if "@context" not in data:
         raise JsonLDValidationError("JSON-LD document must contain '@context' field")
+
+    # check the dictionary converts correctly to RDFLib JSON-LD (basic structure check)
+    try:
+        _ = json.loads(json.dumps(data))
+    except (TypeError, ValueError) as e:
+        raise JsonLDValidationError(f"JSON-LD document serialization error: {e}")
+
+    # check the dictionary converts correctly to RDF by parsing as JSON-LD and serializing to NTriples
+    try:
+        from rdflib import Dataset
+
+        # Create a new RDF graph
+        g = Dataset()
+
+        # Parse the JSON-LD data into the graph
+        g.parse(data=json.dumps(data), format="json-ld")
+
+        # Try to serialize to NTriples format to verify RDF conversion
+        g.serialize(format="ntriples")
+
+        # Optional: verify we got some triples
+        if len(g) == 0:
+            raise JsonLDValidationError("JSON-LD document produced no RDF triples")
+
+    except JsonLDValidationError:
+        # Re-raise our custom validation errors
+        raise
+    except Exception as e:
+        raise JsonLDValidationError(f"JSON-LD to RDF conversion error: {e}")
 
     context = data["@context"]
     if not isinstance(context, (dict, str, list)):
@@ -83,7 +112,7 @@ def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any
     has_croissant = False
     if isinstance(context, dict):
         for v in context.values():
-            if isinstance(v, str) and "croissant" in v.lower():
+            if isinstance(v, str) and "http://mlcommons.org/croissant/" in v.lower():
                 has_croissant = True
                 break
 
@@ -93,7 +122,11 @@ def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any
     return data
 
 
-def _validate_croissant_structure(data: Dict[str, Any], strict: bool = False) -> None:
+def _validate_croissant_structure(data: Dict[str, Any], strict: bool = True) -> None:
+    """
+    TODO: add more strict validation of fields based on the DataGEMS requirements
+    """
+
     # Ensure dataset-ish type in strict mode
     if "@type" in data:
         t = data["@type"]
@@ -102,6 +135,13 @@ def _validate_croissant_structure(data: Dict[str, Any], strict: bool = False) ->
             raise JsonLDValidationError(
                 "Croissant JSON-LD must have @type containing 'Dataset' (strict)"
             )
+        # Check Dataset has @id and that it is a valid UUID
+        if strict:
+            if "@id" not in data:
+                raise JsonLDValidationError(
+                    "Croissant Dataset must have '@id' field (strict mode)"
+                )
+            _validate_uuid(data["@id"], "@id")
 
     # Common fields in strict mode
     if strict:
@@ -162,7 +202,18 @@ def convert_jsonld_to_pgjson(
 
 
 class _JsonLDToPGJSONConverter:
-    def __init__(self, include_context: bool, generate_ids: bool) -> None:
+    """
+    Internal class to convert JSON-LD dicts to Property Graph JSON (PG-JSON) format.
+
+    - Handles node/edge extraction, ID generation, and property flattening.
+    - If include_context is True and context is present, adds it to the output metadata.
+    - If context is empty or missing, it is NOT included in the final output, even if include_context is True.
+    - No file I/O; operates only on Python dicts.
+    """
+
+    def __init__(
+        self, include_context: bool = False, generate_ids: bool = False
+    ) -> None:
         self.include_context = include_context
         self.generate_ids = generate_ids
         self.nodes: List[Dict[str, Any]] = []
@@ -283,15 +334,11 @@ class _JsonLDToPGJSONConverter:
 
     def _generate_id(self, obj: Dict[str, Any]) -> str:
         """
-        Generate a deterministic UUID for an object without @id.
+        Generate a random UUID v4 for an object without @id.
 
-        Uses UUID5 (SHA-1 based) with a namespace and the object's content
-        to ensure consistent IDs for identical objects.
+        This ensures all generated IDs are valid UUID v4 strings, as required by the validator.
         """
-        # Use JSON representation as the unique identifier
-        content = json.dumps(obj, sort_keys=True)
-        # Generate UUID5 from content (deterministic)
-        return str(uuid.uuid5(uuid.NAMESPACE_DNS, content))
+        return str(uuid.uuid4())
 
     def _clean_type(self, t: str) -> str:
         if ":" in t:

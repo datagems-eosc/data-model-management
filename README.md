@@ -1,5 +1,7 @@
 # dmm-api
 
+> **Note:** All generated `@id` fields in JSON-LD and PG-JSON use [UUID v4](https://datatracker.ietf.org/doc/html/rfc4122) strings. This is strictly enforced for all datasets and objects. Any automatically generated IDs will be valid UUID v4.
+
 [![Commit activity](https://img.shields.io/github/commit-activity/m/datagems-eosc/dmm-api)](https://img.shields.io/github/commit-activity/m/datagems-eosc/dmm-api)
 [![License](https://img.shields.io/github/license/datagems-eosc/dmm-api)](https://img.shields.io/github/license/datagems-eosc/dmm-api)
 
