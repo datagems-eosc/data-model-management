@@ -2,7 +2,6 @@ import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
 from typing import List, Dict, Any
-import json
 import uuid
 from dmm_api.config.constants import (
     CONTEXT_TEMPLATE,
@@ -209,4 +208,4 @@ def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
     }
     ordered_dataset.update(dataset_properties)
 
-    return json.dumps(ordered_dataset, indent=2)
+    return ordered_dataset
