@@ -156,7 +156,11 @@ async def register_dataset(ap_payload: Dict[str, Any]):
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     try:
-        dataset = extract_dataset_from_AP(ap_payload)
+        dataset = extract_dataset_from_AP(
+            ap_payload,
+            expected_ap_process="register",
+            expected_operator_command="create",
+        )
         dataset_id = dataset.get("@id")
         # This check will be removed after we define JSON validation rules
         if not dataset_id:

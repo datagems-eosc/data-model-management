@@ -1,7 +1,7 @@
 import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import uuid
 from dmm_api.config.constants import (
     CONTEXT_TEMPLATE,
@@ -127,10 +127,13 @@ def extract_from_AP(query_data: APRequest):
     return extracted_data
 
 
-# should I check the edges?
-def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
-    valid_processes = {"register", "update", "load"}
-
+# Should I check the edges?
+# def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
+def extract_dataset_from_AP(
+    ap_payload: Dict[str, Any],
+    expected_ap_process: Optional[str] = None,
+    expected_operator_command: Optional[str] = None,
+) -> Dict[str, Any]:
     try:
         query_data = APRequest.model_validate(ap_payload)
         G = json_to_graph(query_data)
@@ -189,23 +192,37 @@ def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
         new_dataset_id = str(uuid.uuid4())
         G = nx.relabel_nodes(G, {dataset_id: new_dataset_id})
         dataset_id = new_dataset_id
+    dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
+    # Check that the dataset has the field 'archivedAt'
+    if "archivedAt" not in dataset_properties:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Dataset node must contain the 'archivedAt' property.",
+        )
+
+    operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
+    operator_process = operator_properties.get("Parameters", {}).get("command")
+
+    if expected_operator_command and operator_process != expected_operator_command:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+        )
 
     AP_id = AP_nodes[0]
     AP_properties = G.nodes[AP_id].get("properties", {})
     AP_process = AP_properties.get("Process")
 
-    if AP_process not in valid_processes:
-        valid_list = ", ".join(sorted(valid_processes))
+    if expected_ap_process and AP_process != expected_ap_process:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"The Analytical Pattern 'Process' must be one of {valid_list}, but found '{AP_process}'.",
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
         )
 
-    dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
-    ordered_dataset = {
+    dataset = {
         "@context": {**CONTEXT_TEMPLATE, **REFERENCES_TEMPLATE},
         "@id": dataset_id,
     }
-    ordered_dataset.update(dataset_properties)
+    dataset.update(dataset_properties)
 
-    return ordered_dataset
+    return dataset
