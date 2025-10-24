@@ -425,60 +425,389 @@ class TestPGJSONToJsonLD:
     def test_pgjson_to_jsonld_nested(self):
         """
         Test conversion of nested PG-JSON graph to JSON-LD.
-        TODO:
-        - Create a PG-JSON dict with a root node and one or more child nodes connected by edges.
-        - Use relationships to represent nested objects (e.g., distribution).
-        - Call convert_pgjson_to_jsonld and check nested structure in output JSON-LD.
-        - Assert nested objects are reconstructed as dicts under the correct property.
         """
-        pass
+        from dmm_api.utilities import convert_pgjson_to_jsonld
+        import uuid
+
+        context = {"@vocab": "https://schema.org/"}
+        dataset_id = "e2a1c2b3-4d5e-4f6a-8b7c-9d0e1f2a3b4c"  # valid UUID v4
+        file_id = "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"  # valid UUID v4
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": dataset_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Test Dataset"},
+                    },
+                    {
+                        "id": file_id,
+                        "labels": ["FileObject"],
+                        "properties": {
+                            "name": "data.csv",
+                            "encodingFormat": "text/csv",
+                        },
+                    },
+                ],
+                "edges": [
+                    {
+                        "source": dataset_id,
+                        "target": file_id,
+                        "type": "distribution",
+                    }
+                ],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 2,
+                "edge_count": 1,
+                "root_node": dataset_id,
+                "context": context,
+            },
+        }
+        expected_jsonld = {
+            "@context": context,
+            "@id": dataset_id,
+            "@type": "Dataset",
+            "name": "Test Dataset",
+            "distribution": {
+                "@id": file_id,
+                "@type": "FileObject",
+                "name": "data.csv",
+                "encodingFormat": "text/csv",
+            },
+        }
+        result = convert_pgjson_to_jsonld(pgjson)
+        # Check that IDs are valid UUID v4
+        assert uuid.UUID(result["@id"]).version == 4
+        assert "distribution" in result
+        dist = result["distribution"]
+        assert isinstance(dist, dict)
+        assert dist["@id"] == file_id
+        assert dist["@type"] == "FileObject"
+        assert dist["name"] == "data.csv"
+        assert dist["encodingFormat"] == "text/csv"
+        # Check top-level fields
+        assert result["@context"] == expected_jsonld["@context"]
+        assert result["@id"] == expected_jsonld["@id"]
+        assert result["@type"] == expected_jsonld["@type"]
+        assert result["name"] == expected_jsonld["name"]
 
     def test_pgjson_to_jsonld_array_relationships(self):
         """
         Test conversion of PG-JSON with array relationships to JSON-LD.
-        TODO:
-        - Create a PG-JSON dict where the root node has multiple edges of the same type to different nodes.
-        - Call convert_pgjson_to_jsonld and check that the property is an array of objects in JSON-LD.
-        - Assert all related nodes are present in the array property.
         """
-        pass
+        from dmm_api.utilities import convert_pgjson_to_jsonld
+        import uuid
+
+        context = {"@vocab": "https://schema.org/"}
+        dataset_id = "d93a4199-5678-4285-a5da-de40b39aba18"  # valid UUID v4
+        file1_id = "54a03eb2-2f71-48e8-9d07-b1179f4bec2b"  # valid UUID v4
+        file2_id = "cf63b5ba-4844-4b50-8ab3-10d40c321393"  # valid UUID v4
+
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": dataset_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Test Dataset"},
+                    },
+                    {
+                        "id": file1_id,
+                        "labels": ["FileObject"],
+                        "properties": {
+                            "name": "data1.csv",
+                            "encodingFormat": "text/csv",
+                        },
+                    },
+                    {
+                        "id": file2_id,
+                        "labels": ["FileObject"],
+                        "properties": {
+                            "name": "data2.csv",
+                            "encodingFormat": "text/csv",
+                        },
+                    },
+                ],
+                "edges": [
+                    {
+                        "source": dataset_id,
+                        "target": file1_id,
+                        "type": "distribution",
+                    },
+                    {
+                        "source": dataset_id,
+                        "target": file2_id,
+                        "type": "distribution",
+                    },
+                ],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 3,
+                "edge_count": 2,
+                "root_node": dataset_id,
+                "context": context,
+            },
+        }
+
+        expected_jsonld = {
+            "@context": context,
+            "@id": dataset_id,
+            "@type": "Dataset",
+            "name": "Test Dataset",
+            "distribution": [
+                {
+                    "@id": file1_id,
+                    "@type": "FileObject",
+                    "name": "data1.csv",
+                    "encodingFormat": "text/csv",
+                },
+                {
+                    "@id": file2_id,
+                    "@type": "FileObject",
+                    "name": "data2.csv",
+                    "encodingFormat": "text/csv",
+                },
+            ],
+        }
+
+        result = convert_pgjson_to_jsonld(pgjson)
+        # Check that IDs are valid UUID v4
+        assert uuid.UUID(result["@id"]).version == 4
+        assert "distribution" in result
+        dist = result["distribution"]
+        assert isinstance(dist, list)
+        assert len(dist) == 2
+        ids = {d["@id"] for d in dist}
+        assert file1_id in ids
+        assert file2_id in ids
+        # Check each file object
+        for d in dist:
+            assert d["@type"] == "FileObject"
+            assert d["encodingFormat"] == "text/csv"
+            assert d["name"] in {"data1.csv", "data2.csv"}
+        # Check top-level fields
+        assert result["@context"] == expected_jsonld["@context"]
+        assert result["@id"] == expected_jsonld["@id"]
+        assert result["@type"] == expected_jsonld["@type"]
+        assert result["name"] == expected_jsonld["name"]
 
     def test_pgjson_to_jsonld_context_argument(self):
         """
         Test context provided as argument overrides metadata context.
-        TODO:
-        - Create a PG-JSON dict with context in metadata.
-        - Call convert_pgjson_to_jsonld with a different context argument.
-        - Assert that the output JSON-LD uses the argument context, not the metadata context.
         """
-        pass
+        from dmm_api.utilities import convert_pgjson_to_jsonld
+        import uuid
+
+        context_meta = {"@vocab": "https://schema.org/"}
+        context_arg = {"@vocab": "https://example.org/"}
+        node_id = "f4d02209-19a8-4eec-a389-826258e11461"  # valid UUID v4
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": node_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Test Dataset"},
+                    }
+                ],
+                "edges": [],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 1,
+                "edge_count": 0,
+                "root_node": node_id,
+                "context": context_meta,
+            },
+        }
+        result = convert_pgjson_to_jsonld(pgjson, context=context_arg)
+        uuid_obj = uuid.UUID(result["@id"])
+        assert result["@id"] == node_id
+        assert uuid_obj.version == 4
+        assert result["@type"] == "Dataset"
+        assert result["name"] == "Test Dataset"
+        assert result["@context"] == context_arg
 
     def test_pgjson_to_jsonld_missing_context(self):
         """
         Test error when no context is provided in argument or metadata.
-        TODO:
-        - Create a PG-JSON dict with no context in metadata.
-        - Call convert_pgjson_to_jsonld with no context argument.
-        - Assert that ValueError is raised for missing context.
         """
-        pass
+        from dmm_api.utilities import convert_pgjson_to_jsonld
 
-    def test_pgjson_to_jsonld_missing_root(self):
+        node_id = "f4d02209-19a8-4eec-a389-826258e11461"  # valid UUID v4
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": node_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Test Dataset"},
+                    }
+                ],
+                "edges": [],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 1,
+                "edge_count": 0,
+                "root_node": node_id,
+                # No context
+            },
+        }
+        import pytest
+
+        with pytest.raises(ValueError, match="No context provided"):
+            convert_pgjson_to_jsonld(pgjson)
+
+    def test_pgjson_to_jsonld_infer_root_node(self):
         """
-        Test error when root node is missing in metadata.
-        TODO:
-        - Create a PG-JSON dict with no root_node in metadata.
-        - Call convert_pgjson_to_jsonld and assert an error is raised (ValueError or KeyError).
+        Test PG-JSON to JSON-LD conversion when no root_node is provided in metadata,
+        and only one node has no incoming edges (should infer root).
         """
-        pass
+        from dmm_api.utilities import convert_pgjson_to_jsonld
+
+        context = {"@vocab": "https://schema.org/"}
+        dataset_id = "e2a1c2b3-4d5e-4f6a-8b7c-9d0e1f2a3b4c"  # valid UUID v4
+        file_id = "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"  # valid UUID v4
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": dataset_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Test Dataset"},
+                    },
+                    {
+                        "id": file_id,
+                        "labels": ["FileObject"],
+                        "properties": {
+                            "name": "data.csv",
+                            "encodingFormat": "text/csv",
+                        },
+                    },
+                ],
+                "edges": [
+                    {
+                        "source": dataset_id,
+                        "target": file_id,
+                        "type": "distribution",
+                    }
+                ],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 2,
+                "edge_count": 1,
+                # No root_node provided
+                "context": context,
+            },
+        }
+        result = convert_pgjson_to_jsonld(pgjson)
+        # Should infer dataset_id as root
+        assert result["@id"] == dataset_id
+        assert result["@context"] == context
+        assert result["@type"] == "Dataset"
+        assert result["name"] == "Test Dataset"
+        dist = result["distribution"]
+        assert isinstance(dist, dict)
+        assert dist["@id"] == file_id
+        assert dist["@type"] == "FileObject"
+        assert dist["name"] == "data.csv"
+        assert dist["encodingFormat"] == "text/csv"
+
+    def test_pgjson_to_jsonld_ambiguous_root(self):
+        """
+        Test error when root node is missing in metadata and multiple nodes have no incoming edges.
+        """
+        from dmm_api.utilities import convert_pgjson_to_jsonld
+        import pytest
+
+        context = {"@vocab": "https://schema.org/"}
+        node1_id = "3aaf5bbd-deff-4a0b-a72e-0b36bff8c813"  # valid UUID v4
+        node2_id = "2d4d2143-bb51-42a8-b06b-c47b15c55994"  # valid UUID v4
+        file_id = "395ead2c-3ea5-41de-93fe-3ca1bcbba147"  # valid UUID v4
+        pgjson = {
+            "graph": {
+                "nodes": [
+                    {
+                        "id": node1_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Dataset 1"},
+                    },
+                    {
+                        "id": node2_id,
+                        "labels": ["Dataset"],
+                        "properties": {"name": "Dataset 2"},
+                    },
+                    {
+                        "id": file_id,
+                        "labels": ["FileObject"],
+                        "properties": {
+                            "name": "data.csv",
+                            "encodingFormat": "text/csv",
+                        },
+                    },
+                ],
+                "edges": [
+                    {
+                        "source": node1_id,
+                        "target": file_id,
+                        "type": "distribution",
+                    },
+                ],
+            },
+            "metadata": {
+                "source_format": "JSON-LD",
+                "node_count": 3,
+                "edge_count": 1,
+                # No root_node provided
+                "context": context,
+            },
+        }
+        # Both node1_id and node2_id have no incoming edges
+        with pytest.raises(ValueError, match="Ambiguous root node"):
+            convert_pgjson_to_jsonld(pgjson)
 
     def test_pgjson_to_jsonld_round_trip(self):
         """
         Test round-trip conversion: JSON-LD -> PG-JSON -> JSON-LD.
-        TODO:
-        - Create a sample JSON-LD dict.
-        - Convert to PG-JSON using convert_jsonld_to_pgjson.
-        - Convert back to JSON-LD using convert_pgjson_to_jsonld.
-        - Assert that the result matches the original JSON-LD (allowing for minor differences in ordering or type normalization).
         """
-        pass
+        from dmm_api.utilities import convert_jsonld_to_pgjson, convert_pgjson_to_jsonld
+        import uuid
+
+        context = {"@vocab": "https://schema.org/"}
+        dataset_id = "e2a1c2b3-4d5e-4f6a-8b7c-9d0e1f2a3b4c"  # valid UUID v4
+        file_id = "a1b2c3d4-5e6f-7a8b-9c0d-1e2f3a4b5c6d"  # valid UUID v4
+        jsonld = {
+            "@context": context,
+            "@id": dataset_id,
+            "@type": "Dataset",
+            "name": "Test Dataset",
+            "distribution": {
+                "@id": file_id,
+                "@type": "FileObject",
+                "name": "data.csv",
+                "encodingFormat": "text/csv",
+            },
+        }
+        # Validate input JSON-LD
+        uuid_obj = uuid.UUID(jsonld["@id"])
+        assert uuid_obj.version == 4
+        # Convert to PG-JSON
+        pgjson = convert_jsonld_to_pgjson(jsonld, include_context=True)
+        # Convert back to JSON-LD
+        result = convert_pgjson_to_jsonld(pgjson)
+        # Check round-trip equivalence (allowing for ordering differences)
+        assert result["@id"] == jsonld["@id"]
+        assert result["@type"] == jsonld["@type"]
+        assert result["@context"] == jsonld["@context"]
+        assert result["name"] == jsonld["name"]
+        dist = result["distribution"]
+        orig_dist = jsonld["distribution"]
+        assert dist["@id"] == orig_dist["@id"]
+        assert dist["@type"] == orig_dist["@type"]
+        assert dist["name"] == orig_dist["name"]
+        assert dist["encodingFormat"] == orig_dist["encodingFormat"]

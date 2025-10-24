@@ -383,7 +383,31 @@ class _PGJSONToJsonLDConverter:
         nodes = {node["id"]: node for node in graph.get("nodes", [])}
         edges = graph.get("edges", [])
         metadata = pgjson.get("metadata", {})
-        root_id = metadata.get("root_node")
+
+        # Check if metadata has root node
+        root_id = metadata.get("root_node", None)
+
+        # If root_id is not found in nodes, find node(s) with no incoming edges
+        if root_id not in nodes:
+            # Find all node ids
+            all_node_ids = set(nodes.keys())
+            # Find all target ids (nodes with incoming edges)
+            target_ids = set(edge["target"] for edge in edges)
+            # Candidates: nodes with no incoming edges
+            candidate_roots = list(all_node_ids - target_ids)
+            if len(candidate_roots) == 1:
+                root_id = candidate_roots[0]
+            elif len(candidate_roots) == 0:
+                raise ValueError(
+                    f"No root node found: root_node '{metadata.get('root_node')}' not in nodes and no node without incoming edges."
+                )
+            else:
+                raise ValueError(
+                    f"Ambiguous root node: root_node '{metadata.get('root_node')}' not in nodes and multiple nodes without incoming edges: {candidate_roots}"
+                )
+
+        if root_id is None:
+            raise ValueError("No root node provided in argument or metadata.")
 
         # Determine context
         context = self.context if self.context is not None else metadata.get("context")

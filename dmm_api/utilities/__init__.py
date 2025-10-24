@@ -7,9 +7,15 @@ Currently exposes JSON tools:
 """
 
 from dmm_api.utilities.json_tools import (
+    convert_jsonld_to_pgjson,
+    convert_pgjson_to_jsonld,
     validate_jsonld,
     JsonLDValidationError,
-    convert_jsonld_to_pgjson,
 )
 
-__all__ = ["validate_jsonld", "JsonLDValidationError", "convert_jsonld_to_pgjson"]
+__all__ = [
+    "convert_jsonld_to_pgjson",
+    "convert_pgjson_to_jsonld",
+    "validate_jsonld",
+    "JsonLDValidationError",
+]
