@@ -44,7 +44,7 @@
     "transform": "cr:transform",
     "wd": "https://www.wikidata.org/wiki/"
   },
-  "@id": "f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763",
+  "@id": "f73815ed-453e-4f32-9fe0-b19c22a6d410",
   "@type": "sc:Dataset",
   "citeAs": "",
   "conformsTo": "",

@@ -22,7 +22,7 @@ class TestJsonLDValidator:
         data = {
             "@context": "https://schema.org/",
             "@type": "Dataset",
-            "@id": "test-dataset",
+            "@id": "f4d02209-19a8-4eec-a389-826258e11461",
             "name": "Test Dataset",
         }
         result = validate_jsonld(data)
@@ -105,13 +105,13 @@ class TestJsonLDValidator:
                 "cr": "http://mlcommons.org/croissant/",
             },
             "@type": "sc:Dataset",
-            "@id": "test-dataset",
+            "@id": "2f0fab38-fb7c-4fb3-8d37-30b79b691aff",
             "name": "Test Dataset",
             "description": "A test dataset",
             "distribution": [
                 {
                     "@type": "cr:FileObject",
-                    "@id": "file-1",
+                    "@id": "0ddf7adf-3ef4-4e1d-8177-416caf646267",
                     "name": "data.csv",
                 }
             ],
@@ -144,7 +144,7 @@ class TestJsonLDToPGJSON:
         data = {
             "@context": "https://schema.org/",
             "@type": "Dataset",
-            "@id": "dataset-1",
+            "@id": "3ac9f9e7-8b29-4c2a-9f4d-e5c6d7a8b9c0",
             "name": "Test Dataset",
             "description": "A test dataset",
         }
@@ -156,7 +156,7 @@ class TestJsonLDToPGJSON:
         assert len(result["graph"]["nodes"]) == 1
 
         node = result["graph"]["nodes"][0]
-        assert node["id"] == "dataset-1"
+        assert node["id"] == "3ac9f9e7-8b29-4c2a-9f4d-e5c6d7a8b9c0"
         assert "Dataset" in node["labels"]
         assert node["properties"]["name"] == "Test Dataset"
         assert node["properties"]["description"] == "A test dataset"
@@ -166,11 +166,11 @@ class TestJsonLDToPGJSON:
         data = {
             "@context": "https://schema.org/",
             "@type": "Dataset",
-            "@id": "dataset-1",
+            "@id": "4bd0f0f8-9c3a-4d3b-8e5f-f6d7e8f9a0b1",
             "name": "Test Dataset",
             "distribution": {
                 "@type": "FileObject",
-                "@id": "file-1",
+                "@id": "5ce1f1f9-0d4b-4e4c-9f6g-g7e8f9g0b1c2",
                 "name": "data.csv",
                 "encodingFormat": "text/csv",
             },
@@ -182,8 +182,8 @@ class TestJsonLDToPGJSON:
 
         # Check edge
         edge = result["graph"]["edges"][0]
-        assert edge["source"] == "dataset-1"
-        assert edge["target"] == "file-1"
+        assert edge["source"] == "4bd0f0f8-9c3a-4d3b-8e5f-f6d7e8f9a0b1"
+        assert edge["target"] == "5ce1f1f9-0d4b-4e4c-9f6g-g7e8f9g0b1c2"
         assert edge["type"] == "distribution"
 
     def test_convert_array_of_objects(self):
@@ -215,7 +215,14 @@ class TestJsonLDToPGJSON:
         assert len(result["graph"]["nodes"]) == 1
         node = result["graph"]["nodes"][0]
         assert node["id"] is not None
-        assert "Dataset_Test Dataset" in node["id"]
+        # Check that generated ID is a valid UUID format
+        import uuid
+
+        try:
+            uuid.UUID(node["id"])
+            assert True  # Valid UUID
+        except ValueError:
+            assert False, f"Generated ID '{node['id']}' is not a valid UUID"
 
     def test_convert_no_generate_ids_error(self):
         """Test error when generate_ids=False and @id is missing."""

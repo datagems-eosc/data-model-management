@@ -13,13 +13,23 @@ Error modes
 
 from __future__ import annotations
 
-import hashlib
 import json
+import uuid
 from typing import Any, Dict, List, Set, Union
 
 
 class JsonLDValidationError(Exception):
     """Raised when JSON-LD validation fails."""
+
+
+def _validate_uuid(value: str, field_name: str) -> None:
+    """Validate that a string is a valid UUID format."""
+    try:
+        uuid.UUID(value)
+    except (ValueError, AttributeError):
+        raise JsonLDValidationError(
+            f"'{field_name}' must be a valid UUID, got '{value}'"
+        )
 
 
 def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any]:
@@ -62,8 +72,12 @@ def validate_jsonld(data: Dict[str, Any], strict: bool = False) -> Dict[str, Any
                 f"'@type' must be a string or array, got {type(type_value)}"
             )
 
-    if "@id" in data and not isinstance(data["@id"], str):
-        raise JsonLDValidationError(f"'@id' must be a string, got {type(data['@id'])}")
+    if "@id" in data:
+        id_value = data["@id"]
+        if not isinstance(id_value, str):
+            raise JsonLDValidationError(f"'@id' must be a string, got {type(id_value)}")
+        # Validate that @id is a valid UUID
+        _validate_uuid(id_value, "@id")
 
     # Croissant detection and additional checks
     has_croissant = False
@@ -107,6 +121,9 @@ def _validate_croissant_structure(data: Dict[str, Any], strict: bool = False) ->
                 raise JsonLDValidationError(
                     f"distribution[{idx}] must be an object, got {type(item)}"
                 )
+            # Validate @id in distribution items
+            if "@id" in item:
+                _validate_uuid(item["@id"], f"distribution[{idx}].@id")
 
     # Validate recordSet
     if "recordSet" in data:
@@ -118,6 +135,9 @@ def _validate_croissant_structure(data: Dict[str, Any], strict: bool = False) ->
                 raise JsonLDValidationError(
                     f"recordSet[{idx}] must be an object, got {type(item)}"
                 )
+            # Validate @id in recordSet items
+            if "@id" in item:
+                _validate_uuid(item["@id"], f"recordSet[{idx}].@id")
 
 
 def convert_jsonld_to_pgjson(
@@ -262,19 +282,16 @@ class _JsonLDToPGJSONConverter:
         self.edges.append(edge)
 
     def _generate_id(self, obj: Dict[str, Any]) -> str:
-        if "name" in obj:
-            base = f"{obj.get('@type', 'node')}_{obj['name']}"
-        else:
-            content = json.dumps(obj, sort_keys=True)
-            hash_val = hashlib.sha256(content.encode()).hexdigest()[:16]
-            base = f"node_{hash_val}"
+        """
+        Generate a deterministic UUID for an object without @id.
 
-        candidate = base
-        counter = 0
-        while candidate in self.node_ids:
-            counter += 1
-            candidate = f"{base}_{counter}"
-        return candidate
+        Uses UUID5 (SHA-1 based) with a namespace and the object's content
+        to ensure consistent IDs for identical objects.
+        """
+        # Use JSON representation as the unique identifier
+        content = json.dumps(obj, sort_keys=True)
+        # Generate UUID5 from content (deterministic)
+        return str(uuid.uuid5(uuid.NAMESPACE_DNS, content))
 
     def _clean_type(self, t: str) -> str:
         if ":" in t:
