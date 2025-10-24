@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
-from .AP_parser import extract_from_AP, extract_dataset_from_AP, QueryRequest
+from .AP_parser import extract_from_AP, extract_dataset_from_AP, APRequest
 
 datasets = {}
 query_results = {}
@@ -290,7 +290,7 @@ async def update_dataset(dataset: Dict[str, Any]):
 
 
 @router.post("/dataset/query")
-async def execute_query(query_data: QueryRequest):
+async def execute_query(query_data: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
         extracted_info = extract_from_AP(query_data)
