@@ -151,7 +151,7 @@ async def get_dataset(dataset_id: str):
 
 # TODO: check if dataset with such ID already exists in Neo4j
 @router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
-async def register_dataset(ap_payload: Dict[str, Any]):
+async def register_dataset(ap_payload: APRequest):
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 

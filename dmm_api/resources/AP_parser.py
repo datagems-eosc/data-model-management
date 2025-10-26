@@ -130,13 +130,12 @@ def extract_from_AP(query_data: APRequest):
 # Should I check the edges?
 # def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
 def extract_dataset_from_AP(
-    ap_payload: Dict[str, Any],
+    ap_payload: APRequest,
     expected_ap_process: Optional[str] = None,
     expected_operator_command: Optional[str] = None,
 ) -> Dict[str, Any]:
     try:
-        query_data = APRequest.model_validate(ap_payload)
-        G = json_to_graph(query_data)
+        G = json_to_graph(ap_payload)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
