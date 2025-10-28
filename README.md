@@ -1,7 +1,5 @@
 # dmm-api
 
-> **Note:** All generated `@id` fields in JSON-LD and PG-JSON use [UUID v4](https://datatracker.ietf.org/doc/html/rfc4122) strings. This is strictly enforced for all datasets and objects. Any automatically generated IDs will be valid UUID v4.
-
 [![Commit activity](https://img.shields.io/github/commit-activity/m/datagems-eosc/dmm-api)](https://img.shields.io/github/commit-activity/m/datagems-eosc/dmm-api)
 [![License](https://img.shields.io/github/license/datagems-eosc/dmm-api)](https://img.shields.io/github/license/datagems-eosc/dmm-api)
 
@@ -103,6 +101,7 @@ You can interact with it using curl commands:
 ### 1) Check if there is a dataset
 
 To start, you can check if there are any datasets already.
+
 #### GET all datasets
 ```bash
 curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
@@ -193,6 +192,12 @@ You should now see the original dataset and a new dataset representing the query
 TODO
 ```
 ---
+
+## Common Conventions
+
+> **UUIDs:** All generated `@id` fields in JSON-LD and PG-JSON use [UUID v4](https://datatracker.ietf.org/doc/html/rfc4122) strings. This is strictly enforced for all datasets and objects. Any automatically generated IDs will be valid UUID v4.
+
+
 
 ## License
 
