@@ -40,12 +40,17 @@ async def api_home():
                 "example_url": "/api/v1/dataset/dataset_id",
             },
             "dataset_register": {
-                "description": "Register a new dataset (POST)",
+                "description": "Register a new dataset",
                 "methods": ["POST"],
                 "url": "/api/v1/dataset/register",
             },
+            "dataset_load": {
+                "description": "Move a dataset from the scratchpad",
+                "methods": ["POST"],
+                "url": "/api/v1/dataset/load",
+            },
             "dataset_update": {
-                "description": "Update an existing dataset after light profiling (PUT)",
+                "description": "Update an existing dataset after light profiling",
                 "methods": ["PUT"],
                 "url": "/api/v1/dataset/update",
             },

@@ -235,6 +235,10 @@ async def register_dataset(ap_payload: APRequest):
             )
 
 
+@router.put("/dataset/load")
+async def load_dataset(dataset: Dict[str, Any]): ...
+
+
 @router.put("/dataset/update")
 async def update_dataset(dataset: Dict[str, Any]):
     """Update an existing dataset with new data after profiling"""
