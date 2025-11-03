@@ -5,12 +5,14 @@ from typing import Dict, Any
 
 
 def upload_dataset_to_scratchpad(dataset: Dict[str, Any], dataset_id: str) -> None:
-    SCRATCHPAD_DIR = os.getenv("SCRATCHPAD_DIR")
+    SCRATCHPAD_DIR = os.getenv("SCRATCHPAD_DIR", "/s3/scratchpad")
     try:
-        target_path = Path(SCRATCHPAD_DIR) / dataset_id
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        # Create a dummy file to simulate dataset upload
-        with open(target_path, "w") as f:
+        scratchpad_folder = Path(SCRATCHPAD_DIR) / dataset_id
+        scratchpad_folder.mkdir(parents=True, exist_ok=True)
+
+        # Write the dataset as a JSON
+        dataset_file = scratchpad_folder / "dataset.json"
+        with open(dataset_file, "w") as f:
             json.dump(dataset, f, indent=4)
 
     except Exception as e:
