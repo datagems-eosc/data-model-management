@@ -19,7 +19,7 @@ def execute_query_csv(csv_name, query, software, data_path, user_id):
             result_df = conn.execute(replaced_query).fetchdf()
             conn.close()
 
-            results_base_path = os.environ.get("RESULTS_PATH")
+            results_base_path = os.environ.get("RESULTS_DIR")
             results_folder = os.environ.get("RESULTS_FOLDER")
             final_results_path = os.path.join(
                 results_base_path, results_folder.strip("/")
