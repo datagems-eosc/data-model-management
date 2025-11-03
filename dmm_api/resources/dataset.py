@@ -224,7 +224,7 @@ async def register_dataset(ap_payload: APRequest):
             return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
                 message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
-                ap=ap_payload,
+                ap=ap_payload.model_dump(),
             )
 
         except httpx.HTTPStatusError:
