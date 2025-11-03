@@ -1,4 +1,4 @@
-from dmm_api.tools.parse_AP import APRequest
+from dmm_api.tools.AP.parse_AP import APRequest
 
 
 def update_dataset_field(

@@ -10,13 +10,14 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
-from ..tools.parse_AP import (
+from ..tools.AP.parse_AP import (
     extract_from_AP,
     extract_dataset_from_AP,
     extract_dataset_path_from_AP,
     APRequest,
 )
-from ..tools.update_AP import update_dataset_field
+from ..tools.AP.update_AP import update_dataset_field
+from ..tools.S3 import upload_dataset_to_scratchpad
 
 datasets = {}
 query_results = {}
@@ -228,6 +229,9 @@ async def register_dataset(ap_payload: APRequest):
                 print(f"Dataset {dataset_id} sent to the AP Storage API.")
             except Exception as e:
                 print(f"AP Storage API not working: {e}")
+
+            # Temporary function to upload the dataset to S3/scratchpad
+            upload_dataset_to_scratchpad(dataset, dataset_id)
 
             return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
