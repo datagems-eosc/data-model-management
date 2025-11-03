@@ -17,7 +17,7 @@ from ..tools.AP.parse_AP import (
     APRequest,
 )
 from ..tools.AP.update_AP import update_dataset_field
-from ..tools.S3 import upload_dataset_to_scratchpad
+from ..tools.S3.dataset_in_scratchpad import upload_dataset_to_scratchpad
 
 datasets = {}
 query_results = {}
