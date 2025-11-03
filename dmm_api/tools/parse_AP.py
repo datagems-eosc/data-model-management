@@ -1,7 +1,7 @@
 import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import uuid
 from dmm_api.config.constants import (
     CONTEXT_TEMPLATE,
@@ -29,9 +29,13 @@ class APRequest(BaseModel):
     graph: Dict[str, Any] = {}
 
 
-def is_valid_uuid_strict(value):
+# TODO: ErrorEnvelope
+
+
+# check if a string is a valid UUID and version 4
+def is_valid_uuid(value):
     try:
-        uuid.UUID(value)
+        uuid.UUID(value, version=4)
         return True
     except ValueError:
         return False
@@ -127,13 +131,12 @@ def extract_from_AP(query_data: APRequest):
     return extracted_data
 
 
-# Should I check the edges?
-# def extract_dataset_from_AP(ap_payload: Dict[str, Any]) -> Dict[str, Any]:
+# TODO: check the edges too
 def extract_dataset_from_AP(
     ap_payload: APRequest,
     expected_ap_process: Optional[str] = None,
     expected_operator_command: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], str]:
     try:
         G = json_to_graph(ap_payload)
     except Exception as e:
@@ -187,10 +190,13 @@ def extract_dataset_from_AP(
 
     # If the dataset_id is not a valid UUID, generate a new one
     dataset_id = dataset_nodes[0]
-    if not is_valid_uuid_strict(dataset_id):
+    old_dataset_id = dataset_id
+
+    if not is_valid_uuid(dataset_id):
         new_dataset_id = str(uuid.uuid4())
         G = nx.relabel_nodes(G, {dataset_id: new_dataset_id})
         dataset_id = new_dataset_id
+
     dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
     # Check that the dataset has the field 'archivedAt'
     if "archivedAt" not in dataset_properties:
@@ -224,4 +230,4 @@ def extract_dataset_from_AP(
     }
     dataset.update(dataset_properties)
 
-    return dataset
+    return dataset, old_dataset_id

@@ -8,10 +8,17 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
-from .AP_parser import extract_from_AP, extract_dataset_from_AP, APRequest
+from ..tools.parse_AP import extract_from_AP, extract_dataset_from_AP, APRequest
+from ..tools.update_AP import update_dataset_field
 
 datasets = {}
 query_results = {}
+
+
+class APSuccessEnvelope(BaseModel):
+    code: int
+    message: str
+    ap: Dict[str, Any]
 
 
 class DatasetSuccessEnvelope(BaseModel):
@@ -149,19 +156,20 @@ async def get_dataset(dataset_id: str):
             )
 
 
-# TODO: check if dataset with such ID already exists in Neo4j
-@router.post("/dataset/register", response_model=DatasetSuccessEnvelope)
+# TODO: check if dataset with such ID already exists in Neo4j (or using RDF)
+@router.post("/dataset/register", response_model=APSuccessEnvelope)
 async def register_dataset(ap_payload: APRequest):
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     try:
-        dataset = extract_dataset_from_AP(
+        dataset, old_dataset_id = extract_dataset_from_AP(
             ap_payload,
             expected_ap_process="register",
             expected_operator_command="create",
         )
         dataset_id = dataset.get("@id")
+
         # This check will be removed after we define JSON validation rules
         if not dataset_id:
             raise HTTPException(
@@ -182,6 +190,12 @@ async def register_dataset(ap_payload: APRequest):
             ).model_dump(),
         )
 
+    if dataset_id != old_dataset_id:
+        try:
+            update_dataset_field(ap_payload, old_dataset_id, dataset_id)
+        except Exception as e:
+            print(f"Warning: Failed to update the Dataset ID: {e}")
+
     async with httpx.AsyncClient() as client:
         try:
             # Check if a Dataset with such UUID is already stored in the Neo4j
@@ -201,10 +215,16 @@ async def register_dataset(ap_payload: APRequest):
             response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
 
-            return DatasetSuccessEnvelope(
+            # Fake forward to AP Storage API
+            try:
+                print(f"Dataset {dataset_id} sent to the AP Storage API.")
+            except Exception as e:
+                print(f"AP Storage API not working: {e}")
+
+            return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
-                message=f"Dataset with ID {dataset_id} registered successfully in Neo4j (via AP)",
-                dataset=dataset,
+                message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
+                ap=ap_payload,
             )
 
         except httpx.HTTPStatusError:
