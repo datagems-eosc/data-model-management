@@ -1,14 +1,14 @@
 {
   "edges": [
     {
-      "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
       "labels": [
         "consist_of"
       ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
+      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
     },
     {
-      "from": "69ce4693-e71e-4616-9320-037c90a88858",
+      "from": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
       "labels": [
         "input"
       ],
@@ -19,49 +19,50 @@
       "labels": [
         "intervene"
       ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
+      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
     },
     {
-      "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
       "labels": [
         "is_accomplished"
       ],
-      "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
+      "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "request"
       ],
-      "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
+      "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd"
     }
   ],
   "nodes": [
     {
-      "@id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "@id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
       "labels": [
         "Analytical_Pattern"
       ],
       "properties": {
-        "Description": "Analytical Pattern to register a dataset",
-        "Name": "Register Dataset AP",
-        "Process": "register",
+        "Description": "Analytical Pattern to load a dataset",
+        "Name": "Load Dataset AP",
+        "Process": "load",
         "PublishedDate": "2025-06-30",
         "StartTime": "10:00:00"
       }
     },
     {
-      "@id": "69ce4693-e71e-4616-9320-037c90a88858",
+      "@id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
       "labels": [
         "DataModelManagement_Operator"
       ],
       "properties": {
-        "Description": "An operator to register a dataset into DataGEMS",
-        "Name": "Register Operator",
+        "Description": "An operator to load a dataset into s3/dataset",
+        "Name": "Load Operator",
         "Parameters": {
-          "command": "create"
+          "command": "update"
         },
         "PublishedDate": "2025-06-30",
+        "Software": {},
         "StartTime": "10:00:00",
         "Step": 1
       }
@@ -72,25 +73,26 @@
         "Dataset"
       ],
       "properties": {
+        "@type": "sc:Dataset",
         "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947",
         "citeAs": "",
         "conformsTo": "",
-        "country": "PT",
+        "country": "FR",
         "datePublished": "24-05-2025",
-        "description": "Subway data",
+        "description": "Weather data",
         "fieldOfScience": [
-          "CIVIL ENGINEERING"
+          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
         ],
-        "headline": "Subway data.",
+        "headline": "Weather data.",
         "inLanguage": [
-          "el"
+          "fr"
         ],
         "keywords": [
           "dev",
           "keyword"
         ],
         "license": "Public Domain",
-        "name": "OASA Data",
+        "name": "weather_data_fr",
         "url": "",
         "version": ""
       }
@@ -111,13 +113,13 @@
       }
     },
     {
-      "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "@id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
       "labels": [
         "Task"
       ],
       "properties": {
-        "Description": "Task to register a dataset",
-        "Name": "Dataset Registering Task"
+        "Description": "Task to change storage location of a dataset",
+        "Name": "Dataset Loading Task"
       }
     }
   ]

@@ -26,7 +26,7 @@ class APRequest(BaseModel):
     edges: List[Edge]
     directed: bool = True
     multigraph: bool = True
-    graph: Dict[str, Any] = {}
+    # graph: Dict[str, Any] = {}
 
 
 # TODO: ErrorEnvelope
@@ -231,3 +231,84 @@ def extract_dataset_from_AP(
     dataset.update(dataset_properties)
 
     return dataset, old_dataset_id
+
+
+def extract_dataset_path_from_AP(
+    ap_payload: APRequest,
+    expected_ap_process: Optional[str] = None,
+    expected_operator_command: Optional[str] = None,
+) -> Tuple[Dict[str, Any], str]:
+    try:
+        G = json_to_graph(ap_payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to parse the Analytical Pattern: {str(e)}",
+        )
+    AP_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "Analytical_Pattern" in attributes.get("labels", []):
+            AP_nodes.append(node_id)
+
+    operator_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "DataModelManagement_Operator" in attributes.get("labels", []):
+            operator_nodes.append(node_id)
+
+    dataset_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "Dataset" in attributes.get("labels", []):
+            dataset_nodes.append(node_id)
+
+    user_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "User" in attributes.get("labels", []):
+            user_nodes.append(node_id)
+
+    if len(AP_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'Analytical_Pattern' node.",
+        )
+
+    if len(operator_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'DataModelManagement_Operator' node.",
+        )
+
+    if len(dataset_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+        )
+
+    if len(user_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'User' node.",
+        )
+
+    dataset_id = dataset_nodes[0]
+    dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
+
+    operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
+    operator_process = operator_properties.get("Parameters", {}).get("command")
+
+    if expected_operator_command and operator_process != expected_operator_command:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+        )
+
+    AP_id = AP_nodes[0]
+    AP_properties = G.nodes[AP_id].get("properties", {})
+    AP_process = AP_properties.get("Process")
+
+    if expected_ap_process and AP_process != expected_ap_process:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
+        )
+
+    return dataset_properties.get("archivedAt")

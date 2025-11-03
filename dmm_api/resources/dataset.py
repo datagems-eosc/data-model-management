@@ -1,5 +1,7 @@
 from enum import Enum
 import os
+from pathlib import Path
+import shutil
 from fastapi import APIRouter, HTTPException, Query, status
 import httpx
 from pydantic import BaseModel
@@ -8,7 +10,12 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 from .data_resolver import resolve_dataset
 from .json_format import create_json
-from ..tools.parse_AP import extract_from_AP, extract_dataset_from_AP, APRequest
+from ..tools.parse_AP import (
+    extract_from_AP,
+    extract_dataset_from_AP,
+    extract_dataset_path_from_AP,
+    APRequest,
+)
 from ..tools.update_AP import update_dataset_field
 
 datasets = {}
@@ -157,6 +164,7 @@ async def get_dataset(dataset_id: str):
 
 
 # TODO: check if dataset with such ID already exists in Neo4j (or using RDF)
+# TODO: script that upload the dataset to the s3 scratchpad
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
 async def register_dataset(ap_payload: APRequest):
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
@@ -224,7 +232,7 @@ async def register_dataset(ap_payload: APRequest):
             return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
                 message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
-                ap=ap_payload.model_dump(),
+                ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
 
         except httpx.HTTPStatusError:
@@ -256,7 +264,69 @@ async def register_dataset(ap_payload: APRequest):
 
 
 @router.put("/dataset/load")
-async def load_dataset(dataset: Dict[str, Any]): ...
+async def load_dataset(ap_payload: APRequest):
+    DATASET_DIR = os.getenv("DATASET_DIR")
+    try:
+        dataset_path = extract_dataset_path_from_AP(
+            ap_payload,
+            expected_ap_process="load",
+            expected_operator_command="update",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during the dataset path extraction: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    try:
+        if not dataset_path.startswith("s3://"):
+            raise ValueError("Invalid S3 URI. Must start with s3://")
+
+        path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
+        _, dataset_id = path_without_s3_prefix.split("/", 1)
+
+        source_path = Path("/s3") / path_without_s3_prefix
+        target_path = Path(DATASET_DIR) / dataset_id
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Source dataset not found at expected location: {source_path}"
+            )
+
+        shutil.move(str(source_path), str(target_path))
+        new_path = f"s3://dataset/{dataset_id}"
+
+        return APSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message=f"Dataset moved from {dataset_path} to {new_path}",
+            ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+        )
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorEnvelope(
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"{str(e)}",
+            ).model_dump(),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error=f"Invalid input format: {str(e)}",
+            ).model_dump(),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
 
 
 @router.put("/dataset/update")
