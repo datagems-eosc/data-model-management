@@ -71,11 +71,12 @@ class DatasetType(str, Enum):
 
 
 # Endpoints
+
+
 # Temporary router to upload the dataset to S3/scratchpad
-@router.get("/data-workflow", response_model=DatasetsSuccessEnvelope)
+@router.post("/data-workflow", response_model=DatasetsSuccessEnvelope)
 async def data_workflow(file: bytes, file_name: str, dataset_id: str):
     """Handle data workflow by uploading files and assigning metadata."""
-
     # Call the upload function to upload the dataset to the scratchpad
     try:
         s3path = upload_dataset_to_scratchpad(file, file_name, dataset_id)
@@ -109,7 +110,6 @@ async def get_datasets(
     """Return all datasets, with optional filtering"""
 
     # TODO: implement filtering by dataset state "Ready"
-
     if type:
         url = f"{MOMA_URL}/listDatasetsByType"
         params = {"type": type.value}
@@ -204,7 +204,6 @@ async def get_dataset(dataset_id: str):
 
 
 # TODO: check if dataset with such ID already exists in Neo4j (or using RDF)
-# TODO: script that upload the dataset to the s3 scratchpad
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
 async def register_dataset(ap_payload: APRequest):
     """Register a new dataset in Neo4j"""
