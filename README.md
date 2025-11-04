@@ -55,8 +55,391 @@ This will also generate your `uv.lock` file
 ---
 
 
+## API Usage Examples
+The API is available at:
+https://datagems-dev.scayle.es/dmm/api/v1
 
-## 2. Running the API
+You can interact with it using curl commands, going into the ddm_api folder:
+
+```bash
+cd dmm_api
+```
+
+
+### 1) Upload a Dataset to s3
+
+After registering a dataset, upload the actual data file using the data-workflow endpoint:
+
+#### POST a file to data-workflow
+```bash
+curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
+  -F "file=@data/oasa/oasa_daily_ridership_1.csv" \
+  -F "file_name=oasa.csv" \
+  -F "dataset_id=475e6aa3-9c56-4360-aace-631888242947"
+```
+The API returns:
+```json
+{
+  "code": 201,
+  "message": "Dataset oasa.csv uploaded successfully with ID 475e6aa3-9c56-4360-aace-631888242947 at /s3/scratchpad 475e6aa3-9c56-4360-aace-631888242947",
+  "dataset": {
+    "id": "475e6aa3-9c56-4360-aace-631888242947",
+    "name": "oasa.csv",
+    "archivedAt": "/s3/scratchpad/475e6aa3-9c56-4360-aace-631888242947"
+  }
+}
+```
+
+The file is initially uploaded to the scratchpad location.
+
+
+### 2) Register a Dataset
+
+To register a new dataset in the system:
+
+#### POST a dataset registration
+```bash
+curl -X POST -H "Content-Type: application/json" --data @../tests/register/dataset/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register
+```
+
+This registers a new dataset using the JSON payload. The API returns:
+```json
+{
+   "code":201,
+   "message":"Dataset with ID 475e6aa3-9c56-4360-aace-631888242947 registered successfully in Neo4j",
+   "ap":{
+      "nodes":[
+         {
+            "@id":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+            "labels":[
+               "Analytical_Pattern"
+            ],
+            "properties":{
+               "Description":"Analytical Pattern to register a dataset",
+               ...
+            }
+         },
+         {
+            "@id":"69ce4693-e71e-4616-9320-037c90a88858",
+            "labels":[
+               "DataModelManagement_Operator"
+            ],
+            "properties":{
+               "Description":"An operator to register a dataset into DataGEMS",
+               ...
+            }
+         },
+         {
+            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "sc:Dataset"
+            ],
+            "properties":{
+               "@type": "sc:Dataset",
+               ...
+            }
+         },
+         {
+            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "labels":[
+               "User"
+            ],
+            "properties":{
+               "City":"Verona",
+               ...
+            }
+         },
+         {
+            "@id":"dca293c0-e20c-47de-be58-acad8b8c423c",
+            "labels":[
+               "Task"
+            ],
+            "properties":{
+               "Description":"Task to register a dataset",
+               ...
+            }
+         }
+      ],
+      "edges":[
+         {
+            "from":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+            "to":"69ce4693-e71e-4616-9320-037c90a88858",
+            "labels":[
+               "consist_of"
+            ]
+         },
+         {
+            "from":"69ce4693-e71e-4616-9320-037c90a88858",
+            "to":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "input"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"69ce4693-e71e-4616-9320-037c90a88858",
+            "labels":[
+               "intervene"
+            ]
+         },
+         {
+            "from":"dca293c0-e20c-47de-be58-acad8b8c423c",
+            "to":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+            "labels":[
+               "is_accomplished"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"dca293c0-e20c-47de-be58-acad8b8c423c",
+            "labels":[
+               "request"
+            ]
+         }
+      ]
+   }
+}
+```
+
+The response includes the dataset ID and the analytical pattern graph structure showing the registration process.
+
+
+### 3) Load a Dataset
+
+To move a dataset from the scratchpad to the permanent storage location:
+
+#### PUT a dataset load request
+```bash
+curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load
+```
+
+This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
+```json
+{
+   "code":200,
+   "message":"Dataset moved from s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947 to s3://dataset/475e6aa3-9c56-4360-aace-631888242947",
+   "ap":{
+      "nodes":[
+         {
+            "@id":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
+            "labels":[
+               "Analytical_Pattern"
+            ],
+            "properties":{
+               "Description":"Analytical Pattern to load a dataset",
+               ...
+            }
+         },
+         {
+            "@id":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+            "labels":[
+               "DataModelManagement_Operator"
+            ],
+            "properties":{
+               "Description":"An operator to load a dataset into s3/dataset",
+               ...
+            }
+         },
+         {
+            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "sc:Dataset"
+            ],
+            "properties":{
+               "@type":"sc:Dataset",
+               ...
+            }
+         },
+         {
+            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "labels":[
+               "User"
+            ],
+            "properties":{
+               "City":"Verona",
+               ...
+            }
+         },
+         {
+            "@id":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+            "labels":[
+               "Task"
+            ],
+            "properties":{
+               "Description":"Task to change storage location of a dataset",
+               "Name":"Dataset Loading Task"
+            }
+         }
+      ],
+      "edges":[
+         {
+            "from":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
+            "to":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+            "labels":[
+               "consist_of"
+            ]
+         },
+         {
+            "from":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+            "to":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "input"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+            "labels":[
+               "intervene"
+            ]
+         },
+         {
+            "from":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+            "to":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
+            "labels":[
+               "is_accomplished"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+            "labels":[
+               "request"
+            ]
+         }
+      ]
+   }
+}
+```
+
+### 4) Update a Dataset
+
+To update an existing dataset with additional metadata or file information:
+
+#### PUT a dataset update
+```bash
+curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/oasa_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update
+```
+
+This updates the dataset properties and creates file object distributions. The API returns:
+```json
+{
+   "code":200,
+   "message":"Dataset with ID 475e6aa3-9c56-4360-aace-631888242947 updated successfully in Neo4j",
+   "ap":{
+      "nodes":[
+         {
+            "@id":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
+            "labels":[
+               "Analytical_Pattern"
+            ],
+            "properties":{
+               "Description":"Analytical Pattern to update a dataset",
+               ...
+            }
+         },
+         {
+            "@id":"24a62ae9-41a9-472d-9a8a-438f35937980",
+            "labels":[
+               "DataModelManagement_Operator"
+            ],
+            "properties":{
+               "Description":"An operator to update a dataset into DataGEMS",
+               ...
+            }
+         },
+         {
+            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "sc:Dataset"
+            ],
+            "properties":{
+               "@type":"sc:Dataset",
+               ...
+            }
+         },
+         {
+            "@id":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+            "labels":[
+               "FileObject"
+            ],
+            "properties":{
+               "@type":"cr:FileObject",
+               ...
+            }
+         },
+         {
+            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "labels":[
+               "User"
+            ],
+            "properties":{
+               "City":"Verona",
+               ...
+            }
+         },
+         {
+            "@id":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+            "labels":[
+               "Task"
+            ],
+            "properties":{
+               "Description":"Task to update a dataset",
+               ...
+            }
+         }
+      ],
+      "edges":[
+         {
+            "from":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
+            "to":"24a62ae9-41a9-472d-9a8a-438f35937980",
+            "labels":[
+               "consist_of"
+            ]
+         },
+         {
+            "from":"24a62ae9-41a9-472d-9a8a-438f35937980",
+            "to":"475e6aa3-9c56-4360-aace-631888242947",
+            "labels":[
+               "input"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"24a62ae9-41a9-472d-9a8a-438f35937980",
+            "labels":[
+               "intervene"
+            ]
+         },
+         {
+            "from":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+            "to":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
+            "labels":[
+               "is_achieved"
+            ]
+         },
+         {
+            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "to":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+            "labels":[
+               "request"
+            ]
+         },
+         {
+            "from":"475e6aa3-9c56-4360-aace-631888242947",
+            "to":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+            "labels":[
+               "distribution"
+            ]
+         }
+      ]
+   }
+}
+```
+
+---
+
+## Running the API Locally
 You can run the API either directly via Python or using Docker.
 
 ### Terminal
@@ -86,107 +469,6 @@ docker run -d -p 5000:5000 -v /path/to/your/local/results:/app/dmm_api/data/resu
 ```
 Replace `/path/to/your/local/results` with the actual path to your local results directory, e.g., `desktop/repositories/data-model-management/dmm_api/data/results`.
 
-
-## API Usage Examples
-
-
-Once the API is running, it should be accessible at:
-http://127.0.0.1:5001/api/v1
-
-You can interact with it using curl commands:
-
-### 1) Check if there is a dataset
-
-To start, you can check if there are any datasets already.
-#### GET all datasets
-```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
-```
-
-This returns a list of all registered datasets. If none have been uploaded yet, it will return:
-```bash
-{"status":{"code":200,"message":"Datasets retrieved successfully."},"datasets":[]}
-```
-
-### 2) Upload a dataset
-
-#### POST a dataset
-```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset/oasa.json http://127.0.0.1:5000/api/v1/dataset/register
-```
-This registers a new dataset using the JSON payload from oasa.json. The output looks like:
-```bash
-{"status":{"code":201,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 uploaded successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}}
-```
-
-### 3) Check that the upload worked
-
-#### GET all datasets
-```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset
-```
-The output looks like:
-```bash
-{"status":{"code":200,"message":"Datasets retrieved successfully."},"datasets":[{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[],"url":"","version":""}]}
-```
-
-#### GET a specific dataset
-```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
-```
-Replace `f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763` with the any other <dataset_id>.
-
-The output is be the same as the one above, since for now we only have that dataset.
-
-### 4) Update the dataset with the profile
-
-#### PUT a profile
-```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/dataset_profile/oasa.json http://127.0.0.1:5000/api/v1/dataset/update
-```
-This attaches a dataset profile to an existing dataset. The output looks like:
-```bash
-{"status":{"code":201,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 updated successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}}
-```
-
-### 5) Check that the update worked
-
-#### GET a specific dataset
-```bash
-curl -X GET -H "Content-Type: application/json" http://127.0.0.1:5000/api/v1/dataset/f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763
-```
-The output looks like:
-```bash
-{"status":{"code":200,"message":"Dataset with UUID f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763 retrieved successfully."},"dataset":{"@context":{"@language":"en","@vocab":"https://schema.org/","citeAs":"cr:citeAs","column":"cr:column","conformsTo":"dct:conformsTo", ...},"@id":"f73815ed453ef32dfe0b19c22a6d410d5b16e3ac88e76dc6d375045a28823763","@type":"sc:Dataset","citeAs":"","conformsTo":"","country":"PT","datePublished":"24-05-2025","description":"Subway data","distribution":[{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c","@type":"cr:FileObject","contentSize":"2407043 B","contentUrl":"","description":"","encodingFormat":"text/csv","name":"csv_1.csv","sha256":"6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"}],"fieldOfScience":["CIVIL ENGINEERING"],"headline":"Subway data.","inLanguage":["el"],"keywords":["dev","keyword"],"license":"???","name":"Dev Data","recordSet":[{"@id":"4f7acf6f-dfa5-4a5a-9b3d-c234af96fa37","@type":"cr:RecordSet","description":"","field":[{"@id":"d51441bd-19bd-4e8b-8ca8-08bb76796038","@type":"cr:Field","dataType":"sc:Integer","description":"","name":"csv_1/dv_agency","sample":[2,2,2],"source":{"extract":{"column":"dv_agency"},"fileObject":{"@id":"e590461a-a632-4ddb-abc0-bc341165e26c"}}}, ...],"name":"csv_1"}],"url":"","version":""}}
-```
-
-### 6) Query Analytical Pattern
-
-#### POST an Analytical Pattern
-```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/dataset_query/analytical_pattern.json http://127.0.0.1:5000/api/v1/dataset/query
-```
-This sends a query Analytical Pattern to the API. The ouput looks like:
-```bash
-TODO
-```
-
-#### POST a new dataset
-```bash
-TODO
-```
-The result of the Analytical Pattern will be stored as a new dataset.
-
-### 7) Check that the results of the query are saved as a new dataset
-
-#### GET all datasets
-```bash
-curl http://127.0.0.1:5000/api/v1/dataset
-```
-You should now see the original dataset and a new dataset representing the query result. The ouput looks like:
-```bash
-TODO
-```
 ---
 
 ## License
