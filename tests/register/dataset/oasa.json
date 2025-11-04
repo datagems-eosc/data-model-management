@@ -12,7 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "475e6aa3-9c56-4360-aace-631888242947"
+      "to": "9c56-4360-aace-631888242947"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -67,13 +67,13 @@
       }
     },
     {
-      "@id": "475e6aa3-9c56-4360-aace-631888242947",
+      "@id": "9c56-4360-aace-631888242947",
       "labels": [
         "Dataset"
       ],
       "properties": {
-        "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947",
+        "@type": "Dataset",
+        "archivedAt": "s3://scratchpad/9c56-4360-aace-631888242947",
         "citeAs": "",
         "conformsTo": "",
         "country": "PT",
