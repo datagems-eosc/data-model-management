@@ -75,7 +75,6 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> dict:
 
     G_update.add_edges_from(edges)
 
-    # Convert back to dictionary format
     update_json = {
         "nodes": [
             {
@@ -91,4 +90,4 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> dict:
         ],
     }
 
-    return update_json
+    return APRequest(**update_json)
