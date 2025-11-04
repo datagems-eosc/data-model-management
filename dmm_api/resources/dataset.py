@@ -17,6 +17,7 @@ from ..tools.AP.parse_AP import (
     APRequest,
 )
 from ..tools.AP.update_AP import update_dataset_field
+from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.dataset_in_scratchpad import upload_dataset_to_scratchpad
 
 datasets = {}
@@ -168,6 +169,7 @@ async def get_dataset(dataset_id: str):
 # TODO: script that upload the dataset to the s3 scratchpad
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
 async def register_dataset(ap_payload: APRequest):
+    """Register a new dataset in Neo4j"""
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
@@ -269,6 +271,7 @@ async def register_dataset(ap_payload: APRequest):
 
 @router.put("/dataset/load")
 async def load_dataset(ap_payload: APRequest):
+    """Move dataset files from scratchpad to permanent storage"""
     DATASET_DIR = os.getenv("DATASET_DIR")
     try:
         dataset_path = extract_dataset_path_from_AP(
@@ -302,6 +305,9 @@ async def load_dataset(ap_payload: APRequest):
         shutil.move(str(source_path), str(target_path))
         new_path = f"s3://dataset/{dataset_id}"
 
+        update_ap = generate_update_AP(ap_payload, new_path)
+        await update_dataset(update_ap)
+
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Dataset moved from {dataset_path} to {new_path}",
@@ -333,15 +339,43 @@ async def load_dataset(ap_payload: APRequest):
         )
 
 
-@router.put("/dataset/update")
-async def update_dataset(dataset: Dict[str, Any]):
-    """Update an existing dataset with new data after profiling"""
-    dataset_id = dataset.get("@id")
+@router.put("/dataset/update", response_model=APSuccessEnvelope)
+async def update_dataset(ap_payload: APRequest):
+    """Update a dataset in Neo4j"""
     ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
+    try:
+        dataset, old_dataset_id = extract_dataset_from_AP(
+            ap_payload,
+            expected_ap_process="update",
+            expected_operator_command="update",
+        )
+        dataset_id = dataset.get("@id")
+
+        # This check will be removed after we define JSON validation rules
+        if not dataset_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="Dataset ID is missing",
+                ).model_dump(),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during the dataset extraction: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
     async with httpx.AsyncClient() as client:
         try:
+            # Check if a Dataset with such UUID is already stored in the Neo4j
             # check_response = await client.get(check_url)
             # check_response.raise_for_status()
             # existing_dataset = check_response.json()
@@ -354,21 +388,22 @@ async def update_dataset(dataset: Dict[str, Any]):
             #             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
             #         ).model_dump(),
             #     )
-
+            # If yes, update the dataset
             response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
 
-            return DatasetSuccessEnvelope(
+            return APSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message=f"Dataset with ID {dataset_id} updated successfully in Neo4j",
-                dataset=dataset,
+                ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
-        except httpx.HTTPStatusError as exc:
+
+        except httpx.HTTPStatusError:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Error from MoMa API: {exc.response.status_code}",
+                    error="Error from MoMa API",
                 ).model_dump(),
             )
 
@@ -386,7 +421,7 @@ async def update_dataset(dataset: Dict[str, Any]):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error="Unexpected internal server error",
+                    error="Unexpected Internal Server error",
                 ).model_dump(),
             )
 
