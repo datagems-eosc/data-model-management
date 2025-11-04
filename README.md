@@ -59,7 +59,7 @@ This will also generate your `uv.lock` file
 The API is available at:
 https://datagems-dev.scayle.es/dmm/api/v1
 
-You can interact with it using curl commands, going into the ddm_api folder:
+You can interact with it using curl commands, going into the `dmm_api` folder:
 
 ```bash
 cd dmm_api
@@ -68,14 +68,14 @@ cd dmm_api
 
 ### 1) Upload a Dataset to s3
 
-After registering a dataset, upload the actual data file using the data-workflow endpoint:
+Before registering a dataset, the files should be already present on s3. This method uploads the actual data file using the data-workflow endpoint:
 
 #### POST a file to data-workflow
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
   -F "file=@data/oasa/oasa_daily_ridership_1.csv" \
   -F "file_name=oasa.csv" \
-  -F "dataset_id=475e6aa3-9c56-4360-aace-631888242947"
+  -F "dataset_id=00000000-9c56-4360-aace-631888242947"
 ```
 The API returns:
 ```json
@@ -92,12 +92,14 @@ The API returns:
 
 The file is initially uploaded to the scratchpad location.
 
+> NOTE: This method is only for internal testing use. It may be removed in the future.
+
 
 ### 2) Register a Dataset
 
 To register a new dataset in the system:
 
-#### POST a dataset registration
+#### POST a dataset registration AP
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @../tests/register/dataset/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register
 ```
@@ -136,7 +138,7 @@ This registers a new dataset using the JSON payload. The API returns:
             ],
             "properties":{
                "@type": "sc:Dataset",
-               ...
+               "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947"
             }
          },
          {
@@ -202,6 +204,9 @@ This registers a new dataset using the JSON payload. The API returns:
 ```
 
 The response includes the dataset ID and the analytical pattern graph structure showing the registration process.
+
+The register worflow may decide to change the ID of the uploaded dataset. If that is the case the returned AP will have a different value for `@id` in the `sc:Dataset` node.
+The `archivedAt` attribute will still point to the current folder in the S3 scratchpad.
 
 
 ### 3) Load a Dataset
@@ -311,6 +316,9 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
    }
 }
 ```
+
+>  Note: the endpoint will return an AP with the same `DataModelManagement_Operator` as received in input with an updated `archivedAt` attribute of the dataset node pointing to the new location.
+
 
 ### 4) Update a Dataset
 
