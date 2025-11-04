@@ -2,7 +2,7 @@ from enum import Enum
 import os
 from pathlib import Path
 import shutil
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
@@ -75,11 +75,16 @@ class DatasetType(str, Enum):
 
 # Temporary router to upload the dataset to S3/scratchpad
 @router.post("/data-workflow", response_model=DatasetsSuccessEnvelope)
-async def data_workflow(file: bytes, file_name: str, dataset_id: str):
+async def data_workflow(
+    file: UploadFile = File(...),
+    file_name: str = Form(...),
+    dataset_id: str = Form(...),
+):
     """Handle data workflow by uploading files and assigning metadata."""
     # Call the upload function to upload the dataset to the scratchpad
     try:
-        s3path = upload_dataset_to_scratchpad(file, file_name, dataset_id)
+        file_bytes = await file.read()
+        s3path = upload_dataset_to_scratchpad(file_bytes, file_name, dataset_id)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
