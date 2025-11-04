@@ -13,12 +13,13 @@ from .json_format import create_json
 from ..tools.AP.parse_AP import (
     extract_from_AP,
     extract_dataset_from_AP,
+    extract_dataset_id_from_AP,
     extract_dataset_path_from_AP,
     APRequest,
 )
 from ..tools.AP.update_AP import update_dataset_field
 from ..tools.AP.generate_AP import generate_update_AP
-from ..tools.S3.dataset_in_scratchpad import upload_dataset_to_scratchpad
+from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 
 datasets = {}
 query_results = {}
@@ -53,6 +54,13 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
 
 
+class DatasetState(str, Enum):
+    Ready = "Ready"
+    Loaded = "Loaded"
+    Staged = "Staged"
+    Deleted = "Deleted"
+
+
 class DatasetType(str, Enum):
     PDF = "PDF"
     RelationalDatabase = "RelationalDatabase"
@@ -63,14 +71,44 @@ class DatasetType(str, Enum):
 
 
 # Endpoints
+# Temporary router to upload the dataset to S3/scratchpad
+@router.get("/data-workflow", response_model=DatasetsSuccessEnvelope)
+async def data_workflow(file: bytes, file_name: str, dataset_id: str):
+    """Handle data workflow by uploading files and assigning metadata."""
+
+    # Call the upload function to upload the dataset to the scratchpad
+    try:
+        s3path = upload_dataset_to_scratchpad(file, file_name, dataset_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Failed to upload dataset to scratchpad: {str(e)}",
+            ).model_dump(),
+        )
+
+    return DatasetsSuccessEnvelope(
+        code=status.HTTP_201_CREATED,
+        message=f"Dataset {file_name} uploaded successfully with ID {dataset_id} at {s3path}",
+        dataset={"id": dataset_id, "name": file_name, "archivedAt": s3path},
+    )
+
+
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_datasets(
     type: Optional[DatasetType] = Query(
         None,
-        description="Optional dataset type to filter on. If omitted, all datasets are returned.",
+        description="Optional dataset type to filter on. If omitted, only datasets in Ready state are returned.",
+    ),
+    state: Optional[DatasetState] = Query(
+        DatasetState.Ready,
+        description="Optional dataset state to filter on.",
     ),
 ):
     """Return all datasets, with optional filtering"""
+
+    # TODO: implement filtering by dataset state "Ready"
 
     if type:
         url = f"{MOMA_URL}/listDatasetsByType"
@@ -232,9 +270,6 @@ async def register_dataset(ap_payload: APRequest):
             except Exception as e:
                 print(f"AP Storage API not working: {e}")
 
-            # Temporary function to upload the dataset to S3/scratchpad
-            upload_dataset_to_scratchpad(dataset, dataset_id)
-
             return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
                 message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
@@ -269,6 +304,7 @@ async def register_dataset(ap_payload: APRequest):
             )
 
 
+# TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put("/dataset/load")
 async def load_dataset(ap_payload: APRequest):
     """Move dataset files from scratchpad to permanent storage"""
@@ -279,6 +315,8 @@ async def load_dataset(ap_payload: APRequest):
             expected_ap_process="load",
             expected_operator_command="update",
         )
+
+        dataset_id = extract_dataset_id_from_AP(ap_payload)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -293,13 +331,18 @@ async def load_dataset(ap_payload: APRequest):
             raise ValueError("Invalid S3 URI. Must start with s3://")
 
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
-        _, dataset_id = path_without_s3_prefix.split("/", 1)
+        dataset_id = extract_dataset_id_from_AP(ap_payload)
 
         source_path = Path("/s3") / path_without_s3_prefix
         target_path = Path(DATASET_DIR) / dataset_id
         if not source_path.exists():
             raise FileNotFoundError(
                 f"Source dataset not found at expected location: {source_path}"
+            )
+
+        if target_path.exists():
+            raise FileExistsError(
+                f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
             )
 
         shutil.move(str(source_path), str(target_path))
@@ -346,12 +389,11 @@ async def update_dataset(ap_payload: APRequest):
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     try:
-        dataset, old_dataset_id = extract_dataset_from_AP(
+        dataset, dataset_id = extract_dataset_from_AP(
             ap_payload,
             expected_ap_process="update",
             expected_operator_command="update",
         )
-        dataset_id = dataset.get("@id")
 
         # This check will be removed after we define JSON validation rules
         if not dataset_id:
