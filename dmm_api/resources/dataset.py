@@ -74,7 +74,7 @@ class DatasetType(str, Enum):
 
 
 # Temporary router to upload the dataset to S3/scratchpad
-@router.post("/data-workflow", response_model=DatasetsSuccessEnvelope)
+@router.post("/data-workflow", response_model=DatasetSuccessEnvelope)
 async def data_workflow(
     file: UploadFile = File(...),
     file_name: str = Form(...),
@@ -94,7 +94,7 @@ async def data_workflow(
             ).model_dump(),
         )
 
-    return DatasetsSuccessEnvelope(
+    return DatasetSuccessEnvelope(
         code=status.HTTP_201_CREATED,
         message=f"Dataset {file_name} uploaded successfully with ID {dataset_id} at {s3path}",
         dataset={"id": dataset_id, "name": file_name, "archivedAt": s3path},
