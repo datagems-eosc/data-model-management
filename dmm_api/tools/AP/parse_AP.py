@@ -233,6 +233,31 @@ def extract_dataset_from_AP(
     return dataset, old_dataset_id
 
 
+def extract_dataset_id_from_AP(
+    ap_payload: APRequest,
+) -> str:
+    try:
+        G = json_to_graph(ap_payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to parse the Analytical Pattern: {str(e)}",
+        )
+    dataset_nodes = []
+    for node_id, attributes in G.nodes(data=True):
+        if "Dataset" in attributes.get("labels", []):
+            dataset_nodes.append(node_id)
+
+    if len(dataset_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+        )
+
+    dataset_id = dataset_nodes[0]
+    return dataset_id
+
+
 def extract_dataset_path_from_AP(
     ap_payload: APRequest,
     expected_ap_process: Optional[str] = None,
