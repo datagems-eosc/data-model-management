@@ -72,7 +72,7 @@
         "Dataset"
       ],
       "properties": {
-        "@type": "Dataset",
+        "@type": "sc:Dataset",
         "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947",
         "citeAs": "",
         "conformsTo": "",
