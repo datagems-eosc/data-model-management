@@ -46,7 +46,7 @@ async def api_home():
             },
             "dataset_load": {
                 "description": "Move a dataset from the scratchpad",
-                "methods": ["POST"],
+                "methods": ["PUT"],
                 "url": "/api/v1/dataset/load",
             },
             "dataset_update": {
