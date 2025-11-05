@@ -17,7 +17,7 @@ from ..tools.AP.parse_AP import (
     extract_dataset_path_from_AP,
     APRequest,
 )
-from ..tools.AP.update_AP import update_dataset_field
+from ..tools.AP.update_AP import update_dataset_id, update_dataset_archivedAt
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 
@@ -101,6 +101,7 @@ async def data_workflow(
     )
 
 
+# TODO: implement filtering by dataset state "Ready"
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_datasets(
     type: Optional[DatasetType] = Query(
@@ -245,7 +246,7 @@ async def register_dataset(ap_payload: APRequest):
 
     if dataset_id != old_dataset_id:
         try:
-            update_dataset_field(ap_payload, old_dataset_id, dataset_id)
+            update_dataset_id(ap_payload, old_dataset_id, dataset_id)
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
@@ -354,6 +355,8 @@ async def load_dataset(ap_payload: APRequest):
 
         update_ap = generate_update_AP(ap_payload, new_path)
         await update_dataset(update_ap)
+
+        ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
 
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
