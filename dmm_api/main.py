@@ -59,6 +59,11 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/dataset/query",
             },
+            "swagger": {
+                "description": "Interactive API documentation (Swagger UI)",
+                "methods": ["GET"],
+                "url": "/api/v1/swagger",
+            },
         },
     }
 
