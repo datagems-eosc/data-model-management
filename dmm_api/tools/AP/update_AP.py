@@ -14,7 +14,7 @@ def update_dataset_id(
         if str(edge.source) == str(old_field):
             edge.source = new_field
 
-    return ap_payload.model_dump(by_alias=True, exclude_defaults=True)
+    return ap_payload
 
 
 def update_dataset_archivedAt(
@@ -25,4 +25,4 @@ def update_dataset_archivedAt(
             if "properties" not in node.model_dump():
                 node.properties = {}
             node.properties["archivedAt"] = new_path
-    return ap_payload.model_dump(by_alias=True, exclude_defaults=True)
+    return ap_payload
