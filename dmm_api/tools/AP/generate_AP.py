@@ -90,4 +90,4 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
         ],
     }
 
-    return update_json
+    return APRequest(**update_json)
