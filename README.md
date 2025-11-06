@@ -101,7 +101,7 @@ To register a new dataset in the system:
 
 #### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/register/dataset/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register
+curl -X POST -H "Content-Type: application/json" --data @../tests/register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register
 ```
 
 This registers a new dataset using the JSON payload. The API returns:
