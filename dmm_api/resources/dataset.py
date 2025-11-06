@@ -476,8 +476,8 @@ async def update_dataset(ap_payload: APRequest):
             )
 
 
-# TODO: add response model
-@router.post("/dataset/query")
+# TODO: change response model!
+@router.post("/dataset/query", response_model=DatasetSuccessEnvelope)
 async def execute_query(query_data: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
@@ -488,7 +488,11 @@ async def execute_query(query_data: APRequest):
         query_filled = query_info.get("query_filled")
 
         result = execute_query_csv(query_filled, software)
-        return result
+        return DatasetSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message="Query executed successfully",
+            dataset={"result": result.to_dict(orient="records")},
+        )
 
     except HTTPException:
         raise
