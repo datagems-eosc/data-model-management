@@ -8,10 +8,11 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
 from .query_executor import execute_query_csv
-from .data_resolver import resolve_dataset
-from .json_format import create_json
+
+# from .data_resolver import resolve_dataset
+# from .json_format import create_json
 from ..tools.AP.parse_AP import (
-    extract_from_AP,
+    extract_query_from_AP,
     extract_dataset_from_AP,
     extract_dataset_id_from_AP,
     extract_dataset_path_from_AP,
@@ -475,27 +476,19 @@ async def update_dataset(ap_payload: APRequest):
             )
 
 
+# TODO: add response model
 @router.post("/dataset/query")
 async def execute_query(query_data: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
-        extracted_info = extract_from_AP(query_data)
-        # dataset_id = extracted_info.get("dataset_id")
-        dataset_name = extracted_info.get("dataset_name")
-        csv_name = extracted_info.get("csv_name")
-        query = extracted_info.get("query")
-        software = extracted_info.get("software")
-        user_id = extracted_info.get("user_id")
+        query_info = extract_query_from_AP(query_data)
+        # query = query_info.get("query")
+        software = query_info.get("software")
+        # args = query_info.get("args", {})
+        query_filled = query_info.get("query_filled")
 
-        data_path = resolve_dataset(dataset_name, csv_name)
-
-        # execute_query gets called based on the dataset type
-        csv_path, query = execute_query_csv(
-            csv_name, query, software, data_path, user_id
-        )
-        dataset_json = create_json(csv_path, query)
-
-        return dataset_json
+        result = execute_query_csv(query_filled, software)
+        return result
 
     except HTTPException:
         raise

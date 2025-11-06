@@ -1,3 +1,4 @@
+import re
 import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
@@ -129,6 +130,73 @@ def extract_from_AP(query_data: APRequest):
     extracted_data["user_id"] = user_predecessors[0]
 
     return extracted_data
+
+
+def extract_query_from_AP(
+    ap_payload: APRequest,
+) -> Dict[str, Any]:
+    try:
+        G = json_to_graph(ap_payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to parse the Analytical Pattern: {str(e)}",
+        )
+
+    operator_id = None
+    for node_id, attributes in G.nodes(data=True):
+        if "SQL_Operator" in attributes.get("labels", []):
+            operator_id = node_id
+            break
+
+    if operator_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="No SQL_Operator node found in the Analytical Pattern.",
+        )
+
+    operator_properties = G.nodes[operator_id].get("properties", {})
+
+    # query_info: Dict[str, Any] = {}
+    # query_info["query"] = operator_properties.get("Query")
+    # software_prop = operator_properties.get("Software", {})
+    # query_info["software"] = software_prop.get("name")
+
+    # parameters = operator_properties.get("Parameters", {}) or {}
+
+    # args_map: Dict[str, Any] = {}
+    # for k, v in parameters.items():
+    #     if k.startswith("arg"):
+    #         args_map[k] = v
+
+    # query_info["args"] = args_map
+
+    query_info: Dict[str, Any] = {}
+    raw_query = operator_properties.get("Query")
+    query_info["query"] = raw_query
+    software_prop = operator_properties.get("Software", {})
+    query_info["software"] = software_prop.get("name")
+
+    parameters = operator_properties.get("Parameters", {}) or {}
+
+    args_map: Dict[str, Any] = {}
+    for k, v in parameters.items():
+        if k.startswith("arg"):
+            args_map[k] = v
+
+    filled_query = raw_query or ""
+    for name, value in args_map.items():
+        filled_query = re.sub(
+            r"\{\{\s*" + re.escape(name) + r"\s*\}\}", str(value), filled_query
+        )
+        filled_query = re.sub(
+            r"\{\s*" + re.escape(name) + r"\s*\}", str(value), filled_query
+        )
+
+    query_info["args"] = args_map
+    query_info["query_filled"] = filled_query
+
+    return query_info
 
 
 # TODO: check the edges too

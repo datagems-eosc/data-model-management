@@ -1,37 +1,28 @@
-from datetime import datetime
+# from datetime import datetime
 import os
+import re
 import duckdb
 
 
 # We will implement different query execution methods based on the data type
-def execute_query_csv(csv_name, query, software, data_path, user_id):
+def execute_query_csv(query, software):
     software = software.lower()
+    DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
     try:
         # Query with DuckDB
         if software == "duckdb":
-            table_name = csv_name.replace(".csv", "")
+            s3_paths = re.findall(r"s3://dataset/[^\s,;]+", query)
 
-            conn = duckdb.connect()
-            # TODO: change to a PreparedStatements
-            replaced_query = query.replace(
-                f"FROM {table_name}", f"FROM read_csv_auto('{data_path}')"
-            )
-            result_df = conn.execute(replaced_query).fetchdf()
-            conn.close()
+            for s3_path in s3_paths:
+                local_folder = s3_path.replace("s3://dataset/", f"{DATASET_DIR}/")
+                replacement = f"read_csv_auto('{local_folder}/*.csv')"
+                s3_query = query.replace(s3_path, replacement)
 
-            results_base_path = os.environ.get("RESULTS_DIR")
-            results_folder = os.environ.get("RESULTS_FOLDER")
-            final_results_path = os.path.join(
-                results_base_path, results_folder.strip("/")
-            )
+            con = duckdb.connect(database=":memory:")
+            result_df = con.execute(s3_query).fetchdf()
+            con.close()
 
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            results_path = os.path.join(final_results_path, f"{user_id}_{timestamp}")
-            os.makedirs(results_path, exist_ok=True)
-            output_path = os.path.join(results_path, csv_name)
-            result_df.to_csv(output_path, index=False, header=True)
-
-            return output_path, query
+            return result_df
 
         else:
             raise Exception(f"Unsupported software: {software}")

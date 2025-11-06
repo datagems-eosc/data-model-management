@@ -1,0 +1,248 @@
+{
+  "edges": [
+    {
+      "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+    },
+    {
+      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "labels": [
+        "input"
+      ],
+      "to": "84526e25-7d15-4ae2-8747-1d5c6b92b184"
+    },
+    {
+      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "labels": [
+        "input"
+      ],
+      "to": "6c256b73-c1c4-417a-86a6-e00a735431bf"
+    },
+    {
+      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "labels": [
+        "output"
+      ],
+      "to": "8756aa7a-2436-48c7-afb0-0f99401392ad"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "intervene"
+      ],
+      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+    },
+    {
+      "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+      "labels": [
+        "is_achieved"
+      ],
+      "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "request"
+      ],
+      "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
+    },
+    {
+      "from": "84526e25-7d15-4ae2-8747-1d5c6b92b184",
+      "labels": [
+        "distribution"
+      ],
+      "to": "f561fb22-d1d2-4f6a-a076-209ddfb5102a"
+    },
+    {
+      "from": "6c256b73-c1c4-417a-86a6-e00a735431bf",
+      "labels": [
+        "distribution"
+      ],
+      "to": "0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8"
+    }
+  ],
+  "nodes": [
+    {
+      "@id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+      "labels": [
+        "Analytical_Pattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to query a dataset",
+        "Name": "Query Dataset AP",
+        "Process": "query",
+        "PublishedDate": "2025-06-30",
+        "StartTime": "10:00:00"
+      }
+    },
+    {
+      "@id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "labels": [
+        "SQL_Operator"
+      ],
+      "properties": {
+        "Description": "Query executed via DuckDB on two datasets",
+        "Name": "DuckDB Query Operator",
+        "Parameters": {
+          "arg1": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184/f561fb22-d1d2-4f6a-a076-209ddfb5102a",
+          "arg2": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf/0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+          "command": "query",
+          "queryType": "SELECT"
+        },
+        "PublishedDate": "2025-06-30",
+        "Query": "SELECT * FROM {{arg1}} AS user JOIN {{arg2}} AS user_pwd ON user.Identifier = user_pwd.Id WHERE user.Username = 'booker12' OR user.Username = 'grey07'",
+        "Software": {
+          "description": "In-process OLAP database for analytical queries",
+          "name": "DuckDB",
+          "url": "https://duckdb.org/"
+        },
+        "StartTime": "10:00:00",
+        "Step": 1,
+        "Type": "SQL Query"
+      }
+    },
+    {
+      "@id": "84526e25-7d15-4ae2-8747-1d5c6b92b184",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "FR",
+        "datePublished": "24-05-2025",
+        "description": "User data",
+        "fieldOfScience": [
+          "OTHER ENGINEERING AND TECHNOLOGIES"
+        ],
+        "headline": "Transport data.",
+        "inLanguage": [
+          "fr"
+        ],
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "Public Domain",
+        "name": "user",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "6c256b73-c1c4-417a-86a6-e00a735431bf",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "FR",
+        "datePublished": "24-05-2025",
+        "description": "User passwor data",
+        "fieldOfScience": [
+          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+        ],
+        "headline": "Weather data.",
+        "inLanguage": [
+          "fr"
+        ],
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "Public Domain",
+        "name": "user_pwd",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "country": "FR",
+        "datePublished": "24-05-2025",
+        "description": "Temporary dataset created after a query",
+        "fieldOfScience": [
+          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+        ],
+        "headline": "Output of a query",
+        "inLanguage": [
+          "fr"
+        ],
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "Public Domain",
+        "name": "output"
+      }
+    },
+    {
+      "@id": "f561fb22-d1d2-4f6a-a076-209ddfb5102a",
+      "labels": [
+        "CSV"
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184/f561fb22-d1d2-4f6a-a076-209ddfb5102a",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "user.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ab"
+      }
+    },
+    {
+      "@id": "0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+      "labels": [
+        "CSV"
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf/0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "user_pwd.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
+      }
+    },
+    {
+      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "@id": "474c2c12-4185-42a0-9e79-38af377bdcad",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "Description": "Task to query a dataset",
+        "Name": "Dataset Querying Task"
+      }
+    }
+  ]
+}
