@@ -11,12 +11,13 @@ def execute_query_csv(query, software):
     try:
         # Query with DuckDB
         if software == "duckdb":
-            s3_paths = re.findall(r"s3://dataset/[^\s,;]+", query)
+            s3_query = query
+            s3_paths = re.findall(r"s3://dataset/[^\s,;]+", s3_query)
 
             for s3_path in s3_paths:
                 local_folder = s3_path.replace("s3://dataset/", f"{DATASET_DIR}/")
                 replacement = f"read_csv_auto('{local_folder}/*.csv')"
-                s3_query = query.replace(s3_path, replacement)
+                s3_query = s3_query.replace(s3_path, replacement)
 
             con = duckdb.connect(database=":memory:")
             result_df = con.execute(s3_query).fetchdf()
