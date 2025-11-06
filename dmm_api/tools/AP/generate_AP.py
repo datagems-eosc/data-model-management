@@ -4,7 +4,7 @@ import networkx as nx
 from dmm_api.tools.AP.parse_AP import APRequest, json_to_graph
 
 
-def generate_update_AP(ap_payload: APRequest, new_path: str) -> dict:
+def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     G_load = json_to_graph(ap_payload)
 
     user_node = None
@@ -90,4 +90,4 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> dict:
         ],
     }
 
-    return APRequest(**update_json)
+    return update_json
