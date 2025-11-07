@@ -13,7 +13,7 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     for node_id, attrs in G_load.nodes(data=True):
         if "User" in attrs.get("labels", []):
             user_node = (node_id, attrs)
-        elif "Dataset" in attrs.get("labels", []):
+        elif "sc:Dataset" in attrs.get("labels", []):
             dataset_node = (node_id, attrs)
 
     if not user_node or not dataset_node:
@@ -91,3 +91,8 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     }
 
     return APRequest(**update_json)
+
+
+# TODO: define generate_register_AP
+def generate_register_AP(ap_payload: APRequest, new_path: str) -> APRequest:
+    pass

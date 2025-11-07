@@ -5,7 +5,7 @@ def update_dataset_id(
     ap_payload: APRequest, old_field: str, new_field: str
 ) -> APRequest:
     for node in ap_payload.nodes:
-        if str(node.id) == str(old_field) and "Dataset" in node.labels:
+        if str(node.id) == str(old_field) and "sc:Dataset" in node.labels:
             node.id = new_field
 
     for edge in ap_payload.edges:
@@ -21,7 +21,7 @@ def update_dataset_archivedAt(
     ap_payload: APRequest, dataset_id: str, new_path: str
 ) -> APRequest:
     for node in ap_payload.nodes:
-        if str(node.id) == str(dataset_id) and "Dataset" in node.labels:
+        if str(node.id) == str(dataset_id) and "sc:Dataset" in node.labels:
             if "properties" not in node.model_dump():
                 node.properties = {}
             node.properties["archivedAt"] = new_path
