@@ -93,6 +93,104 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     return APRequest(**update_json)
 
 
-# TODO: define generate_register_AP
-def generate_register_AP(ap_payload: APRequest, new_path: str) -> APRequest:
-    pass
+def generate_register_AP_after_query(ap_payload: APRequest) -> APRequest:
+    G_load = json_to_graph(ap_payload)
+
+    user_node = None
+    output_dataset_node = None
+    fileobject_node = None
+
+    for node_id, attrs in G_load.nodes(data=True):
+        if "User" in attrs.get("labels", []):
+            user_node = (node_id, attrs)
+            break
+
+    for u, v, data in G_load.edges(data=True):
+        if "output" in data.get("labels", []):
+            output_dataset_node = (v, G_load.nodes[v])
+            break
+
+    if not output_dataset_node:
+        raise ValueError("No output dataset found in AP payload")
+
+    dataset_id = output_dataset_node[0]
+    for u, v, data in G_load.edges(data=True):
+        if u == dataset_id and "distribution" in data.get("labels", []):
+            fileobject_node = (v, G_load.nodes[v])
+            break
+
+    if not user_node or not fileobject_node:
+        raise ValueError(
+            "Required user or fileobject information not found in AP payload"
+        )
+
+    ap_id = str(uuid.uuid4())
+    operator_id = str(uuid.uuid4())
+    task_id = str(uuid.uuid4())
+
+    G_register = nx.MultiDiGraph()
+    G_register.add_node(
+        ap_id,
+        labels=["Analytical_Pattern"],
+        properties={
+            "Description": "Analytical Pattern to register a dataset",
+            "Name": "Register Dataset AP",
+            "Process": "register",
+            "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
+            "StartTime": datetime.now().strftime("%H:%M:%S"),
+        },
+    )
+
+    G_register.add_node(
+        operator_id,
+        labels=["DataModelManagement_Operator"],
+        properties={
+            "Description": "An operator to register a dataset into DataGEMS",
+            "Name": "Register Operator",
+            "Parameters": {"command": "create"},
+            "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
+            "StartTime": datetime.now().strftime("%H:%M:%S"),
+            "Step": 1,
+        },
+    )
+
+    G_register.add_node(output_dataset_node[0], **output_dataset_node[1])
+    G_register.add_node(fileobject_node[0], **fileobject_node[1])
+    G_register.add_node(user_node[0], **user_node[1])
+
+    G_register.add_node(
+        task_id,
+        labels=["Task"],
+        properties={
+            "Description": "Task to register a dataset",
+            "Name": "Dataset Registering Task",
+        },
+    )
+
+    edges = [
+        (ap_id, operator_id, {"labels": ["consist_of"]}),
+        (operator_id, output_dataset_node[0], {"labels": ["input"]}),
+        (user_node[0], operator_id, {"labels": ["intervene"]}),
+        (task_id, ap_id, {"labels": ["is_achieved"]}),
+        (user_node[0], task_id, {"labels": ["request"]}),
+        (output_dataset_node[0], fileobject_node[0], {"labels": ["distribution"]}),
+    ]
+
+    G_register.add_edges_from(edges)
+
+    register_json = {
+        "nodes": [
+            {
+                "@id": node_id,
+                "labels": G_register.nodes[node_id]["labels"],
+                "properties": G_register.nodes[node_id]["properties"],
+            }
+            for node_id in G_register.nodes()
+        ],
+        "edges": [
+            {"from": u, "to": v, "labels": data["labels"]}
+            for u, v, data in G_register.edges(data=True)
+        ],
+    }
+
+    return APRequest(**register_json)

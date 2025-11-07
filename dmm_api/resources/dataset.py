@@ -21,7 +21,7 @@ from ..tools.AP.update_AP import (
     update_dataset_id,
     update_dataset_archivedAt,
 )
-from ..tools.AP.generate_AP import generate_update_AP
+from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 from ..tools.S3.results import upload_csv_to_results
 
@@ -479,7 +479,6 @@ async def update_dataset(ap_payload: APRequest):
             )
 
 
-# TODO: change response model!
 @router.post("/dataset/query", response_model=APSuccessEnvelope)
 async def execute_query(ap_payload: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
@@ -497,6 +496,15 @@ async def execute_query(ap_payload: APRequest):
         upload_path, dataset_id = upload_csv_to_results(csv_bytes)
 
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+
+        register_AP = generate_register_AP_after_query(AP_query_after)
+        await register_dataset(register_AP)
+
+        # Fake forward to AP Storage API
+        try:
+            print(f"Dataset {dataset_id} sent to the AP Storage API.")
+        except Exception as e:
+            print(f"AP Storage API not working: {e}")
 
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
