@@ -16,7 +16,7 @@ def execute_query_csv(query, software):
 
             for s3_path in s3_paths:
                 local_folder = s3_path.replace("s3://dataset/", f"{DATASET_DIR}/")
-                replacement = f"read_csv_auto('{local_folder}/*.csv')"
+                replacement = f"read_csv_auto('{local_folder}')"
                 s3_query = s3_query.replace(s3_path, replacement)
 
             con = duckdb.connect(database=":memory:")
