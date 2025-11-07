@@ -30,7 +30,7 @@ def update_dataset_archivedAt(
     return ap_payload
 
 
-def update_after_query(
+def update_AP_after_query(
     ap_payload: APRequest, dataset_id: str, new_path: str
 ) -> APRequest:
     updated_AP = copy.deepcopy(ap_payload)
