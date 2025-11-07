@@ -499,7 +499,7 @@ async def execute_query(query_data: APRequest):
         return DatasetSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Query executed successfully, dataset uploaded at {upload_path}",
-            dataset={result.to_dict(orient="records")},
+            dataset={"result": result.to_dict(orient="records")},
         )
 
     except HTTPException:
