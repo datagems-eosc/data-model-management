@@ -2,7 +2,6 @@ from enum import Enum
 import os
 from pathlib import Path
 import shutil
-from uuid import uuid4
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 import httpx
 from pydantic import BaseModel
@@ -21,6 +20,7 @@ from ..tools.AP.update_AP import (
     update_AP_after_query,
     update_dataset_id,
     update_dataset_archivedAt,
+    update_output_dataset_id,
 )
 from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
@@ -490,10 +490,7 @@ async def execute_query(ap_payload: APRequest):
 
         result = execute_query_csv(query_filled, software)
 
-        old_dataset_id = extract_dataset_id_from_AP(ap_payload)
-        dataset_id = str(uuid4())
-        update_dataset_id(ap_payload, old_dataset_id, dataset_id)
-
+        ap_payload, dataset_id = update_output_dataset_id(ap_payload)
         csv_bytes = result.to_csv(index=False).encode("utf-8")
         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
 

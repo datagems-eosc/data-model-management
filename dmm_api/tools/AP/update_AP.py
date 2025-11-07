@@ -30,6 +30,17 @@ def update_dataset_archivedAt(
     return ap_payload
 
 
+# I want it to return APRequest and the new dataset id
+def update_output_dataset_id(ap_payload: APRequest) -> tuple[APRequest, str]:
+    output_edge = next((e for e in ap_payload.edges if "output" in e.labels), None)
+    if not output_edge:
+        raise ValueError("No edge with label 'output' found.")
+    old_dataset_id = output_edge.target
+    dataset_id = str(uuid.uuid4())
+    updated_AP = update_dataset_id(ap_payload, old_dataset_id, dataset_id)
+    return updated_AP, dataset_id
+
+
 def update_AP_after_query(
     ap_payload: APRequest, dataset_id: str, new_path: str
 ) -> APRequest:
