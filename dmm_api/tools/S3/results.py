@@ -5,8 +5,7 @@ from uuid import uuid4
 
 def upload_csv_to_results(
     file_content: bytes,
-    # , user_id: str
-) -> str:
+) -> tuple[str, str]:
     RESULTS_DIR = os.environ.get("RESULTS_DIR", "/s3/data-model-management")
     RESULTS_FOLDER = os.environ.get("RESULTS_FOLDER", "results")
     results_path = os.path.join(RESULTS_DIR, RESULTS_FOLDER.strip("/"))
@@ -23,7 +22,7 @@ def upload_csv_to_results(
             # Save bytes to file
             f.write(file_content)
 
-        return str(results_folder)
+        return str(results_folder), dataset_id
 
     except Exception as e:
         raise RuntimeError(f"Failed to upload dataset to results: {str(e)}")

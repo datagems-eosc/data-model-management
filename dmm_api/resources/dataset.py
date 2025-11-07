@@ -9,8 +9,6 @@ from typing import Dict, Any, List, Optional
 
 from .query_executor import execute_query_csv
 
-# from .data_resolver import resolve_dataset
-# from .json_format import create_json
 from ..tools.AP.parse_AP import (
     extract_query_from_AP,
     extract_dataset_from_AP,
@@ -18,7 +16,11 @@ from ..tools.AP.parse_AP import (
     extract_dataset_path_from_AP,
     APRequest,
 )
-from ..tools.AP.update_AP import update_dataset_id, update_dataset_archivedAt
+from ..tools.AP.update_AP import (
+    update_AP_after_query,
+    update_dataset_id,
+    update_dataset_archivedAt,
+)
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 from ..tools.S3.results import upload_csv_to_results
@@ -479,10 +481,10 @@ async def update_dataset(ap_payload: APRequest):
 
 # TODO: change response model!
 @router.post("/dataset/query", response_model=DatasetSuccessEnvelope)
-async def execute_query(query_data: APRequest):
+async def execute_query(ap_payload: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
-        query_info = extract_query_from_AP(query_data)
+        query_info = extract_query_from_AP(ap_payload)
         software = query_info.get("software")
         query_filled = query_info.get("query_filled")
 
@@ -490,16 +492,16 @@ async def execute_query(query_data: APRequest):
 
         result = execute_query_csv(query_filled, software)
 
-        # dataset_json = create_json(csv_path, query)
-
         # I want to save result as a csv in s3/data-model-management/results/
         csv_bytes = result.to_csv(index=False).encode("utf-8")
-        upload_path = upload_csv_to_results(csv_bytes)
+        upload_path, dataset_id = upload_csv_to_results(csv_bytes)
 
-        return DatasetSuccessEnvelope(
+        AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+
+        return APSuccessEnvelope(
             code=status.HTTP_200_OK,
-            message=f"Query executed successfully, dataset uploaded at {upload_path}",
-            dataset={"result": result.to_dict(orient="records")},
+            message=f"Query executed successfully, results stored at {upload_path}",
+            ap=AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
         )
 
     except HTTPException:
