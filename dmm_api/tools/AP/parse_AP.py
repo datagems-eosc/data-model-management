@@ -60,6 +60,7 @@ def json_to_graph(query_data: APRequest) -> nx.DiGraph | nx.MultiDiGraph:
     return G
 
 
+# TODO: delete this function
 # Simplified case with only one SQL_Operator, Dataset and FileObject in the AP
 def extract_from_AP(query_data: APRequest):
     try:
@@ -90,7 +91,7 @@ def extract_from_AP(query_data: APRequest):
     dataset_neighbors = []
     for successor_id in G.successors(operator_id):
         node_labels = G.nodes[successor_id].get("labels", [])
-        if "Dataset" in node_labels:
+        if "sc:Dataset" in node_labels:
             dataset_neighbors.append(successor_id)
     if not dataset_neighbors:
         raise HTTPException(
@@ -152,7 +153,7 @@ def extract_query_from_AP(
             AP_nodes.append(node_id)
         elif "SQL_Operator" in labels:
             operator_nodes.append(node_id)
-        elif "Dataset" in labels:
+        elif "sc:Dataset" in labels:
             dataset_nodes.append(node_id)
         elif "User" in labels:
             user_nodes.append(node_id)
@@ -207,8 +208,11 @@ def extract_query_from_AP(
     software_prop = operator_properties.get("Software", {})
     query_info["software"] = software_prop.get("name")
 
-    # parameters = operator_properties.get("Parameters", {}) or {}
-    # software_name = operator_properties.get("Software", {}).get("name")
+    if query_info["software"] not in ["DuckDB", "Ontop"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported software: {query_info['software']}. Supported software are 'DuckDB' and 'Ontop'.",
+        )
 
     parameters = operator_properties.get("Parameters", {}) or {}
     args_map: Dict[str, Any] = {}
@@ -216,8 +220,19 @@ def extract_query_from_AP(
         if k.startswith("arg"):
             args_map[k] = v
 
-    filled_query = raw_query or ""
+    resolved_args: Dict[str, Any] = {}
     for name, value in args_map.items():
+        resolved = value
+        try:
+            if isinstance(value, str) and value in G.nodes:
+                props = G.nodes[value].get("properties", {}) or {}
+                resolved = props.get("contentUrl") or resolved
+        except Exception:
+            resolved = value
+        resolved_args[name] = resolved
+
+    filled_query = raw_query or ""
+    for name, value in resolved_args.items():
         filled_query = re.sub(
             r"\{\{\s*" + re.escape(name) + r"\s*\}\}", str(value), filled_query
         )
@@ -244,24 +259,17 @@ def extract_dataset_from_AP(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
-    AP_nodes = []
+
+    AP_nodes, operator_nodes, dataset_nodes, user_nodes = [], [], [], []
     for node_id, attributes in G.nodes(data=True):
-        if "Analytical_Pattern" in attributes.get("labels", []):
+        labels = attributes.get("labels", [])
+        if "Analytical_Pattern" in labels:
             AP_nodes.append(node_id)
-
-    operator_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "DataModelManagement_Operator" in attributes.get("labels", []):
+        elif "DataModelManagement_Operator" in labels:
             operator_nodes.append(node_id)
-
-    dataset_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "Dataset" in attributes.get("labels", []):
+        elif "sc:Dataset" in labels:
             dataset_nodes.append(node_id)
-
-    user_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "User" in attributes.get("labels", []):
+        elif "User" in labels:
             user_nodes.append(node_id)
 
     if len(AP_nodes) != 1:
@@ -345,7 +353,7 @@ def extract_dataset_id_from_AP(
         )
     dataset_nodes = []
     for node_id, attributes in G.nodes(data=True):
-        if "Dataset" in attributes.get("labels", []):
+        if "sc:Dataset" in attributes.get("labels", []):
             dataset_nodes.append(node_id)
 
     if len(dataset_nodes) != 1:
@@ -370,24 +378,17 @@ def extract_dataset_path_from_AP(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
-    AP_nodes = []
+
+    AP_nodes, operator_nodes, dataset_nodes, user_nodes = [], [], [], []
     for node_id, attributes in G.nodes(data=True):
-        if "Analytical_Pattern" in attributes.get("labels", []):
+        labels = attributes.get("labels", [])
+        if "Analytical_Pattern" in labels:
             AP_nodes.append(node_id)
-
-    operator_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "DataModelManagement_Operator" in attributes.get("labels", []):
+        elif "DataModelManagement_Operator" in labels:
             operator_nodes.append(node_id)
-
-    dataset_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "Dataset" in attributes.get("labels", []):
+        elif "sc:Dataset" in labels:
             dataset_nodes.append(node_id)
-
-    user_nodes = []
-    for node_id, attributes in G.nodes(data=True):
-        if "User" in attributes.get("labels", []):
+        elif "User" in labels:
             user_nodes.append(node_id)
 
     if len(AP_nodes) != 1:
