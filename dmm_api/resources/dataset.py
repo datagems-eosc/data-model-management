@@ -480,7 +480,7 @@ async def update_dataset(ap_payload: APRequest):
 
 
 # TODO: change response model!
-@router.post("/dataset/query", response_model=DatasetSuccessEnvelope)
+@router.post("/dataset/query", response_model=APSuccessEnvelope)
 async def execute_query(ap_payload: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
