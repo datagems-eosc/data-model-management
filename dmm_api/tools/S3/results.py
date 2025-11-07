@@ -1,17 +1,12 @@
 import os
 from pathlib import Path
-from uuid import uuid4
 
 
-def upload_csv_to_results(
-    file_content: bytes,
-) -> tuple[str, str]:
+def upload_csv_to_results(file_content: bytes, dataset_id: str) -> tuple[str, str]:
     RESULTS_DIR = os.environ.get("RESULTS_DIR", "/s3/data-model-management")
     RESULTS_FOLDER = os.environ.get("RESULTS_FOLDER", "results")
     results_path = os.path.join(RESULTS_DIR, RESULTS_FOLDER.strip("/"))
     try:
-        dataset_id = str(uuid4())
-
         results_folder = Path(results_path) / dataset_id
         results_folder.mkdir(parents=True, exist_ok=True)
 

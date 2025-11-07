@@ -2,6 +2,7 @@ from enum import Enum
 import os
 from pathlib import Path
 import shutil
+from uuid import uuid4
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
 import httpx
 from pydantic import BaseModel
@@ -487,13 +488,14 @@ async def execute_query(ap_payload: APRequest):
         software = query_info.get("software")
         query_filled = query_info.get("query_filled")
 
-        # data_path = resolve_dataset(dataset_name, csv_name)
-
         result = execute_query_csv(query_filled, software)
 
-        # I want to save result as a csv in s3/data-model-management/results/
+        old_dataset_id = extract_dataset_id_from_AP(ap_payload)
+        dataset_id = str(uuid4())
+        update_dataset_id(ap_payload, old_dataset_id, dataset_id)
+
         csv_bytes = result.to_csv(index=False).encode("utf-8")
-        upload_path, dataset_id = upload_csv_to_results(csv_bytes)
+        upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
 
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
 
