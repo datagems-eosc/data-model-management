@@ -120,9 +120,9 @@
         "fieldOfScience": [
           "OTHER ENGINEERING AND TECHNOLOGIES"
         ],
-        "headline": "Transport data.",
+        "headline": "User data.",
         "inLanguage": [
-          "fr"
+          "en"
         ],
         "keywords": [
           "dev",
@@ -150,9 +150,9 @@
         "fieldOfScience": [
           "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
         ],
-        "headline": "Weather data.",
+        "headline": "User password data.",
         "inLanguage": [
-          "fr"
+          "en"
         ],
         "keywords": [
           "dev",
@@ -171,6 +171,7 @@
       ],
       "properties": {
         "@type": "sc:Dataset",
+        "archivedAt": "",
         "country": "FR",
         "datePublished": "24-05-2025",
         "description": "Temporary dataset created after a query",
@@ -179,7 +180,7 @@
         ],
         "headline": "Output of a query",
         "inLanguage": [
-          "fr"
+          "en"
         ],
         "keywords": [
           "dev",
