@@ -21,6 +21,7 @@ from ..tools.AP.parse_AP import (
 from ..tools.AP.update_AP import update_dataset_id, update_dataset_archivedAt
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
+from ..tools.S3.results import upload_dataset_to_results
 
 datasets = {}
 query_results = {}
@@ -311,7 +312,7 @@ async def register_dataset(ap_payload: APRequest):
 
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
-@router.put("/dataset/load")
+@router.put("/dataset/load", response_model=APSuccessEnvelope)
 async def load_dataset(ap_payload: APRequest):
     """Move dataset files from scratchpad to permanent storage"""
     DATASET_DIR = os.getenv("DATASET_DIR")
@@ -482,16 +483,23 @@ async def execute_query(query_data: APRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
         query_info = extract_query_from_AP(query_data)
-        # query = query_info.get("query")
         software = query_info.get("software")
-        # args = query_info.get("args", {})
         query_filled = query_info.get("query_filled")
 
+        # data_path = resolve_dataset(dataset_name, csv_name)
+
         result = execute_query_csv(query_filled, software)
+
+        # dataset_json = create_json(csv_path, query)
+
+        # I want to save result as a csv in s3/data-model-management/results/
+        csv_bytes = result.to_csv(index=False).encode("utf-8")
+        upload_path = upload_dataset_to_results(csv_bytes)
+
         return DatasetSuccessEnvelope(
             code=status.HTTP_200_OK,
-            message="Query executed successfully",
-            dataset={"result": result.to_dict(orient="records")},
+            message=f"Query executed successfully, dataset uploaded at {upload_path}",
+            dataset={result.to_dict(orient="records")},
         )
 
     except HTTPException:

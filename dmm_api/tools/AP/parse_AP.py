@@ -134,6 +134,8 @@ def extract_from_AP(query_data: APRequest):
 
 def extract_query_from_AP(
     ap_payload: APRequest,
+    expected_ap_process: Optional[str] = None,
+    expected_operator_command: Optional[str] = None,
 ) -> Dict[str, Any]:
     try:
         G = json_to_graph(ap_payload)
@@ -143,33 +145,61 @@ def extract_query_from_AP(
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
 
-    operator_id = None
+    AP_nodes, operator_nodes, dataset_nodes, user_nodes = [], [], [], []
     for node_id, attributes in G.nodes(data=True):
-        if "SQL_Operator" in attributes.get("labels", []):
-            operator_id = node_id
-            break
+        labels = attributes.get("labels", [])
+        if "Analytical_Pattern" in labels:
+            AP_nodes.append(node_id)
+        elif "SQL_Operator" in labels:
+            operator_nodes.append(node_id)
+        elif "Dataset" in labels:
+            dataset_nodes.append(node_id)
+        elif "User" in labels:
+            user_nodes.append(node_id)
 
-    if operator_id is None:
+    if len(AP_nodes) != 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No SQL_Operator node found in the Analytical Pattern.",
+            detail="The Analytical Pattern must contain exactly one 'Analytical_Pattern' node.",
         )
 
+    if len(operator_nodes) < 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain at least one 'SQL_Operator' node.",
+        )
+
+    if len(dataset_nodes) < 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain at least one 'Dataset' node.",
+        )
+
+    if len(user_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain exactly one 'User' node.",
+        )
+
+    operator_id = operator_nodes[0]
     operator_properties = G.nodes[operator_id].get("properties", {})
+    operator_process = operator_properties.get("Parameters", {}).get("command")
 
-    # query_info: Dict[str, Any] = {}
-    # query_info["query"] = operator_properties.get("Query")
-    # software_prop = operator_properties.get("Software", {})
-    # query_info["software"] = software_prop.get("name")
+    if expected_operator_command and operator_process != expected_operator_command:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+        )
 
-    # parameters = operator_properties.get("Parameters", {}) or {}
+    AP_id = AP_nodes[0]
+    AP_properties = G.nodes[AP_id].get("properties", {})
+    AP_process = AP_properties.get("Process")
 
-    # args_map: Dict[str, Any] = {}
-    # for k, v in parameters.items():
-    #     if k.startswith("arg"):
-    #         args_map[k] = v
-
-    # query_info["args"] = args_map
+    if expected_ap_process and AP_process != expected_ap_process:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
+        )
 
     query_info: Dict[str, Any] = {}
     raw_query = operator_properties.get("Query")
@@ -177,8 +207,10 @@ def extract_query_from_AP(
     software_prop = operator_properties.get("Software", {})
     query_info["software"] = software_prop.get("name")
 
-    parameters = operator_properties.get("Parameters", {}) or {}
+    # parameters = operator_properties.get("Parameters", {}) or {}
+    # software_name = operator_properties.get("Software", {}).get("name")
 
+    parameters = operator_properties.get("Parameters", {}) or {}
     args_map: Dict[str, Any] = {}
     for k, v in parameters.items():
         if k.startswith("arg"):
