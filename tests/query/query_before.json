@@ -12,14 +12,14 @@
       "labels": [
         "input"
       ],
-      "to": "84526e25-7d15-4ae2-8747-1d5c6b92b184"
+      "to": "928a3f45-7eec-474a-ab07-90736feb7ace"
     },
     {
       "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
       "labels": [
         "input"
       ],
-      "to": "6c256b73-c1c4-417a-86a6-e00a735431bf"
+      "to": "36f74548-0f4f-47c7-bfdf-6502e9fc0768"
     },
     {
       "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
@@ -50,18 +50,18 @@
       "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
     },
     {
-      "from": "84526e25-7d15-4ae2-8747-1d5c6b92b184",
+      "from": "928a3f45-7eec-474a-ab07-90736feb7ace",
       "labels": [
         "distribution"
       ],
-      "to": "f561fb22-d1d2-4f6a-a076-209ddfb5102a"
+      "to": "aca33450-d1b4-4721-af00-7f1a73d5e34f"
     },
     {
-      "from": "6c256b73-c1c4-417a-86a6-e00a735431bf",
+      "from": "36f74548-0f4f-47c7-bfdf-6502e9fc0768",
       "labels": [
         "distribution"
       ],
-      "to": "0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8"
+      "to": "c5a06fbd-887f-4562-8121-55dfe5a658c7"
     }
   ],
   "nodes": [
@@ -87,13 +87,13 @@
         "Description": "Query executed via DuckDB on two datasets",
         "Name": "DuckDB Query Operator",
         "Parameters": {
-          "arg1": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184/f561fb22-d1d2-4f6a-a076-209ddfb5102a",
-          "arg2": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf/0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+          "arg1": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
+          "arg2": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
           "command": "query",
           "queryType": "SELECT"
         },
         "PublishedDate": "2025-06-30",
-        "Query": "SELECT * FROM {{arg1}} AS user JOIN {{arg2}} AS user_pwd ON user.Identifier = user_pwd.Id WHERE user.Username = 'booker12' OR user.Username = 'grey07'",
+        "Query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
         "Software": {
           "description": "In-process OLAP database for analytical queries",
           "name": "DuckDB",
@@ -105,61 +105,61 @@
       }
     },
     {
-      "@id": "84526e25-7d15-4ae2-8747-1d5c6b92b184",
+      "@id": "928a3f45-7eec-474a-ab07-90736feb7ace",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184",
+        "archivedAt": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace",
         "citeAs": "",
         "conformsTo": "",
-        "country": "FR",
+        "country": "GR",
         "datePublished": "24-05-2025",
-        "description": "User data",
+        "description": "Kyonos electricity",
         "fieldOfScience": [
           "OTHER ENGINEERING AND TECHNOLOGIES"
         ],
-        "headline": "User data.",
+        "headline": "Kyonos electricity data.",
         "inLanguage": [
-          "en"
+          "el"
         ],
         "keywords": [
           "dev",
           "keyword"
         ],
         "license": "Public Domain",
-        "name": "user",
+        "name": "kyonos_electricity",
         "url": "",
         "version": ""
       }
     },
     {
-      "@id": "6c256b73-c1c4-417a-86a6-e00a735431bf",
+      "@id": "36f74548-0f4f-47c7-bfdf-6502e9fc0768",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf",
+        "archivedAt": "s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768",
         "citeAs": "",
         "conformsTo": "",
-        "country": "FR",
+        "country": "GR",
         "datePublished": "24-05-2025",
-        "description": "User passwor data",
+        "description": "Crete electricity",
         "fieldOfScience": [
           "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
         ],
-        "headline": "User password data.",
+        "headline": "Crete electricity data.",
         "inLanguage": [
-          "en"
+          "el"
         ],
         "keywords": [
           "dev",
           "keyword"
         ],
         "license": "Public Domain",
-        "name": "user_pwd",
+        "name": "crete_electricity",
         "url": "",
         "version": ""
       }
@@ -167,11 +167,10 @@
     {
       "@id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "",
         "country": "FR",
         "datePublished": "24-05-2025",
         "description": "Temporary dataset created after a query",
@@ -191,32 +190,34 @@
       }
     },
     {
-      "@id": "f561fb22-d1d2-4f6a-a076-209ddfb5102a",
+      "@id": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
       "labels": [
+        "cr:FileObject",
         "CSV"
       ],
       "properties": {
         "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/84526e25-7d15-4ae2-8747-1d5c6b92b184/f561fb22-d1d2-4f6a-a076-209ddfb5102a",
+        "contentUrl": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace/kyonos_electricity.cs",
         "description": "",
         "encodingFormat": "text/csv",
-        "name": "user.csv",
+        "name": "kyonos_electricity.csv",
         "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ab"
       }
     },
     {
-      "@id": "0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+      "@id": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
       "labels": [
+        "cr:FileObject",
         "CSV"
       ],
       "properties": {
         "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/6c256b73-c1c4-417a-86a6-e00a735431bf/0f2be793-c9e5-4fa5-a9ab-28ea7ddef6d8",
+        "contentUrl": "s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768/crete_electricity.csv",
         "description": "",
         "encodingFormat": "text/csv",
-        "name": "user_pwd.csv",
+        "name": "crete_electricity.csv",
         "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
       }
     },

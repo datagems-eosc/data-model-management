@@ -77,7 +77,7 @@
     {
       "@id": "475e6aa3-9c56-4360-aace-631888242947",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
@@ -107,7 +107,8 @@
     {
       "@id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
       "labels": [
-        "FileObject"
+        "cr:FileObject",
+        "CSV"
       ],
       "properties": {
         "@type": "cr:FileObject",

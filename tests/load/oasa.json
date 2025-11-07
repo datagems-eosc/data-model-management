@@ -70,7 +70,7 @@
     {
       "@id": "475e6aa3-9c56-4360-aace-631888242947",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
