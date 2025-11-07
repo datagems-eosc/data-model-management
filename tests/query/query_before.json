@@ -198,7 +198,7 @@
       "properties": {
         "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace/kyonos_electricity.cs",
+        "contentUrl": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace/kyonos_electricity.csv",
         "description": "",
         "encodingFormat": "text/csv",
         "name": "kyonos_electricity.csv",
