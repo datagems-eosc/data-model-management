@@ -134,7 +134,7 @@ This registers a new dataset using the JSON payload. The API returns:
          {
             "@id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
-               "Dataset"
+               "sc:Dataset"
             ],
             "properties":{
                "@type": "sc:Dataset",
@@ -248,7 +248,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
          {
             "@id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
-               "Dataset"
+               "sc:Dataset"
             ],
             "properties":{
                "@type":"sc:Dataset",
@@ -359,7 +359,7 @@ This updates the dataset properties and creates file object distributions. The A
          {
             "@id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
-               "Dataset"
+               "sc:Dataset"
             ],
             "properties":{
                "@type":"sc:Dataset",
