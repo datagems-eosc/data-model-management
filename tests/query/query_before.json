@@ -171,7 +171,7 @@
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "country": "FR",
+        "country": "GR",
         "datePublished": "24-05-2025",
         "description": "Temporary dataset created after a query",
         "fieldOfScience": [
