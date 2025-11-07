@@ -21,7 +21,7 @@ from ..tools.AP.parse_AP import (
 from ..tools.AP.update_AP import update_dataset_id, update_dataset_archivedAt
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
-from ..tools.S3.results import upload_dataset_to_results
+from ..tools.S3.results import upload_csv_to_results
 
 datasets = {}
 query_results = {}
@@ -494,7 +494,7 @@ async def execute_query(query_data: APRequest):
 
         # I want to save result as a csv in s3/data-model-management/results/
         csv_bytes = result.to_csv(index=False).encode("utf-8")
-        upload_path = upload_dataset_to_results(csv_bytes)
+        upload_path = upload_csv_to_results(csv_bytes)
 
         return DatasetSuccessEnvelope(
             code=status.HTTP_200_OK,
