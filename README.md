@@ -101,7 +101,7 @@ To register a new dataset in the system:
 
 #### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register
+curl -X POST -H "Content-Type: application/json" --data @../tests/register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
 ```
 
 This registers a new dataset using the JSON payload. The API returns:
@@ -215,7 +215,7 @@ To move a dataset from the scratchpad to the permanent storage location:
 
 #### PUT a dataset load request
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load
+curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
 ```
 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
@@ -326,7 +326,7 @@ To update an existing dataset with additional metadata or file information:
 
 #### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/oasa_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update
+curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/oasa_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
 ```
 
 This updates the dataset properties and creates file object distributions. The API returns:
@@ -451,7 +451,7 @@ To query one or more datasets:
 
 #### POST a query
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/query
+curl -X POST -H "Content-Type: application/json" --data @../tests/query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/query | python -m json.tool
 ```
 
 This query two dataset properties and creates a new dataset from the output. The API returns:
