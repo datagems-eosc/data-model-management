@@ -1,7 +1,7 @@
-site_name: DataGEMS Data Workflow Orchestrator Docs
+site_name: DataGEMS Data Model Management Docs
 
-site_url: https://datagems-eosc.github.io/dg-data-workflow/
-repo_url: https://github.com/datagems-eosc/dg-data-workflow/
+site_url: https://datagems-eosc.github.io/data-model-management/
+repo_url: https://github.com/datagems-eosc/data-model-management
 
 nav:
   - Overview: index.md
