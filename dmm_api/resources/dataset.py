@@ -25,7 +25,7 @@ from ..tools.AP.update_AP import (
 )
 from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
-from ..tools.S3.results import upload_csv_to_results
+from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 datasets = {}
@@ -506,6 +506,14 @@ async def execute_query(ap_payload: APRequest):
         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
 
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+        upload_ap_to_results(
+            json.dumps(
+                AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
+                ensure_ascii=False,
+                indent=2,
+            ),
+            dataset_id,
+        )
 
         register_AP = generate_register_AP_after_query(AP_query_after)
         await register_dataset(register_AP)
