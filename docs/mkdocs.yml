@@ -1,19 +1,23 @@
-site_name: DataGEMS Data Model Management Docs
+site_name: DataGEMS Data Model Management API Docs
 
 site_url: https://datagems-eosc.github.io/data-model-management/
-repo_url: https://github.com/datagems-eosc/data-model-management
+repo_url: https://github.com/datagems-eosc/data-model-management/
 
 nav:
   - Overview: index.md
   - System:
     - Architecture: architecture.md
+    - Security: security.md
     - Datastores: datastore.md
-  - Workflows:
-    - Overview: workflow-overview.md
+  - API:
+    - Overview: api-overview.md
+    - Status & Error Codes: error-codes.md
+    - OpenAPI: openapi.md
   - Setup & Monitoring:
     - Automations: automations.md
     - Deployment: deployment.md
     - Configuration: configuration.md
+    - Logging & Accounting: logging.md
     - Maintenance: maintenance.md
   - Material:
     - Onboarding: onboarding.md

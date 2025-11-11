@@ -4,32 +4,51 @@ The service is part of the DataGEMS platform offered through an existing deploym
 
 ## Healthchecks
 
-The service [observability documentation](https://airflow.apache.org/docs/apache-airflow/stable/administration-and-deployment/logging-monitoring/check-health.html) describes healthcheck endpoints that can be used to track the status of the service.
+The service [OpenAPI Reference](openapi.md) describes healthcheck endpoints that can be used to track the status of the service.
 
-An example of a healthcheck response that returns 200 OK for healthy state is:
+The appropriate configuration file that controls the behavior of the healthcheck endpoints is described in the relevant [Configuration](configuration.md) section along with the response status codes for Healthy / Degrades / Unhealthy status and if the response will be verbose.
+
+An example of a Verbose response that returns 200 OK for healthy state is:
 ```json
 {
-  "metadatabase":{
-    "status":"healthy"
-  },
-  "scheduler":{
-    "status":"healthy",
-    "latest_scheduler_heartbeat":"2018-12-26 17:15:11+00:00"
-  },
-  "triggerer":{
-    "status":"healthy",
-    "latest_triggerer_heartbeat":"2018-12-26 17:16:12+00:00"
-  },
-  "dag_processor":{
-    "status":"healthy",
-    "latest_dag_processor_heartbeat":"2018-12-26 17:16:12+00:00"
-  }
+    "status": "Healthy",
+    "duration": "00:00:00.0216780",
+    "results": {
+        "privateMemory": {
+            "status": "Healthy",
+            "description": null,
+            "duration": "00:00:00.0015544",
+            "tags": null,
+            "exception": null,
+            "data": {}
+        },
+        "processMemory": {
+            "status": "Healthy",
+            "description": "Allocated megabytes in memory: 408 mb",
+            "duration": "00:00:00.0000382",
+            "tags": null,
+            "exception": null,
+            "data": {}
+        },
+        "db": {
+            "status": "Healthy",
+            "description": null,
+            "duration": "00:00:00.0211601",
+            "tags": null,
+            "exception": null,
+            "data": {}
+        }
+    }
 }
 ```
 
 ## Verions & Updates
 
-The service follows the versioning and update scheme that Airflow supports.
+The service follows a semantic versioning scheme and structures versions as MAJOR.MINOR.PATCH:
+
+* MAJOR (X.0.0): Breaking changes that are incompatible with previous versions.
+* MINOR (X.Y.0): New features added in a backward-compatible way.
+* PATCH (X.Y.Z): Bug fixes and security patches that do not affect compatibility.
 
 ## Backups
 
@@ -39,4 +58,4 @@ To keep backups of the state, the respective utilities must be scheduled to run 
 
 ## Troubleshooting
 
-Troubleshooting is primarily done through the logging mechanisms that are available within Airflow. These offer log reports on individual tasks and flows as they are executed by the Airflow engine.
+Troubleshooting is primarily done through the logging mechanisms that are available and are described in the respective [logging](logging.md) section.

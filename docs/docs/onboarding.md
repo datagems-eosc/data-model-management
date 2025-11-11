@@ -4,25 +4,35 @@ This section contains some references and material that will assist users and in
 
 ## References
 
-The definite guide for integrators remains the Airflow [documentation](https://airflow.apache.org/docs/) and [API reference](https://airflow.apache.org/docs/apache-airflow/stable/stable-rest-api-ref.html).
+The definite guide for integrators remains the service [OpenAPI Reference](openapi.md).
 
-Airflow is an open source project and the codebase is available under [Apache License Version 2.0](https://github.com/apache/airflow/blob/main/LICENSE) in the project's [GitHub code repository](https://github.com/apache/airflow).
+The codebase is available under [EUROPEAN UNION PUBLIC LICENCE v. 1.2 (EUPL v1.2)](license.md) in our [GitHub code repository](https://github.com/datagems-eosc/dg-app-api).
 
-Custom workflows applying for the DataGEMS use cases are available under [Apache License Version 2.0](license.md) in our [GitHub code repository](https://github.com/datagems-eosc/dg-data-workflow).
+To get a better understanding on features and approaches utilized throughout the HTTP Api interface, you can read about some [Api Constructs](api-overview.md).
 
-More information on the workflows supported for the DataGEMS data management needs can be found at the [Workflow Overview](workflow-overview.md) section.
+To know more about Api response codes and how to interpret them, you can take a look at the [Status & Error Codes](error-codes.md).
+
+On aspect pertaining to security, you can read more at the [Secruity](security.md) section.
 
 For an overall view of the service, you can go through the [Architecture](architecture.md).
 
 For any questions, you can consult the [FAQ](faq.md).
 
-If you are facing a problem, check if there is a relevant [issue](https://github.com/datagems-eosc/dg-data-workflow/issues) answering your question.
+If you are facing a problem, check if there is a relevant [issue](https://github.com/datagems-eosc/dg-app-api/issues) answering your question.
 
 You can always contact us through the [DataGEMS Help Desk](https://datagems.eu/contact-us/).
 
 ## Examples
 
-You can find descriptions and an overview of the offered workflows the [Workflow Overview](workflow-overview.md) section.
+You can find here a postman collection that describes some example calls of the Api. You will need to create an environment and define the following variables:
+
+* userAccessToken: set here the access token retrieved from the DataGEMS AAI service
+* baseUrl: set this to the api endpoint you want to use
+
+Depending on the access level of the user that was authenticated and whose access token you have placed in the *userAccessToken* variable, you will be able to utilize the respective endpoints.
+
+The postman collection can be found here: [DataGEMS.dg-app-api.postman-collection.json](content/DataGEMS.dg-app-api.postman-collection.json).
+
 
 ## Tutorials
 

@@ -2,9 +2,9 @@
 
 The service is part of the DataGEMS platform offered through an existing deployment, following the DataGEMS release and deployment procedures over a managed infrasrtucture. The purpose of this section is not to detail the deployment processes put in place by the DataGEMS team.
 
-## Helm Charts
+## Docker
 
-The service is offered as an existing Kubernetes Helm Chart.
+The service is offered as a Docker image through the DataGEMS GitHub Organization Packages. This process is described in the relevant [Automations](automations.md) section.
 
 ## Configuration
 
