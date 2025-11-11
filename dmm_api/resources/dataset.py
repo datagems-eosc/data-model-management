@@ -1,4 +1,5 @@
 from enum import Enum
+import json
 import os
 from pathlib import Path
 import shutil
@@ -25,6 +26,7 @@ from ..tools.AP.update_AP import (
 from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 from ..tools.S3.results import upload_csv_to_results
+from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 datasets = {}
 query_results = {}
@@ -362,6 +364,15 @@ async def load_dataset(ap_payload: APRequest):
         await update_dataset(update_ap)
 
         ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
+
+        dataset, _ = extract_dataset_from_AP(
+            ap_payload,
+            expected_ap_process="load",
+            expected_operator_command="update",
+        )
+
+        json_dataset = json.dumps(dataset, indent=2)
+        upload_dataset_to_catalogue(json_dataset, dataset_id)
 
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
