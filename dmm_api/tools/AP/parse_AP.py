@@ -173,12 +173,12 @@ def extract_query_from_AP(
     return query_info
 
 
-# TODO: check the edges too
-def extract_dataset_from_AP(
+# Add recordSet too
+def extract_datasets_from_AP(
     ap_payload: APRequest,
     expected_ap_process: Optional[str] = None,
     expected_operator_command: Optional[str] = None,
-) -> Tuple[Dict[str, Any], str]:
+) -> Tuple[List[Dict[str, Any]], List[str]]:
     try:
         G = json_to_graph(ap_payload)
     except Exception as e:
@@ -211,10 +211,10 @@ def extract_dataset_from_AP(
             detail="The Analytical Pattern must contain exactly one 'DataModelManagement_Operator' node.",
         )
 
-    if len(dataset_nodes) != 1:
+    if len(dataset_nodes) < 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+            detail="The Analytical Pattern must contain at least one 'Dataset' node.",
         )
 
     if len(user_nodes) != 1:
@@ -223,22 +223,16 @@ def extract_dataset_from_AP(
             detail="The Analytical Pattern must contain exactly one 'User' node.",
         )
 
-    # If the dataset_id is not a valid UUID, generate a new one
-    dataset_id = dataset_nodes[0]
-    old_dataset_id = dataset_id
+    original_dataset_ids = list(dataset_nodes)
+    relabel_map: Dict[str, str] = {}
+    for did in dataset_nodes:
+        if not is_valid_uuid(did):
+            relabel_map[did] = str(uuid.uuid4())
 
-    if not is_valid_uuid(dataset_id):
-        new_dataset_id = str(uuid.uuid4())
-        G = nx.relabel_nodes(G, {dataset_id: new_dataset_id})
-        dataset_id = new_dataset_id
-
-    dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
-    # Check that the dataset has the field 'archivedAt'
-    if "archivedAt" not in dataset_properties:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Dataset node must contain the 'archivedAt' property.",
-        )
+    if relabel_map:
+        G = nx.relabel_nodes(G, relabel_map)
+    final_dataset_ids = [relabel_map.get(did, did) for did in dataset_nodes]
+    # old_to_new = {old: relabel_map.get(old, old) for old in dataset_nodes}
 
     operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
     operator_process = operator_properties.get("Parameters", {}).get("command")
@@ -259,13 +253,57 @@ def extract_dataset_from_AP(
             detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
         )
 
-    dataset = {
-        "@context": {**CONTEXT_TEMPLATE, **REFERENCES_TEMPLATE},
-        "@id": dataset_id,
-    }
-    dataset.update(dataset_properties)
+    datasets: List[Dict[str, Any]] = []
+    missing_archived = []
+    for dataset_id in final_dataset_ids:
+        dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
+        if "archivedAt" not in dataset_properties:
+            missing_archived.append(dataset_id)
+            continue
 
-    return dataset, old_dataset_id
+        dataset = {
+            "@context": {**CONTEXT_TEMPLATE, **REFERENCES_TEMPLATE},
+            "@id": dataset_id,
+        }
+        dataset.update(dataset_properties)
+
+        distribution = []
+        try:
+            for _, to_id, edata in G.out_edges(dataset_id, data=True):
+                edge_labels = edata.get("labels", []) or []
+                if "distribution" not in edge_labels:
+                    continue
+                node_attrs = G.nodes.get(to_id, {}) or {}
+                node_props = node_attrs.get("properties", {}) or {}
+                node_labels = node_attrs.get("labels", []) or []
+
+                file_obj: Dict[str, Any] = {"@id": to_id}
+                file_obj["@type"] = node_props.get("@type") or next(
+                    (
+                        lbl
+                        for lbl in node_labels
+                        if lbl.endswith("FileObject") or lbl == "CSV"
+                    ),
+                    "cr:FileObject",
+                )
+                file_obj.update(node_props)
+
+                distribution.append(file_obj)
+        except Exception:
+            distribution = []
+
+        if distribution:
+            dataset["distribution"] = distribution
+
+        datasets.append(dataset)
+
+    if missing_archived:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The following Dataset nodes are missing 'archivedAt': {missing_archived}",
+        )
+
+    return datasets, original_dataset_ids
 
 
 def extract_dataset_id_from_AP(

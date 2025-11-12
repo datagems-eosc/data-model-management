@@ -12,7 +12,7 @@ from .query_executor import execute_query_csv
 
 from ..tools.AP.parse_AP import (
     extract_query_from_AP,
-    extract_dataset_from_AP,
+    extract_datasets_from_AP,
     extract_dataset_id_from_AP,
     extract_dataset_path_from_AP,
     APRequest,
@@ -224,22 +224,23 @@ async def register_dataset(ap_payload: APRequest):
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     try:
-        dataset, old_dataset_id = extract_dataset_from_AP(
+        datasets_list, old_dataset_ids = extract_datasets_from_AP(
             ap_payload,
             expected_ap_process="register",
             expected_operator_command="create",
         )
-        dataset_id = dataset.get("@id")
-
-        # This check will be removed after we define JSON validation rules
-        if not dataset_id:
+        if len(datasets_list) != 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
-                    error="Dataset ID is missing",
+                    error="Register AP must contain exactly one dataset node.",
                 ).model_dump(),
             )
+        dataset = datasets_list[0]
+        dataset_id = dataset.get("@id")
+        old_dataset_id = old_dataset_ids[0]
+
     except HTTPException:
         raise
     except Exception as e:
@@ -365,7 +366,7 @@ async def load_dataset(ap_payload: APRequest):
 
         ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
 
-        dataset, _ = extract_dataset_from_AP(
+        dataset, _ = extract_datasets_from_AP(
             ap_payload,
             expected_ap_process="load",
             expected_operator_command="update",
@@ -412,21 +413,12 @@ async def update_dataset(ap_payload: APRequest):
     # check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
 
     try:
-        dataset, dataset_id = extract_dataset_from_AP(
+        datasets_list, dataset_ids = extract_datasets_from_AP(
             ap_payload,
             expected_ap_process="update",
             expected_operator_command="update",
         )
 
-        # This check will be removed after we define JSON validation rules
-        if not dataset_id:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_400_BAD_REQUEST,
-                    error="Dataset ID is missing",
-                ).model_dump(),
-            )
     except HTTPException:
         raise
     except Exception as e:
@@ -439,56 +431,50 @@ async def update_dataset(ap_payload: APRequest):
         )
 
     async with httpx.AsyncClient() as client:
-        try:
-            # Check if a Dataset with such UUID is already stored in the Neo4j
-            # check_response = await client.get(check_url)
-            # check_response.raise_for_status()
-            # existing_dataset = check_response.json()
+        results = []
+        failed = []
 
-            # if not existing_dataset:
-            #     raise HTTPException(
-            #         status_code=status.HTTP_404_NOT_FOUND,
-            #         detail=ErrorEnvelope(
-            #             code=status.HTTP_404_NOT_FOUND,
-            #             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
-            #         ).model_dump(),
-            #     )
-            # If yes, update the dataset
-            response = await client.post(ingest_url, json=dataset)
-            response.raise_for_status()
+        for dataset in datasets_list:
+            dataset_id = dataset.get("@id")
+            try:
+                # Check if a Dataset with such UUID is already stored in the Neo4j
+                # check_response = await client.get(check_url)
+                # check_response.raise_for_status()
+                # existing_dataset = check_response.json()
 
-            return APSuccessEnvelope(
-                code=status.HTTP_200_OK,
-                message=f"Dataset with ID {dataset_id} updated successfully in Neo4j",
-                ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
-            )
+                # if not existing_dataset:
+                #     raise HTTPException(
+                #         status_code=status.HTTP_404_NOT_FOUND,
+                #         detail=ErrorEnvelope(
+                #             code=status.HTTP_404_NOT_FOUND,
+                #             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+                #         ).model_dump(),
+                #     )
+                # If yes, update the dataset
+                response = await client.post(ingest_url, json=dataset)
+                response.raise_for_status()
+                results.append(dataset_id)
+            except httpx.HTTPStatusError:
+                failed.append(dataset_id)
+            except httpx.RequestError:
+                failed.append(dataset_id)
+            except Exception:
+                failed.append(dataset_id)
 
-        except httpx.HTTPStatusError:
+        if failed:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error="Error from MoMa API",
+                    error=f"Failed to update some datasets: {failed}",
                 ).model_dump(),
             )
 
-        except httpx.RequestError:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    error="Failed to connect to MoMa API",
-                ).model_dump(),
-            )
-
-        except Exception:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error="Unexpected Internal Server error",
-                ).model_dump(),
-            )
+        return APSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message=f"{len(results)} dataset(s) updated successfully in Neo4j",
+            ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+        )
 
 
 @router.post("/dataset/query", response_model=APSuccessEnvelope)
