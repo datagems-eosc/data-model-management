@@ -256,14 +256,19 @@ async def register_dataset(ap_payload: APRequest):
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
     check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+
     async with httpx.AsyncClient() as client:
         try:
             check_response = await client.get(check_url)
             if check_response.status_code == 200:
                 dataset_data = check_response.json().get("dataset", {})
                 nodes = dataset_data.get("metadata", {}).get("nodes", [])
+
                 for node in nodes:
-                    if node.get("id") == dataset_id:
+                    if (
+                        "Dataset" in node.get("labels", [])
+                        and node.get("id") == dataset_id
+                    ):
                         raise HTTPException(
                             status_code=status.HTTP_409_CONFLICT,
                             detail=ErrorEnvelope(
@@ -272,7 +277,7 @@ async def register_dataset(ap_payload: APRequest):
                             ).model_dump(),
                         )
 
-            # If not found, register the dataset
+            # If the dataset was not found (or status was not 200), we proceed to register.
             response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
 
@@ -288,12 +293,12 @@ async def register_dataset(ap_payload: APRequest):
                 ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error="Error from MoMa API",
+                    error=f"Error from MoMa API on ingestion (Status: {e.response.status_code})",
                 ).model_dump(),
             )
 
