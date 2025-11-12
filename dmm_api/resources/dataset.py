@@ -440,15 +440,20 @@ async def update_dataset(ap_payload: APRequest):
             try:
                 check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
                 check_response = await client.get(check_url)
-                dataset_data = check_response.json().get("dataset", {})
-                nodes = dataset_data.get("metadata", {}).get("nodes", [])
-                dataset_found = False
-                for node in nodes:
-                    if node.get("id") == dataset_id:
-                        dataset_found = True
-                        break
 
-                if not dataset_found:
+                if check_response.status_code == 200:
+                    metadata = check_response.json().get("metadata", {})
+                    nodes = metadata.get("nodes", [])
+
+                    if not nodes:
+                        raise HTTPException(
+                            status_code=status.HTTP_404_NOT_FOUND,
+                            detail=ErrorEnvelope(
+                                code=status.HTTP_404_NOT_FOUND,
+                                error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+                            ).model_dump(),
+                        )
+                else:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=ErrorEnvelope(
@@ -456,9 +461,13 @@ async def update_dataset(ap_payload: APRequest):
                             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
                         ).model_dump(),
                     )
+
                 response = await client.post(ingest_url, json=dataset)
                 response.raise_for_status()
                 results.append(dataset_id)
+
+            except HTTPException:
+                raise
             except httpx.HTTPStatusError:
                 failed.append(dataset_id)
             except httpx.RequestError:
