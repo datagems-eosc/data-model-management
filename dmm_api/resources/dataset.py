@@ -261,23 +261,19 @@ async def register_dataset(ap_payload: APRequest):
         try:
             check_response = await client.get(check_url)
             if check_response.status_code == 200:
-                dataset_data = check_response.json().get("dataset", {})
-                nodes = dataset_data.get("metadata", {}).get("nodes", [])
+                metadata = check_response.json().get("metadata", {})
+                nodes = metadata.get("nodes", [])
 
-                for node in nodes:
-                    if (
-                        "Dataset" in node.get("labels", [])
-                        and node.get("id") == dataset_id
-                    ):
-                        raise HTTPException(
-                            status_code=status.HTTP_409_CONFLICT,
-                            detail=ErrorEnvelope(
-                                code=status.HTTP_409_CONFLICT,
-                                error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                            ).model_dump(),
-                        )
+                if nodes:
+                    raise HTTPException(
+                        status_code=status.HTTP_409_CONFLICT,
+                        detail=ErrorEnvelope(
+                            code=status.HTTP_409_CONFLICT,
+                            error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+                        ).model_dump(),
+                    )
 
-            # If the dataset was not found (or status was not 200), we proceed to register.
+            # If the dataset was not found, we proceed to register.
             response = await client.post(ingest_url, json=dataset)
             response.raise_for_status()
 
@@ -293,6 +289,8 @@ async def register_dataset(ap_payload: APRequest):
                 ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
 
+        except HTTPException:
+            raise
         except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
