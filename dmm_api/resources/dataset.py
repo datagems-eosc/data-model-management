@@ -262,14 +262,15 @@ async def register_dataset(ap_payload: APRequest):
             if check_response.status_code == 200:
                 dataset_data = check_response.json().get("dataset", {})
                 nodes = dataset_data.get("metadata", {}).get("nodes", [])
-                if nodes:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail=ErrorEnvelope(
-                            code=status.HTTP_409_CONFLICT,
-                            error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                        ).model_dump(),
-                    )
+                for node in nodes:
+                    if node.get("id") == dataset_id:
+                        raise HTTPException(
+                            status_code=status.HTTP_409_CONFLICT,
+                            detail=ErrorEnvelope(
+                                code=status.HTTP_409_CONFLICT,
+                                error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+                            ).model_dump(),
+                        )
 
             # If not found, register the dataset
             response = await client.post(ingest_url, json=dataset)
@@ -438,7 +439,13 @@ async def update_dataset(ap_payload: APRequest):
                 check_response = await client.get(check_url)
                 dataset_data = check_response.json().get("dataset", {})
                 nodes = dataset_data.get("metadata", {}).get("nodes", [])
-                if not nodes:
+                dataset_found = False
+                for node in nodes:
+                    if node.get("id") == dataset_id:
+                        dataset_found = True
+                        break
+
+                if not dataset_found:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=ErrorEnvelope(
@@ -446,7 +453,6 @@ async def update_dataset(ap_payload: APRequest):
                             error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
                         ).model_dump(),
                     )
-
                 response = await client.post(ingest_url, json=dataset)
                 response.raise_for_status()
                 results.append(dataset_id)
