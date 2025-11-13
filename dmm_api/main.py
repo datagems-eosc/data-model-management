@@ -54,10 +54,10 @@ async def api_home():
                 "methods": ["PUT"],
                 "url": "/api/v1/dataset/update",
             },
-            "dataset_query": {
+            "polyglot_query": {
                 "description": "Execute queries on datasets",
                 "methods": ["POST"],
-                "url": "/api/v1/dataset/query",
+                "url": "/api/v1/polyglot/query",
             },
             "swagger": {
                 "description": "Interactive API documentation (Swagger UI)",

@@ -451,7 +451,7 @@ To query one or more datasets:
 
 #### POST a query
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/query | python -m json.tool
+curl -X POST -H "Content-Type: application/json" --data @../tests/query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
 ```
 
 This query two dataset properties and creates a new dataset from the output. The API returns:
