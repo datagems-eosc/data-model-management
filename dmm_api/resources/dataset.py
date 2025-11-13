@@ -346,8 +346,6 @@ async def load_dataset(ap_payload: APRequest):
             raise ValueError("Invalid S3 URI. Must start with s3://")
 
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
-        dataset_id = extract_dataset_id_from_AP(ap_payload)
-
         source_path = Path("/s3") / path_without_s3_prefix
         target_path = Path(DATASET_DIR) / dataset_id
         if not source_path.exists():
@@ -368,12 +366,22 @@ async def load_dataset(ap_payload: APRequest):
 
         ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
 
-        dataset, _ = extract_datasets_from_AP(
+        datasets_list, _ = extract_datasets_from_AP(
             ap_payload,
             expected_ap_process="load",
             expected_operator_command="update",
         )
 
+        if len(datasets_list) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="Load AP must contain exactly one dataset node.",
+                ).model_dump(),
+            )
+
+        dataset = datasets_list[0]
         json_dataset = json.dumps(dataset, indent=2)
         upload_dataset_to_catalogue(json_dataset, dataset_id)
 
