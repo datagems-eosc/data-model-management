@@ -282,7 +282,7 @@ def extract_datasets_from_AP(
                     (
                         lbl
                         for lbl in node_labels
-                        if lbl.endswith("FileObject") or lbl == "CSV"
+                        if isinstance(lbl, str) and lbl.lower().endswith("fileobject")
                     ),
                     "cr:FileObject",
                 )
