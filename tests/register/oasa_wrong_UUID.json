@@ -1,98 +1,97 @@
 {
   "edges": [
     {
-      "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+      "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
       "labels": [
         "consist_of"
       ],
-      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+      "to": "69ce4693-e71e-4616-9320-037c90a88858"
     },
     {
-      "from": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+      "from": "69ce4693-e71e-4616-9320-037c90a88858",
       "labels": [
         "input"
       ],
-      "to": "fa512835-7ec9-41cc-87db-a94b99e8b97a"
+      "to": "9c56-4360-631888242947"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "intervene"
       ],
-      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+      "to": "69ce4693-e71e-4616-9320-037c90a88858"
     },
     {
-      "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+      "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
       "labels": [
         "is_accomplished"
       ],
-      "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef"
+      "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "request"
       ],
-      "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd"
+      "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
     }
   ],
   "nodes": [
     {
-      "@id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+      "@id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
       "labels": [
         "Analytical_Pattern"
       ],
       "properties": {
-        "Description": "Analytical Pattern to load a dataset",
-        "Name": "Load Dataset AP",
-        "Process": "load",
+        "Description": "Analytical Pattern to register a dataset",
+        "Name": "Register Dataset AP",
+        "Process": "register",
         "PublishedDate": "2025-06-30",
         "StartTime": "10:00:00"
       }
     },
     {
-      "@id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+      "@id": "69ce4693-e71e-4616-9320-037c90a88858",
       "labels": [
         "DataModelManagement_Operator"
       ],
       "properties": {
-        "Description": "An operator to load a dataset into s3/dataset",
-        "Name": "Load Operator",
+        "Description": "An operator to register a dataset into DataGEMS",
+        "Name": "Register Operator",
         "Parameters": {
-          "command": "update"
+          "command": "create"
         },
         "PublishedDate": "2025-06-30",
-        "Software": {},
         "StartTime": "10:00:00",
         "Step": 1
       }
     },
     {
-      "@id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "@id": "9c56-4360-631888242947",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+        "archivedAt": "s3://scratchpad/9c56-4360-631888242947",
         "citeAs": "",
         "conformsTo": "",
-        "country": "FR",
+        "country": "PT",
         "datePublished": "24-05-2025",
-        "description": "Weather data",
+        "description": "Subway data",
         "fieldOfScience": [
-          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+          "CIVIL ENGINEERING"
         ],
-        "headline": "Weather data.",
+        "headline": "Subway data.",
         "inLanguage": [
-          "fr"
+          "el"
         ],
         "keywords": [
           "dev",
           "keyword"
         ],
         "license": "Public Domain",
-        "name": "weather_data_fr",
+        "name": "OASA Data",
         "url": "",
         "version": ""
       }
@@ -113,13 +112,13 @@
       }
     },
     {
-      "@id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+      "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
       "labels": [
         "Task"
       ],
       "properties": {
-        "Description": "Task to change storage location of a dataset",
-        "Name": "Dataset Loading Task"
+        "Description": "Task to register a dataset",
+        "Name": "Dataset Registering Task"
       }
     }
   ]

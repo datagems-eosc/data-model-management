@@ -12,7 +12,14 @@
       "labels": [
         "input"
       ],
-      "to": "fa512835-7ec9-41cc-87db-a94b99e8b97a"
+      "to": "d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b"
+    },
+    {
+      "from": "24a62ae9-41a9-472d-9a8a-438f35937980",
+      "labels": [
+        "input"
+      ],
+      "to": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -36,11 +43,18 @@
       "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
     },
     {
-      "from": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "from": "d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b",
       "labels": [
         "distribution"
       ],
-      "to": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf"
+      "to": "b1c2d3e4-5678-4b1a-9c2d-0e1f2a3b4c5d"
+    },
+    {
+      "from": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f",
+      "labels": [
+        "distribution"
+      ],
+      "to": "c9d8e7f6-1234-4a5b-8c7d-9e0f1a2b3c4d"
     }
   ],
   "nodes": [
@@ -75,18 +89,18 @@
       }
     },
     {
-      "@id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "@id": "d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://dataset/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+        "archivedAt": "s3://dataset/d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b",
         "citeAs": "",
         "conformsTo": "",
         "country": "FR",
         "datePublished": "24-05-2025",
-        "description": "Weather data",
+        "description": "Weather data (existing, id updated)",
         "fieldOfScience": [
           "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
         ],
@@ -105,7 +119,7 @@
       }
     },
     {
-      "@id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+      "@id": "b1c2d3e4-5678-4b1a-9c2d-0e1f2a3b4c5d",
       "labels": [
         "cr:FileObject",
         "CSV"
@@ -113,11 +127,57 @@
       "properties": {
         "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/fa512835-7ec9-41cc-87db-a94b99e8b97a/weather_data_fr.csv",
+        "contentUrl": "s3://dataset/d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b/weather_data_fr.csv",
         "description": "",
         "encodingFormat": "text/csv",
         "name": "weather_data_fr.csv",
         "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
+      }
+    },
+    {
+      "@id": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f",
+      "labels": [
+        "sc:Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://dataset/a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "FR",
+        "datePublished": "24-05-2025",
+        "description": "Weather data (new dataset)",
+        "fieldOfScience": [
+          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+        ],
+        "headline": "Weather data (new).",
+        "inLanguage": [
+          "fr"
+        ],
+        "keywords": [
+          "dev",
+          "keyword"
+        ],
+        "license": "Public Domain",
+        "name": "weather_data_fr_v2",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "c9d8e7f6-1234-4a5b-8c7d-9e0f1a2b3c4d",
+      "labels": [
+        "cr:FileObject",
+        "CSV"
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "s3://dataset/a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f/weather_data_fr_v2.csv",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "weather_data_fr_v2.csv",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
       }
     },
     {
