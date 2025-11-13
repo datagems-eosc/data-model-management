@@ -369,7 +369,7 @@ This updates the dataset properties and creates file object distributions. The A
          {
             "@id":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
             "labels":[
-               "FileObject"
+               "cr:FileObject"
             ],
             "properties":{
                "@type":"cr:FileObject",
