@@ -3,7 +3,9 @@ import json
 import os
 from pathlib import Path
 import shutil
+import duckdb
 from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import JSONResponse
 import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
@@ -545,3 +547,71 @@ async def execute_query(ap_payload: APRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute query: {str(e)}",
         )
+
+
+@router.get("/test-postgres-duckdb")
+async def test_postgres_connection():
+    DB_HOST = os.getenv("DATAGEMS_POSTGRES_HOST")
+    DB_PORT = os.getenv("DATAGEMS_POSTGRES_PORT")
+    DB_USER = os.getenv("DS_READER_USER")
+    DB_PASSWORD = os.getenv("DS_READER_PS")
+    DB_NAME = "ds_era5_land"
+
+    if not all([DB_HOST, DB_PORT, DB_USER, DB_PASSWORD]):
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": "Missing one or more required environment variables for DB connection.",
+            },
+        )
+
+    connection_string = (
+        f"dbname={DB_NAME} "
+        f"user={DB_USER} "
+        f"password={DB_PASSWORD} "
+        f"host={DB_HOST} "
+        f"port={DB_PORT}"
+    )
+
+    con = None
+    try:
+        con = duckdb.connect()
+        con.sql("INSTALL postgres;")
+        con.sql("LOAD postgres;")
+
+        attach_query = f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);"
+        con.sql(attach_query)
+
+        test_query = "SELECT now() FROM pg_db.information_schema.tables LIMIT 1;"
+        con.sql(test_query).fetchall()
+
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "code": status.HTTP_200_OK,
+                "message": f"Successfully connected to PostgreSQL database '{DB_NAME}' via DuckDB and ran a test query.",
+            },
+        )
+
+    except duckdb.Error as e:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={
+                "code": status.HTTP_503_SERVICE_UNAVAILABLE,
+                "error": f"PostgreSQL connection failed via DuckDB: {type(e).__name__}: {str(e)}",
+            },
+        )
+
+    except Exception as e:
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "code": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                "error": f"Unexpected error during connection test: {type(e).__name__}: {str(e)}",
+            },
+        )
+
+    finally:
+        if con:
+            con.close()
