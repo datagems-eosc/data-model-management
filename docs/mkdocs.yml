@@ -1,0 +1,79 @@
+site_name: DataGEMS Data Model Management API Docs
+
+site_url: https://datagems-eosc.github.io/data-model-management/
+repo_url: https://github.com/datagems-eosc/data-model-management/
+
+nav:
+  - Overview: index.md
+  - System:
+    - Architecture: architecture.md
+    - Security: security.md
+    - Datastores: datastore.md
+  - API:
+    - Overview: api-overview.md
+    - Status & Error Codes: error-codes.md
+    - OpenAPI: openapi.md
+  - Setup & Monitoring:
+    - Automations: automations.md
+    - Deployment: deployment.md
+    - Configuration: configuration.md
+    - Logging & Accounting: logging.md
+    - Maintenance: maintenance.md
+  - Material:
+    - Onboarding: onboarding.md
+    - Quality Assurance: qa.md
+    - FAQ & Known Issues: faq.md
+  - License: license.md
+  - Home: https://datagems-eosc.github.io/
+
+theme:
+  name: 'material'
+  favicon: images/favicon.jpg
+  logo: images/datagems-portal-icon.png
+  icon:
+    repo: fontawesome/brands/github
+  custom_dir: overrides
+  features:
+    # - navigation.tabs
+    # - navigation.tabs.sticky
+    # - navigation.sections
+    - navigation.path
+    - navigation.top
+
+extra_css:
+  - stylesheets/custom-footer.css
+  - stylesheets/mkdocsoad.css
+
+plugins:
+  - search
+  - mike
+  - neoteroi.mkdocsoad:
+      use_pymdownx: true
+
+markdown_extensions:
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+extra:
+#  generator: false
+  version:
+    provider: mike
+    alias: true
+    default: latest
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/datagems-eosc/
+    - icon: fontawesome/brands/instagram
+      link: https://www.instagram.com/datagems_eosc
+    - icon: fontawesome/brands/x-twitter
+      link: https://x.com/datagems_eosc
+    - icon: fontawesome/brands/youtube
+      link: https://www.youtube.com/@DataGEMS-65n
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/eosc-datagems
+    - icon: fontawesome/brands/facebook
+      link: https://www.facebook.com/datagems.eosc/
