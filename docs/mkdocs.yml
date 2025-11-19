@@ -7,7 +7,6 @@ nav:
   - Overview: index.md
   - API:
     - Overview: api-overview.md
-    - Status & Error Codes: error-codes.md
     - OpenAPI: openapi.md
   - Home: https://datagems-eosc.github.io/
 
