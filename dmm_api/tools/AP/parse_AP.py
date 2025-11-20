@@ -13,7 +13,8 @@ from dmm_api.config.constants import (
 class Node(BaseModel):
     id: str | int = Field(..., alias="@id")
     labels: List[str]
-    properties: Dict[str, Any]
+    # Make properties optional with default empty dict
+    properties: Dict[str, Any] = Field(default_factory=dict)
 
 
 class Edge(BaseModel):
