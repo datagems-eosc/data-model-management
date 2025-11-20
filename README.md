@@ -1,7 +1,8 @@
 # dmm-api
 
 Data Model & Management Platform API (WP5)
-v0.01
+
+The official documentation is available at: https://datagems-eosc.github.io/data-model-management/latest/
 
 ## 1. Getting started with your project
 
