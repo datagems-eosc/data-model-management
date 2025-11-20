@@ -130,6 +130,7 @@
         ],
         "license": "Public Domain",
         "name": "kyonos_electricity",
+        "status": "ready",
         "url": "",
         "version": ""
       }
@@ -160,6 +161,7 @@
         ],
         "license": "Public Domain",
         "name": "crete_electricity",
+        "status": "ready",
         "url": "",
         "version": ""
       }
@@ -186,7 +188,8 @@
           "keyword"
         ],
         "license": "Public Domain",
-        "name": "output"
+        "name": "output",
+        "status": "staged"
       }
     },
     {

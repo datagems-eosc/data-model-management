@@ -114,6 +114,7 @@
         ],
         "license": "Public Domain",
         "name": "weather_data_fr",
+        "status": "loaded",
         "url": "",
         "version": ""
       }
@@ -160,6 +161,7 @@
         ],
         "license": "Public Domain",
         "name": "weather_data_fr_v2",
+        "status": "loaded",
         "url": "",
         "version": ""
       }
