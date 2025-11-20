@@ -225,16 +225,7 @@
       "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "@id": "474c2c12-4185-42a0-9e79-38af377bdcad",
