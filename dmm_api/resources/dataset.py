@@ -339,7 +339,7 @@ async def register_dataset(ap_payload: APRequest):
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
-    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}&status=loaded"
+    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}&status=staged"
 
     async with httpx.AsyncClient() as client:
         try:
