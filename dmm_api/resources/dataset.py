@@ -1,3 +1,4 @@
+from datetime import date
 from enum import Enum
 import json
 import os
@@ -63,6 +64,61 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
 
 
+class DatasetType(str, Enum):
+    TextSet = "TextSet"
+    ImageSet = "ImageSet"
+    CSV = "CSV"
+    Table = "Table"
+    RelationalDatabase = "RelationalDatabase"
+    PDF = "PDF"
+    Column = "Column"
+    FileObject = "FileObject"  # Special value
+    FileSet = "FileSet"  # Special value
+
+
+class DatasetProperty(str, Enum):
+    type = "type"
+    name = "name"
+    archivedAt = "archivedAt"
+    description = "description"
+    conformsTo = "conformsTo"
+    citeAs = "citeAs"
+    license = "license"
+    url = "url"
+    version = "version"
+    headline = "headline"
+    keywords = "keywords"
+    fieldOfScience = "fieldOfScience"
+    inLanguage = "inLanguage"
+    country = "country"
+    datePublished = "datePublished"
+    access = "access"
+    uploadedBy = "uploadedBy"
+    distribution = "distribution"  # Special value
+    recordSet = "recordSet"  # Special value
+
+
+class DatasetOrderBy(str, Enum):
+    id = "id"
+    type = "type"
+    name = "name"
+    archivedAt = "archivedAt"
+    description = "description"
+    conformsTo = "conformsTo"
+    citeAs = "citeAs"
+    license = "license"
+    url = "url"
+    version = "version"
+    headline = "headline"
+    keywords = "keywords"
+    fieldOfScience = "fieldOfScience"
+    inLanguage = "inLanguage"
+    country = "country"
+    datePublished = "datePublished"
+    access = "access"
+    uploadedBy = "uploadedBy"
+
+
 class DatasetState(str, Enum):
     Ready = "Ready"
     Loaded = "Loaded"
@@ -70,18 +126,7 @@ class DatasetState(str, Enum):
     Deleted = "Deleted"
 
 
-class DatasetType(str, Enum):
-    PDF = "PDF"
-    RelationalDatabase = "RelationalDatabase"
-    CSV = "CSV"
-    ImageSet = "ImageSet"
-    TextSet = "TextSet"
-    Table = "Table"
-
-
 # Endpoints
-
-
 # Temporary router to upload the dataset to S3/scratchpad
 @router.post("/data-workflow", response_model=DatasetSuccessEnvelope)
 async def data_workflow(
@@ -110,48 +155,80 @@ async def data_workflow(
     )
 
 
-# TODO: implement filtering by dataset state "Ready"
+# TODO: remove metadata from the response
 @router.get("/dataset", response_model=DatasetsSuccessEnvelope)
 async def get_datasets(
-    type: Optional[DatasetType] = Query(
+    nodeIds: Optional[List[str]] = Query(
         None,
-        description="Optional dataset type to filter on. If omitted, only datasets in Ready state are returned.",
+        description="Filter datasets by their UUIDs.",
     ),
-    state: Optional[DatasetState] = Query(
-        DatasetState.Ready,
-        description="Optional dataset state to filter on.",
+    properties: Optional[List[DatasetProperty]] = Query(
+        None,
+        description="List of Dataset properties to include. Special values 'distribution' and 'recordSet' include connected nodes.",
+    ),
+    types: Optional[List[DatasetType]] = Query(
+        None,
+        description="Filter datasets connected to nodes with these labels.",
+    ),
+    orderBy: Optional[List[DatasetOrderBy]] = Query(
+        None,
+        description="List of Dataset properties to sort results.",
+    ),
+    publishedDateFrom: Optional[date] = Query(
+        None, description="Minimum published date (YYYY-MM-DD).", format="YYYY-MM-DD"
+    ),
+    publishedDateTo: Optional[date] = Query(
+        None, description="Maximum published date (YYYY-MM-DD).", format="YYYY-MM-DD"
+    ),
+    direction: int = Query(
+        1,
+        description="Traversal direction for sorting: 1 for ascending, -1 for descending.",
+        ge=-1,
+        le=1,
+    ),
+    status: str = Query(
+        "ready",
+        description="Dataset status to filter on (e.g., 'ready').",
     ),
 ):
-    """Return all datasets, with optional filtering"""
+    url = f"{MOMA_URL}/getDataset"
 
-    # TODO: implement filtering by dataset state "Ready"
-    if type:
-        url = f"{MOMA_URL}/listDatasetsByType"
-        params = {"type": type.value}
-        success_msg = f"All datasets of type {type} retrieved successfully"
-    else:
-        url = f"{MOMA_URL}/listDatasets"
-        params = {}
-        success_msg = "All datasets retrieved successfully"
+    params = {}
+    if nodeIds:
+        params["nodeIds"] = nodeIds
+    if properties:
+        params["properties"] = [p.value for p in properties]
+    if types:
+        params["types"] = [t.value for t in types]
+    if orderBy:
+        params["orderBy"] = [o.value for o in orderBy]
+
+    if publishedDateFrom:
+        params["publishedDateFrom"] = publishedDateFrom.strftime("%Y-%m-%d")
+    if publishedDateTo:
+        params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
+    params["direction"] = direction
+    params["status"] = status
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-            datasets = data.get("metadata", {}).get("nodes", [])
+            datasets = data.get("metadata", {}).get("nodes", data.get("metadata", []))
+
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
-                message=success_msg,
+                message="Datasets retrieved successfully",
                 datasets=datasets,
             )
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error="Error from MoMa API",
+                    error=f"Error from MoMa API: {e}",
                 ).model_dump(),
             )
 
@@ -165,17 +242,22 @@ async def get_datasets(
             )
 
 
+# This endpoint for now does not support filtering
+# TODO: implement filtering by dataset state
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+    url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(url)
             response.raise_for_status()
-            dataset = response.json()
-            if not dataset:
+            data = response.json()
+            metadata = data.get("metadata", {})
+            nodes = metadata.get("nodes", [])
+            edges = metadata.get("edges", [])
+            if not data:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=ErrorEnvelope(
@@ -184,6 +266,7 @@ async def get_dataset(dataset_id: str):
                     ).model_dump(),
                 )
 
+            dataset = {"nodes": nodes, "edges": edges}
             return DatasetSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
@@ -257,7 +340,7 @@ async def register_dataset(ap_payload: APRequest):
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
-    check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -448,7 +531,7 @@ async def update_dataset(ap_payload: APRequest):
         for dataset in datasets_list:
             dataset_id = dataset.get("@id")
             try:
-                check_url = f"{MOMA_URL}/getDataset?id={dataset_id}"
+                check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
                 check_response = await client.get(check_url)
 
                 if check_response.status_code == 200:
