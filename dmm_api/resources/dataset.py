@@ -123,7 +123,6 @@ class DatasetState(str, Enum):
     Ready = "Ready"
     Loaded = "Loaded"
     Staged = "Staged"
-    Deleted = "Deleted"
 
 
 # Endpoints
@@ -188,7 +187,7 @@ async def get_datasets(
     ),
     status: str = Query(
         "ready",
-        description="Dataset status to filter on (e.g., 'ready').",
+        description="Dataset status to filter on.",
     ),
 ):
     url = f"{MOMA_URL}/getDataset"
@@ -340,7 +339,7 @@ async def register_dataset(ap_payload: APRequest):
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
-    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
+    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}&status=loaded"
 
     async with httpx.AsyncClient() as client:
         try:
