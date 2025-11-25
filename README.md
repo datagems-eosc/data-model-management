@@ -446,7 +446,160 @@ This updates the dataset properties and creates file object distributions. The A
 }
 ```
 
-### 4) Query a Dataset
+
+### 5) Get one or all (ready) Datasets
+
+Retrieve one or all ready datasets.
+
+#### GET one or all (ready) datasets
+```bash
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset" | python -m json.tool
+
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201" | python -m json.tool
+```
+
+The API returns:
+```json
+{
+    "code": 200,
+    "message": "Datasets retrieved successfully",
+    "datasets": [
+        {
+            "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
+            "labels": [
+                "Dataset"
+            ],
+            "properties": {
+                "headline": "Meteorological data time series by ECWMF",
+                "fieldOfScience": [
+                    "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+                ],
+                "name": "Era5land",
+                "conformsTo": "",
+                "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
+                "datePublished": "24-05-2025",
+                "license": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
+                "keywords": [
+                    "weather",
+                    "weather prediction"
+                ],
+                "description": "A global atmospheric reanalysis dataset produced by the European Centre for Medium\u2010Range Weather Forecast\u2019s (ECMWF) and has data available from 1950, providing a consistent view of the evolution of land variables. It has an enhanced resolution of 0.1\u00b0 x 0.1\u00b0, while the temporal frequency of the model output is hourly.",
+                "inLanguage": [
+                    "el"
+                ],
+                "version": "",
+                "archivedAt": "",
+                "country": "GR",
+                "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
+                "status": "ready"
+            }
+        }
+    ]
+}
+
+{
+    "code": 200,
+    "message": "Dataset with ID cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201 retrieved successfully from Neo4j",
+    "dataset": {
+        "nodes": [
+            {
+                "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
+                "labels": [
+                    "Dataset"
+                ],
+                "properties": {
+                    "headline": "Meteorological data time series by ECWMF",
+                    "fieldOfScience": [
+                        "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+                    ],
+                    "name": "Era5land",
+                    "conformsTo": "",
+                    "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
+                    "datePublished": "24-05-2025",
+                    "license": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
+                    "keywords": [
+                        "weather",
+                        "weather prediction"
+                    ],
+                    "description": "A global atmospheric reanalysis dataset produced by the European Centre for Medium\u2010Range Weather Forecast\u2019s (ECMWF) and has data available from 1950, providing a consistent view of the evolution of land variables. It has an enhanced resolution of 0.1\u00b0 x 0.1\u00b0, while the temporal frequency of the model output is hourly.",
+                    "inLanguage": [
+                        "el"
+                    ],
+                    "version": "",
+                    "archivedAt": "",
+                    "country": "GR",
+                    "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
+                    "status": "ready"
+                }
+            }
+        ],
+        "edges": []
+    }
+}
+```
+
+
+### 6) Filter the Datasets
+
+You can filter the dataset, selecting the properties and sorting the results. All parameters are optional.
+
+#### GET one or more datasets after filtering
+
+Parameters:
+- nodeIds: UUID(s) to fetch.
+- properties: Which dataset properties to include (e.g. url, country, name, archivedAt, datePublished).
+- types: Filter by DatasetType (CSV, TextSet, ImageSet, ...).
+- orderBy: Field(s) to sort by (archivedAt, datePublished, name, ...).
+- direction (int): 1 = ascending (default), -1 = descending.
+- publishedDateFrom (date YYYY-MM-DD): Minimum datePublished.
+- publishedDateTo (date YYYY-MM-DD): Maximum datePublished.
+- dataset_status (string): Dataset status filter (default: "ready").
+
+```bash
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset?dataset_status=loaded" | python -m json.tool
+```
+
+The API returns:
+```json
+{
+    "code": 200,
+    "message": "Datasets retrieved successfully",
+    "datasets": [
+        {
+            "id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+            "labels": [
+                "Dataset"
+            ],
+            "properties": {
+                "name": "OASA Data",
+                "headline": "Subway data.",
+                "license": "Public Domain",
+                "fieldOfScience": [
+                    "CIVIL ENGINEERING"
+                ],
+                "conformsTo": "",
+                "version": "",
+                "url": "",
+                "datePublished": "24-05-2025",
+                "keywords": [
+                    "dev",
+                    "keyword"
+                ],
+                "description": "Subway data",
+                "inLanguage": [
+                    "el"
+                ],
+                "id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+                "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+                "country": "PT",
+                "status": "loaded"
+            }
+        }
+    ]
+}
+```
+
+### 7) Query a Dataset
 
 To query one or more datasets:
 
