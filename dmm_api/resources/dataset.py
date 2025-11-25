@@ -31,9 +31,6 @@ from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
-datasets = {}
-query_results = {}
-
 
 class APSuccessEnvelope(BaseModel):
     code: int
@@ -163,11 +160,11 @@ async def get_datasets(
     ),
     properties: Optional[List[DatasetProperty]] = Query(
         None,
-        description="List of Dataset properties to include. Special values 'distribution' and 'recordSet' include connected nodes.",
+        description="List of Dataset properties to include.",
     ),
     types: Optional[List[DatasetType]] = Query(
         None,
-        description="Filter datasets connected to nodes with these labels.",
+        description="Filter datasets based on their types.",
     ),
     orderBy: Optional[List[DatasetOrderBy]] = Query(
         None,
@@ -181,7 +178,7 @@ async def get_datasets(
     ),
     direction: int = Query(
         1,
-        description="Traversal direction for sorting: 1 for ascending, -1 for descending.",
+        description="Direction for sorting: 1 for ascending, -1 for descending.",
         ge=-1,
         le=1,
     ),
@@ -214,7 +211,12 @@ async def get_datasets(
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-            datasets = data.get("metadata", {}).get("nodes", data.get("metadata", []))
+
+            metadata = data.get("metadata")
+            if isinstance(metadata, dict):
+                datasets = metadata.get("nodes", [])
+            else:
+                datasets = []
 
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
