@@ -182,7 +182,7 @@ async def get_datasets(
         ge=-1,
         le=1,
     ),
-    status: str = Query(
+    dataset_status: str = Query(
         "ready",
         description="Dataset status to filter on.",
     ),
@@ -204,7 +204,7 @@ async def get_datasets(
     if publishedDateTo:
         params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
     params["direction"] = direction
-    params["status"] = status
+    params["status"] = dataset_status
 
     async with httpx.AsyncClient() as client:
         try:
