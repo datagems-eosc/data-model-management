@@ -187,7 +187,7 @@ async def get_datasets(
         description="Dataset status to filter on.",
     ),
 ):
-    url = f"{MOMA_URL}/getDataset"
+    url = f"{MOMA_URL}/getDatasets"
 
     params = {}
     if nodeIds:
@@ -248,7 +248,7 @@ async def get_datasets(
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
+    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -341,7 +341,7 @@ async def register_dataset(ap_payload: APRequest):
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
-    check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}&status=staged"
+    check_url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}&status=staged"
 
     async with httpx.AsyncClient() as client:
         try:
@@ -532,7 +532,7 @@ async def update_dataset(ap_payload: APRequest):
         for dataset in datasets_list:
             dataset_id = dataset.get("@id")
             try:
-                check_url = f"{MOMA_URL}/getDataset?nodeIds={dataset_id}"
+                check_url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
                 check_response = await client.get(check_url)
 
                 if check_response.status_code == 200:
