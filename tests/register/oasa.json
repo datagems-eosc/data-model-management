@@ -58,12 +58,10 @@
       "properties": {
         "Description": "An operator to register a dataset into DataGEMS",
         "Name": "Register Operator",
-        "Parameters": {
-          "command": "create"
-        },
         "PublishedDate": "2025-06-30",
         "StartTime": "10:00:00",
-        "Step": 1
+        "Step": 1,
+        "command": "create"
       }
     },
     {

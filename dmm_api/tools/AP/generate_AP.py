@@ -46,9 +46,8 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
         properties={
             "Description": "An operator to update a dataset into DataGEMS",
             "Name": "Update Operator",
-            "Parameters": {"command": "update"},
+            "command": "update",
             "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
-            "Software": {},
             "StartTime": datetime.now().strftime("%H:%M:%S"),
             "Step": 1,
         },

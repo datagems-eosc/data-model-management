@@ -112,7 +112,7 @@ def extract_query_from_AP(
 
     operator_id = operator_nodes[0]
     operator_properties = G.nodes[operator_id].get("properties", {})
-    operator_process = operator_properties.get("Parameters", {}).get("command")
+    operator_process = operator_properties.get("command")
 
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
@@ -142,6 +142,7 @@ def extract_query_from_AP(
             detail=f"Unsupported software: {query_info['software']}. Supported software are 'DuckDB' and 'Ontop'.",
         )
 
+    # TODO: change code to work with new AP structure
     parameters = operator_properties.get("Parameters", {}) or {}
     args_map: Dict[str, Any] = {}
     for k, v in parameters.items():
@@ -236,7 +237,7 @@ def extract_datasets_from_AP(
     # old_to_new = {old: relabel_map.get(old, old) for old in dataset_nodes}
 
     operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
-    operator_process = operator_properties.get("Parameters", {}).get("command")
+    operator_process = operator_properties.get("command")
 
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
@@ -385,7 +386,7 @@ def extract_dataset_path_from_AP(
     dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
 
     operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
-    operator_process = operator_properties.get("Parameters", {}).get("command")
+    operator_process = operator_properties.get("command")
 
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
