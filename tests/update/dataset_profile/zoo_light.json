@@ -1,0 +1,149 @@
+{
+  "edges": [
+    {
+      "from": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
+    },
+    {
+      "from": "24a62ae9-41a9-472d-9a8a-438f35937980",
+      "labels": [
+        "input"
+      ],
+      "to": "475e6aa3-9c56-4360-aace-631888242948"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "intervene"
+      ],
+      "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
+    },
+    {
+      "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+      "labels": [
+        "is_achieved"
+      ],
+      "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "request"
+      ],
+      "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
+    },
+    {
+      "from": "475e6aa3-9c56-4360-aace-631888242948",
+      "labels": [
+        "distribution"
+      ],
+      "to": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa"
+    }
+  ],
+  "nodes": [
+    {
+      "@id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+      "labels": [
+        "Analytical_Pattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to update a dataset",
+        "Name": "Update Dataset AP",
+        "Process": "update",
+        "PublishedDate": "2025-12-09",
+        "StartTime": "10:00:00"
+      }
+    },
+    {
+      "@id": "24a62ae9-41a9-472d-9a8a-438f35937980",
+      "labels": [
+        "DataModelManagement_Operator"
+      ],
+      "properties": {
+        "Description": "An operator to update a dataset into DataGEMS",
+        "Name": "Update Operator",
+        "Parameters": {
+          "command": "update"
+        },
+        "PublishedDate": "2025-12-09",
+        "Software": {},
+        "StartTime": "10:00:00",
+        "Step": 1
+      }
+    },
+    {
+      "@id": "475e6aa3-9c56-4360-aace-631888242948",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "CH",
+        "datePublished": "2024-12-09",
+        "description": "Zoo animal species data",
+        "fieldOfScience": [
+          "BIOLOGICAL SCIENCES"
+        ],
+        "headline": "Zoo animal species data from Zurich Zoo.",
+        "inLanguage": [
+          "de"
+        ],
+        "keywords": [
+          "zoo",
+          "animals",
+          "species"
+        ],
+        "license": "Public Domain",
+        "name": "zoo_tierarten_2024",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
+      "labels": [
+        "FileObject"
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentSize": "2407043 B",
+        "contentUrl": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948/ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "zoo-tierarten-2024.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
+      }
+    },
+    {
+      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "@id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "Description": "Task to update a dataset",
+        "Name": "Dataset Updating Task"
+      }
+    }
+  ]
+}

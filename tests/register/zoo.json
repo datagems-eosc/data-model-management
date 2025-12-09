@@ -1,0 +1,126 @@
+{
+  "edges": [
+    {
+      "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "69ce4693-e71e-4616-9320-037c90a88858"
+    },
+    {
+      "from": "69ce4693-e71e-4616-9320-037c90a88858",
+      "labels": [
+        "input"
+      ],
+      "to": "475e6aa3-9c56-4360-aace-631888242948"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "intervene"
+      ],
+      "to": "69ce4693-e71e-4616-9320-037c90a88858"
+    },
+    {
+      "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "labels": [
+        "is_accomplished"
+      ],
+      "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "request"
+      ],
+      "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
+    }
+  ],
+  "nodes": [
+    {
+      "@id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "labels": [
+        "Analytical_Pattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to register a dataset",
+        "Name": "Register Dataset AP",
+        "Process": "register",
+        "PublishedDate": "2025-12-09",
+        "StartTime": "10:00:00"
+      }
+    },
+    {
+      "@id": "69ce4693-e71e-4616-9320-037c90a88858",
+      "labels": [
+        "DataModelManagement_Operator"
+      ],
+      "properties": {
+        "Description": "An operator to register a dataset into DataGEMS",
+        "Name": "Register Operator",
+        "Parameters": {
+          "command": "create"
+        },
+        "PublishedDate": "2025-12-09",
+        "StartTime": "10:00:00",
+        "Step": 1
+      }
+    },
+    {
+      "@id": "475e6aa3-9c56-4360-aace-631888242948",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "Dataset",
+        "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242948",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "CH",
+        "datePublished": "2024-12-09",
+        "description": "Zoo animal species data",
+        "fieldOfScience": [
+          "BIOLOGICAL SCIENCES"
+        ],
+        "headline": "Zoo animal species data from Zurich Zoo.",
+        "inLanguage": [
+          "de"
+        ],
+        "keywords": [
+          "zoo",
+          "animals",
+          "species"
+        ],
+        "license": "Public Domain",
+        "name": "zoo_tierarten_2024",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "Description": "Task to register a dataset",
+        "Name": "Dataset Registering Task"
+      }
+    }
+  ]
+}

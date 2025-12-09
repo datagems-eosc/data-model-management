@@ -1,0 +1,127 @@
+{
+  "edges": [
+    {
+      "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+      "labels": [
+        "consist_of"
+      ],
+      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+    },
+    {
+      "from": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+      "labels": [
+        "input"
+      ],
+      "to": "475e6aa3-9c56-4360-aace-631888242948"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "intervene"
+      ],
+      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+    },
+    {
+      "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+      "labels": [
+        "is_accomplished"
+      ],
+      "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "request"
+      ],
+      "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd"
+    }
+  ],
+  "nodes": [
+    {
+      "@id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+      "labels": [
+        "Analytical_Pattern"
+      ],
+      "properties": {
+        "Description": "Analytical Pattern to load a dataset",
+        "Name": "Load Dataset AP",
+        "Process": "load",
+        "PublishedDate": "2025-06-30",
+        "StartTime": "10:00:00"
+      }
+    },
+    {
+      "@id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+      "labels": [
+        "DataModelManagement_Operator"
+      ],
+      "properties": {
+        "Description": "An operator to load a dataset into s3/dataset",
+        "Name": "Load Operator",
+        "Parameters": {
+          "command": "update"
+        },
+        "PublishedDate": "2025-06-30",
+        "Software": {},
+        "StartTime": "10:00:00",
+        "Step": 1
+      }
+    },
+    {
+      "@id": "475e6aa3-9c56-4360-aace-631888242948",
+      "labels": [
+        "Dataset"
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242948",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "CH",
+        "datePublished": "2024-12-09",
+        "description": "Zoo animal species data",
+        "fieldOfScience": [
+          "BIOLOGICAL SCIENCES"
+        ],
+        "headline": "Zoo animal species data from Zurich Zoo.",
+        "inLanguage": [
+          "de"
+        ],
+        "keywords": [
+          "zoo",
+          "animals",
+          "species"
+        ],
+        "license": "Public Domain",
+        "name": "zoo_tierarten_2024",
+        "url": "",
+        "version": ""
+      }
+    },
+    {
+      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "User"
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
+    },
+    {
+      "@id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+      "labels": [
+        "Task"
+      ],
+      "properties": {
+        "Description": "Task to change storage location of a dataset",
+        "Name": "Dataset Loading Task"
+      }
+    }
+  ]
+}
