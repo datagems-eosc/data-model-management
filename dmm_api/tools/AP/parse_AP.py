@@ -320,14 +320,15 @@ def extract_dataset_id_from_AP(
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
     dataset_nodes = []
+    dataset_label = "sc:Dataset"
     for node_id, attributes in G.nodes(data=True):
-        if "sc:Dataset" in attributes.get("labels", []):
+        if dataset_label in attributes.get("labels", []):
             dataset_nodes.append(node_id)
 
     if len(dataset_nodes) != 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+            detail=f"The Analytical Pattern must contain exactly one '{dataset_label}' node.",
         )
 
     dataset_id = dataset_nodes[0]
@@ -348,13 +349,14 @@ def extract_dataset_path_from_AP(
         )
 
     AP_nodes, operator_nodes, dataset_nodes, user_nodes = [], [], [], []
+    dataset_label = "sc:Dataset"
     for node_id, attributes in G.nodes(data=True):
         labels = attributes.get("labels", [])
         if "Analytical_Pattern" in labels:
             AP_nodes.append(node_id)
         elif "DataModelManagement_Operator" in labels:
             operator_nodes.append(node_id)
-        elif "sc:Dataset" in labels:
+        elif dataset_label in labels:
             dataset_nodes.append(node_id)
         elif "User" in labels:
             user_nodes.append(node_id)
@@ -374,7 +376,7 @@ def extract_dataset_path_from_AP(
     if len(dataset_nodes) != 1:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain exactly one 'Dataset' node.",
+            detail=f"The Analytical Pattern must contain exactly one '{dataset_label}' node.",
         )
 
     if len(user_nodes) != 1:

@@ -324,6 +324,11 @@ async def register_dataset(ap_payload: APRequest):
         dataset_id = dataset.get("@id")
         old_dataset_id = old_dataset_ids[0]
 
+        # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
+        # at the specified S3 path before registering the dataset. This should check that the path
+        # is valid and the file is accessible to prevent registering datasets with missing files.
+        # Similar validation exists in the load endpoint but should also happen here for consistency.
+
     except HTTPException:
         raise
     except Exception as e:
@@ -429,7 +434,9 @@ async def load_dataset(ap_payload: APRequest):
 
     try:
         if not dataset_path.startswith("s3://"):
-            raise ValueError("Invalid S3 URI. Must start with s3://")
+            raise ValueError(
+                f"Invalid S3 URI. Found '{dataset_path}'. Must start with s3://"
+            )
 
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
         source_path = Path("/s3") / path_without_s3_prefix
@@ -533,6 +540,12 @@ async def update_dataset(ap_payload: APRequest):
             dataset_id = dataset.get("@id")
             try:
                 check_url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
+
+                # If the dataset has a status property, include it in the query
+                dataset_status = dataset.get("status")
+                if dataset_status:
+                    check_url += f"&status={dataset_status}"
+
                 check_response = await client.get(check_url)
 
                 if check_response.status_code == 200:
@@ -540,11 +553,16 @@ async def update_dataset(ap_payload: APRequest):
                     nodes = metadata.get("nodes", [])
 
                     if not nodes:
+                        error_msg = (
+                            f"Dataset with ID {dataset_id} does not exist in Neo4j"
+                        )
+                        if dataset_status:
+                            error_msg += f" with status '{dataset_status}'"
                         raise HTTPException(
                             status_code=status.HTTP_404_NOT_FOUND,
                             detail=ErrorEnvelope(
                                 code=status.HTTP_404_NOT_FOUND,
-                                error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+                                error=error_msg,
                             ).model_dump(),
                         )
                 else:
