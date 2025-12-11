@@ -30,8 +30,9 @@ async def home():
 @app.get("/api/v1")
 async def api_home():
     """API root endpoint showing available endpoints"""
+    app_version = os.getenv("APP_VERSION", "dev")
     return {
-        "message": "API V1 is running",
+        "message": f"API V1 is running (version: {app_version})",
         "endpoints": {
             "dataset": {
                 "description": "Get all datasets or specific dataset by ID",

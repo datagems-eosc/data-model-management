@@ -4,6 +4,10 @@ FROM python:3.12-slim
 # Copy uv binary
 COPY --from=ghcr.io/astral-sh/uv:0.7.4 /uv /bin/uv
 
+# Accept version from Docker build argument
+ARG APP_VERSION=dev
+ENV APP_VERSION=${APP_VERSION}
+
 # Change the working directory to the `app` directory
 WORKDIR /app
 
