@@ -53,67 +53,6 @@ class ErrorEnvelope(BaseModel):
     error: str
 
 
-router = APIRouter()
-
-
-MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
-
-
-async def check_dataset_exists(
-    dataset_id: str,
-    status: Optional[str] = None,
-    client: Optional[httpx.AsyncClient] = None,
-) -> tuple[bool, dict]:
-    """
-    Check if a dataset exists in Neo4j via MoMa API.
-
-    Args:
-        dataset_id: The UUID of the dataset to check
-        status: Optional status filter (e.g., 'staged', 'loaded', 'ready')
-        client: Optional httpx client to reuse. If None, creates a new one.
-
-    Returns:
-        Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
-    """
-    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
-    if status:
-        url += f"&status={status}"
-
-    should_close = client is None
-    if client is None:
-        client = httpx.AsyncClient()
-
-    try:
-        response = await client.get(url)
-        response.raise_for_status()
-        data = response.json()
-        metadata = data.get("metadata", {})
-        nodes = metadata.get("nodes", [])
-        edges = metadata.get("edges", [])
-
-        return (len(nodes) > 0, {"nodes": nodes, "edges": edges})
-
-    except httpx.HTTPStatusError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=ErrorEnvelope(
-                code=status.HTTP_502_BAD_GATEWAY,
-                error=f"Error from MoMa API: {exc.response.status_code}",
-            ).model_dump(),
-        )
-    except httpx.RequestError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=ErrorEnvelope(
-                code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                error="Failed to connect to MoMa API",
-            ).model_dump(),
-        )
-    finally:
-        if should_close:
-            await client.aclose()
-
-
 class DatasetType(str, Enum):
     TextSet = "TextSet"
     ImageSet = "ImageSet"
@@ -173,6 +112,140 @@ class DatasetState(str, Enum):
     Ready = "ready"
     Loaded = "loaded"
     Staged = "staged"
+
+
+router = APIRouter()
+
+
+MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+
+
+async def get_moma_object(
+    node_id: str,
+    expected_label: str,
+    client: Optional[httpx.AsyncClient] = None,
+) -> tuple[bool, dict]:
+    """
+    Get a single object from Neo4j via MoMa API and verify its type.
+
+    Args:
+        node_id: The UUID of the node to retrieve
+        expected_label: The expected label/class (e.g., 'sc:Dataset')
+        client: Optional httpx client to reuse. If None, creates a new one.
+
+    Returns:
+        Tuple of (exists: bool, metadata: dict with 'nodes')
+
+    Raises:
+        HTTPException: If MoMa API is unreachable or returns an error
+    """
+    url = f"{MOMA_URL}/getMoMaObject?nodeId={node_id}"
+
+    should_close = client is None
+    if client is None:
+        client = httpx.AsyncClient()
+
+    try:
+        response = await client.get(url)
+        response.raise_for_status()
+        data = response.json()
+        metadata = data.get("metadata", {})
+        nodes = metadata.get("nodes", [])
+
+        if not nodes:
+            return (False, {"nodes": []})
+
+        if len(nodes) > 1:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Expected 1 node but got {len(nodes)} for node_id={node_id}",
+                ).model_dump(),
+            )
+
+        node = nodes[0]
+        # Check if the node has the expected label
+        labels = node.get("labels", [])
+        if expected_label not in labels:
+            return (False, {"nodes": []})
+
+        return (True, {"nodes": [node]})
+
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorEnvelope(
+                code=status.HTTP_502_BAD_GATEWAY,
+                error=f"Error from MoMa API: {exc.response.status_code}",
+            ).model_dump(),
+        )
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=ErrorEnvelope(
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                error="Failed to connect to MoMa API",
+            ).model_dump(),
+        )
+    finally:
+        if should_close:
+            await client.aclose()
+
+
+async def get_dataset_metadata(
+    dataset_id: str,
+    status: Optional[str] = None,
+    client: Optional[httpx.AsyncClient] = None,
+) -> tuple[bool, dict]:
+    """
+    Get dataset metadata from Neo4j via MoMa API with optional status filter.
+
+    Args:
+        dataset_id: The UUID of the dataset to retrieve
+        status: Optional status filter (e.g., 'staged', 'loaded', 'ready')
+        client: Optional httpx client to reuse. If None, creates a new one.
+
+    Returns:
+        Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
+    """
+    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
+    if status:
+        url += f"&status={status}"
+
+    should_close = client is None
+    if client is None:
+        client = httpx.AsyncClient()
+
+    try:
+        response = await client.get(url)
+        response.raise_for_status()
+        data = response.json()
+        metadata = data.get("metadata", {})
+        nodes = metadata.get("nodes", [])
+        edges = metadata.get("edges", [])
+
+        return (len(nodes) > 0, {"nodes": nodes, "edges": edges})
+
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorEnvelope(
+                code=status.HTTP_502_BAD_GATEWAY,
+                error=f"Error from MoMa API: {exc.response.status_code}",
+            ).model_dump(),
+        )
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=ErrorEnvelope(
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                error="Failed to connect to MoMa API",
+            ).model_dump(),
+        )
+    finally:
+        if should_close:
+            await client.aclose()
 
 
 # Endpoints
@@ -302,7 +375,7 @@ async def get_datasets(
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
     try:
-        exists, metadata = await check_dataset_exists(dataset_id)
+        exists, metadata = await get_dataset_metadata(dataset_id)
 
         if not exists:
             raise HTTPException(
@@ -378,7 +451,7 @@ async def register_dataset(ap_payload: APRequest):
     async with httpx.AsyncClient() as client:
         try:
             # Check if dataset already exists with 'staged' status
-            exists, _ = await check_dataset_exists(
+            exists, _ = await get_dataset_metadata(
                 dataset_id,
                 status=DatasetState.Staged.value.lower(),
                 client=client,
@@ -489,7 +562,7 @@ async def load_dataset(ap_payload: APRequest):
             else DatasetState.Staged.value.lower()
         )
 
-        exists, _ = await check_dataset_exists(dataset_id, status=effective_status)
+        exists, _ = await get_dataset_metadata(dataset_id, status=effective_status)
 
         if not exists:
             msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
@@ -683,22 +756,17 @@ async def update_dataset(ap_payload: APRequest):
         for dataset in datasets_list:
             dataset_id = dataset.get("@id")
             try:
-                # If the dataset has a status property, include it in the check
-                dataset_status = dataset.get("status")
-
-                exists, _ = await check_dataset_exists(
-                    dataset_id, status=dataset_status, client=client
+                # Check if dataset exists independently of its status
+                exists, _ = await get_moma_object(
+                    dataset_id, expected_label="sc:Dataset", client=client
                 )
 
                 if not exists:
-                    error_msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
-                    if dataset_status:
-                        error_msg += f" with status '{dataset_status}'"
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=ErrorEnvelope(
                             code=status.HTTP_404_NOT_FOUND,
-                            error=error_msg,
+                            error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
                         ).model_dump(),
                     )
 
