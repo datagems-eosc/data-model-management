@@ -58,21 +58,19 @@
       "properties": {
         "Description": "An operator to register a dataset into DataGEMS",
         "Name": "Register Operator",
-        "Parameters": {
-          "command": "create"
-        },
         "PublishedDate": "2025-12-09",
         "StartTime": "10:00:00",
-        "Step": 1
+        "Step": 1,
+        "command": "create"
       }
     },
     {
       "@id": "475e6aa3-9c56-4360-aace-631888242948",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
-        "@type": "Dataset",
+        "@type": "sc:Dataset",
         "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242948",
         "citeAs": "",
         "conformsTo": "",
@@ -93,6 +91,7 @@
         ],
         "license": "Public Domain",
         "name": "zoo_tierarten_2024",
+        "status": "staged",
         "url": "",
         "version": ""
       }
@@ -101,16 +100,7 @@
       "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
