@@ -117,7 +117,7 @@ def extract_query_from_AP(
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'. Operator node ID: '{operator_id}', properties: {operator_properties}",
         )
 
     AP_id = AP_nodes[0]
@@ -127,7 +127,7 @@ def extract_query_from_AP(
     if expected_ap_process and AP_process != expected_ap_process:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'. AP node ID: '{AP_id}', properties: {AP_properties}",
         )
 
     query_info: Dict[str, Any] = {}
@@ -236,13 +236,14 @@ def extract_datasets_from_AP(
     final_dataset_ids = [relabel_map.get(did, did) for did in dataset_nodes]
     # old_to_new = {old: relabel_map.get(old, old) for old in dataset_nodes}
 
-    operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
+    operator_id = operator_nodes[0]
+    operator_properties = G.nodes[operator_id].get("properties", {})
     operator_process = operator_properties.get("command")
 
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'. Operator node ID: '{operator_id}', properties: {operator_properties}",
         )
 
     AP_id = AP_nodes[0]
@@ -252,7 +253,7 @@ def extract_datasets_from_AP(
     if expected_ap_process and AP_process != expected_ap_process:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'. AP node ID: '{AP_id}', properties: {AP_properties}",
         )
 
     datasets: List[Dict[str, Any]] = []
@@ -381,17 +382,17 @@ def extract_dataset_path_from_AP(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The Analytical Pattern must contain exactly one 'User' node.",
         )
-
     dataset_id = dataset_nodes[0]
     dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
 
-    operator_properties = G.nodes[operator_nodes[0]].get("properties", {})
+    operator_id = operator_nodes[0]
+    operator_properties = G.nodes[operator_id].get("properties", {})
     operator_process = operator_properties.get("command")
 
     if expected_operator_command and operator_process != expected_operator_command:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'.",
+            detail=f"Expected Operator 'command'='{expected_operator_command}', but found '{operator_process}'. Operator node ID: '{operator_id}', properties: {operator_properties}",
         )
 
     AP_id = AP_nodes[0]
@@ -401,7 +402,8 @@ def extract_dataset_path_from_AP(
     if expected_ap_process and AP_process != expected_ap_process:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'.",
+            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'. AP node ID: '{AP_id}', properties: {AP_properties}",
         )
 
+    return dataset_properties.get("archivedAt")
     return dataset_properties.get("archivedAt")
