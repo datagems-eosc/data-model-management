@@ -70,7 +70,8 @@
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a"
+        "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+        "status": "staged"
       }
     },
     {

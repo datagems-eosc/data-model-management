@@ -64,17 +64,18 @@
         "PublishedDate": "2025-06-30",
         "Software": {},
         "StartTime": "10:00:00",
-        "Step": 1
+        "Step": 1,
+        "command": "update"
       }
     },
     {
       "@id": "475e6aa3-9c56-4360-aace-631888242948",
       "labels": [
-        "Dataset"
+        "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242948",
+        "archivedAt": "s3://scratchpad/00000000-9c56-4360-aace-631888242948",
         "citeAs": "",
         "conformsTo": "",
         "country": "CH",

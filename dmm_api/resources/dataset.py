@@ -16,8 +16,6 @@ from .query_executor import execute_query_csv
 from ..tools.AP.parse_AP import (
     extract_query_from_AP,
     extract_datasets_from_AP,
-    extract_dataset_id_from_AP,
-    extract_dataset_path_from_AP,
     APRequest,
 )
 from ..tools.AP.update_AP import (
@@ -59,6 +57,61 @@ router = APIRouter()
 
 
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+
+
+async def check_dataset_exists(
+    dataset_id: str,
+    status: Optional[str] = None,
+    client: Optional[httpx.AsyncClient] = None,
+) -> tuple[bool, dict]:
+    """
+    Check if a dataset exists in Neo4j via MoMa API.
+
+    Args:
+        dataset_id: The UUID of the dataset to check
+        status: Optional status filter (e.g., 'staged', 'loaded', 'ready')
+        client: Optional httpx client to reuse. If None, creates a new one.
+
+    Returns:
+        Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
+    """
+    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
+    if status:
+        url += f"&status={status}"
+
+    should_close = client is None
+    if client is None:
+        client = httpx.AsyncClient()
+
+    try:
+        response = await client.get(url)
+        response.raise_for_status()
+        data = response.json()
+        metadata = data.get("metadata", {})
+        nodes = metadata.get("nodes", [])
+        edges = metadata.get("edges", [])
+
+        return (len(nodes) > 0, {"nodes": nodes, "edges": edges})
+
+    except httpx.HTTPStatusError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorEnvelope(
+                code=status.HTTP_502_BAD_GATEWAY,
+                error=f"Error from MoMa API: {exc.response.status_code}",
+            ).model_dump(),
+        )
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=ErrorEnvelope(
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                error="Failed to connect to MoMa API",
+            ).model_dump(),
+        )
+    finally:
+        if should_close:
+            await client.aclose()
 
 
 class DatasetType(str, Enum):
@@ -117,9 +170,9 @@ class DatasetOrderBy(str, Enum):
 
 
 class DatasetState(str, Enum):
-    Ready = "Ready"
-    Loaded = "Loaded"
-    Staged = "Staged"
+    Ready = "ready"
+    Loaded = "loaded"
+    Staged = "staged"
 
 
 # Endpoints
@@ -248,58 +301,34 @@ async def get_datasets(
 @router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
+    try:
+        exists, metadata = await check_dataset_exists(dataset_id)
 
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.get(url)
-            response.raise_for_status()
-            data = response.json()
-            metadata = data.get("metadata", {})
-            nodes = metadata.get("nodes", [])
-            edges = metadata.get("edges", [])
-            if not data:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_404_NOT_FOUND,
-                        error=f"Dataset with ID {dataset_id} not found in Neo4j",
-                    ).model_dump(),
-                )
-
-            dataset = {"nodes": nodes, "edges": edges}
-            return DatasetSuccessEnvelope(
-                code=status.HTTP_200_OK,
-                message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
-                dataset=dataset,
-            )
-
-        except httpx.HTTPStatusError as exc:
+        if not exists:
             raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
+                status_code=status.HTTP_404_NOT_FOUND,
                 detail=ErrorEnvelope(
-                    code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Error from MoMa API: {exc.response.status_code}",
+                    code=status.HTTP_404_NOT_FOUND,
+                    error=f"Dataset with ID {dataset_id} not found in Neo4j",
                 ).model_dump(),
             )
 
-        except httpx.RequestError:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    error="Failed to connect to MoMa API",
-                ).model_dump(),
-            )
+        return DatasetSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
+            dataset=metadata,
+        )
 
-        except Exception:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error="Unexpected Internal Server error",
-                ).model_dump(),
-            )
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error="Unexpected Internal Server error",
+            ).model_dump(),
+        )
 
 
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
@@ -346,23 +375,29 @@ async def register_dataset(ap_payload: APRequest):
         except Exception as e:
             print(f"Warning: Failed to update the Dataset ID: {e}")
 
-    check_url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}&status=staged"
-
     async with httpx.AsyncClient() as client:
         try:
-            check_response = await client.get(check_url)
-            if check_response.status_code == 200:
-                metadata = check_response.json().get("metadata", {})
-                nodes = metadata.get("nodes", [])
+            # Check if dataset already exists with 'staged' status
+            exists, _ = await check_dataset_exists(
+                dataset_id,
+                status=DatasetState.Staged.value.lower(),
+                client=client,
+            )
 
-                if nodes:
-                    raise HTTPException(
-                        status_code=status.HTTP_409_CONFLICT,
-                        detail=ErrorEnvelope(
-                            code=status.HTTP_409_CONFLICT,
-                            error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                        ).model_dump(),
-                    )
+            if exists:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_409_CONFLICT,
+                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
+                    ).model_dump(),
+                )
+
+            # Ensure the dataset payload has status set to 'staged' before ingestion
+            current_status = dataset.get("status")
+            staged_status = DatasetState.Staged.value.lower()
+            if not current_status or str(current_status).lower() != staged_status:
+                dataset["status"] = staged_status
 
             # If the dataset was not found, we proceed to register.
             response = await client.post(ingest_url, json=dataset)
@@ -416,22 +451,72 @@ async def load_dataset(ap_payload: APRequest):
     """Move dataset files from scratchpad to permanent storage"""
     DATASET_DIR = os.getenv("DATASET_DIR")
     try:
-        dataset_path = extract_dataset_path_from_AP(
+        # Extract dataset list once with exact_count=1 to validate cardinality early
+        datasets_list, _ = extract_datasets_from_AP(
             ap_payload,
             expected_ap_process="load",
             expected_operator_command="update",
+            exact_count=1,
         )
 
-        dataset_id = extract_dataset_id_from_AP(ap_payload)
+        dataset = datasets_list[0]
+        dataset_id = dataset.get("@id")
+        dataset_path = dataset.get("archivedAt")
+
+        if not dataset_path:
+            raise ValueError("Dataset 'archivedAt' property is missing")
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during the dataset path extraction: {type(e).__name__}: {str(e)}",
+                error=f"Unexpected error during dataset extraction: {type(e).__name__}: {str(e)}",
             ).model_dump(),
         )
 
+    # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged') before moving files
+    try:
+        # Reuse the dataset node extracted earlier to read status if provided
+        dataset_status = dataset.get("status")
+
+        # Use enum-backed default if not provided
+        effective_status = (
+            str(dataset_status).lower()
+            if dataset_status
+            else DatasetState.Staged.value.lower()
+        )
+
+        exists, _ = await check_dataset_exists(dataset_id, status=effective_status)
+
+        if not exists:
+            msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
+            if effective_status:
+                msg += f" with status '{effective_status}'."
+            msg += (
+                " Please register the dataset first using /dataset/register endpoint."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_404_NOT_FOUND,
+                    error=msg,
+                ).model_dump(),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Failed to verify dataset existence in Neo4j: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Validate and move the dataset files
     try:
         if not dataset_path.startswith("s3://"):
             raise ValueError(
@@ -441,6 +526,7 @@ async def load_dataset(ap_payload: APRequest):
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
         source_path = Path("/s3") / path_without_s3_prefix
         target_path = Path(DATASET_DIR) / dataset_id
+
         if not source_path.exists():
             raise FileNotFoundError(
                 f"Source dataset not found at expected location: {source_path}"
@@ -454,40 +540,19 @@ async def load_dataset(ap_payload: APRequest):
         shutil.move(str(source_path), str(target_path))
         new_path = f"s3://dataset/{dataset_id}"
 
-        update_ap = generate_update_AP(ap_payload, new_path)
-        await update_dataset(update_ap)
-
-        ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
-
-        datasets_list, _ = extract_datasets_from_AP(
-            ap_payload,
-            expected_ap_process="load",
-            expected_operator_command="update",
-        )
-
-        if len(datasets_list) != 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_400_BAD_REQUEST,
-                    error="Load AP must contain exactly one dataset node.",
-                ).model_dump(),
-            )
-
-        dataset = datasets_list[0]
-        json_dataset = json.dumps(dataset, indent=2)
-        upload_dataset_to_catalogue(json_dataset, dataset_id)
-
-        return APSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message=f"Dataset moved from {dataset_path} to {new_path}",
-            ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
-        )
     except FileNotFoundError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorEnvelope(
                 code=status.HTTP_404_NOT_FOUND,
+                error=f"{str(e)}",
+            ).model_dump(),
+        )
+    except FileExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=ErrorEnvelope(
+                code=status.HTTP_409_CONFLICT,
                 error=f"{str(e)}",
             ).model_dump(),
         )
@@ -507,6 +572,47 @@ async def load_dataset(ap_payload: APRequest):
                 error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
             ).model_dump(),
         )
+
+    # Update the dataset metadata in Neo4j
+    try:
+        update_ap = generate_update_AP(ap_payload, new_path)
+        await update_dataset(update_ap)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"File moved successfully but failed to update dataset in Neo4j: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Upload dataset to catalogue
+    try:
+        ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
+
+        dataset = datasets_list[0]
+        json_dataset = json.dumps(dataset, indent=2)
+        upload_dataset_to_catalogue(json_dataset, dataset_id)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Dataset updated in Neo4j but failed to upload to catalogue: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    return APSuccessEnvelope(
+        code=status.HTTP_200_OK,
+        message=f"Dataset moved from {dataset_path} to {new_path}",
+        ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+    )
 
 
 @router.put("/dataset/update", response_model=APSuccessEnvelope)
@@ -539,38 +645,22 @@ async def update_dataset(ap_payload: APRequest):
         for dataset in datasets_list:
             dataset_id = dataset.get("@id")
             try:
-                check_url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
-
-                # If the dataset has a status property, include it in the query
+                # If the dataset has a status property, include it in the check
                 dataset_status = dataset.get("status")
-                if dataset_status:
-                    check_url += f"&status={dataset_status}"
 
-                check_response = await client.get(check_url)
+                exists, _ = await check_dataset_exists(
+                    dataset_id, status=dataset_status, client=client
+                )
 
-                if check_response.status_code == 200:
-                    metadata = check_response.json().get("metadata", {})
-                    nodes = metadata.get("nodes", [])
-
-                    if not nodes:
-                        error_msg = (
-                            f"Dataset with ID {dataset_id} does not exist in Neo4j"
-                        )
-                        if dataset_status:
-                            error_msg += f" with status '{dataset_status}'"
-                        raise HTTPException(
-                            status_code=status.HTTP_404_NOT_FOUND,
-                            detail=ErrorEnvelope(
-                                code=status.HTTP_404_NOT_FOUND,
-                                error=error_msg,
-                            ).model_dump(),
-                        )
-                else:
+                if not exists:
+                    error_msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
+                    if dataset_status:
+                        error_msg += f" with status '{dataset_status}'"
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
                         detail=ErrorEnvelope(
                             code=status.HTTP_404_NOT_FOUND,
-                            error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
+                            error=error_msg,
                         ).model_dump(),
                     )
 

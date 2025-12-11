@@ -34,13 +34,6 @@
         "request"
       ],
       "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
-    },
-    {
-      "from": "475e6aa3-9c56-4360-aace-631888242948",
-      "labels": [
-        "distribution"
-      ],
-      "to": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa"
     }
   ],
   "nodes": [
@@ -79,7 +72,7 @@
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948",
+        "archivedAt": "s3://dataset/00000000-9c56-4360-aace-631888242948",
         "citeAs": "",
         "conformsTo": "",
         "country": "CH",
@@ -99,23 +92,9 @@
         ],
         "license": "Public Domain",
         "name": "zoo_tierarten_2024",
+        "status": "staged",
         "url": "",
         "version": ""
-      }
-    },
-    {
-      "@id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
-      "labels": [
-        "FileObject"
-      ],
-      "properties": {
-        "@type": "cr:FileObject",
-        "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948/ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
-        "description": "",
-        "encodingFormat": "text/csv",
-        "name": "zoo-tierarten-2024.csv",
-        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
       }
     },
     {
