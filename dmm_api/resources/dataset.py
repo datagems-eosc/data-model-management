@@ -51,6 +51,7 @@ class DatasetsSuccessEnvelope(BaseModel):
 class ErrorEnvelope(BaseModel):
     code: int
     error: str
+    details: Optional[Dict[str, Any]] = None
 
 
 class DatasetType(str, Enum):
@@ -139,7 +140,7 @@ async def get_moma_object(
     Raises:
         HTTPException: If MoMa API is unreachable or returns an error
     """
-    url = f"{MOMA_URL}/getMoMaObject?nodeId={node_id}"
+    url = f"{MOMA_URL}/getMoMaObject?id={node_id}"
 
     should_close = client is None
     if client is None:
@@ -751,7 +752,7 @@ async def update_dataset(ap_payload: APRequest):
 
     async with httpx.AsyncClient() as client:
         results = []
-        failed = []
+        errors = {}
 
         for dataset in datasets_list:
             dataset_id = dataset.get("@id")
@@ -776,19 +777,29 @@ async def update_dataset(ap_payload: APRequest):
 
             except HTTPException:
                 raise
-            except httpx.HTTPStatusError:
-                failed.append(dataset_id)
-            except httpx.RequestError:
-                failed.append(dataset_id)
-            except Exception:
-                failed.append(dataset_id)
+            except httpx.HTTPStatusError as e:
+                errors[dataset_id] = {
+                    "status_code": e.response.status_code,
+                    "message": e.response.text or f"HTTP {e.response.status_code}",
+                }
+            except httpx.RequestError as e:
+                errors[dataset_id] = {
+                    "status_code": 503,
+                    "message": f"Connection Error: {str(e)}",
+                }
+            except Exception as e:
+                errors[dataset_id] = {
+                    "status_code": 500,
+                    "message": f"{type(e).__name__}: {str(e)}",
+                }
 
-        if failed:
+        if errors:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to update some datasets: {failed}",
+                    error=f"Failed to update {len(errors)} dataset(s)",
+                    details=errors,
                 ).model_dump(),
             )
 

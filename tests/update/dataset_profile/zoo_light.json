@@ -112,7 +112,7 @@
       "properties": {
         "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948/ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
+        "contentUrl": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948/zoo-tierarten-2024.csv",
         "description": "",
         "encodingFormat": "text/csv",
         "name": "zoo-tierarten-2024.csv",
