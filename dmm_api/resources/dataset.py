@@ -578,14 +578,52 @@ async def load_dataset(ap_payload: APRequest):
         update_ap = generate_update_AP(ap_payload, new_path)
         await update_dataset(update_ap)
 
-    except HTTPException:
-        raise
+    except HTTPException as exc:
+        # Rollback: Move file back to original location
+        rollback_error = None
+        try:
+            if target_path.exists():
+                shutil.move(str(target_path), str(source_path))
+        except Exception as e:
+            rollback_error = e
+
+        # Extract error details
+        error_detail = exc.detail
+        if isinstance(error_detail, dict):
+            error_msg = error_detail.get("error", str(error_detail))
+            error_code = error_detail.get("code", exc.status_code)
+        else:
+            error_msg = str(error_detail)
+            error_code = exc.status_code
+
+        if rollback_error:
+            error_msg = f"{error_msg} [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+
+        raise HTTPException(
+            status_code=error_code,
+            detail=ErrorEnvelope(
+                code=error_code,
+                error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+            ).model_dump(),
+        )
     except Exception as e:
+        # Rollback: Move file back to original location
+        rollback_error = None
+        try:
+            if target_path.exists():
+                shutil.move(str(target_path), str(source_path))
+        except Exception as rollback_exc:
+            rollback_error = rollback_exc
+
+        error_msg = f"{type(e).__name__}: {str(e)}"
+        if rollback_error:
+            error_msg = f"{error_msg} [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"File moved successfully but failed to update dataset in Neo4j: {type(e).__name__}: {str(e)}",
+                error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
             ).model_dump(),
         )
 

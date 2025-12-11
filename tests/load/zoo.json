@@ -58,11 +58,7 @@
       "properties": {
         "Description": "An operator to load a dataset into s3/dataset",
         "Name": "Load Operator",
-        "Parameters": {
-          "command": "update"
-        },
         "PublishedDate": "2025-06-30",
-        "Software": {},
         "StartTime": "10:00:00",
         "Step": 1,
         "command": "update"
@@ -74,45 +70,15 @@
         "sc:Dataset"
       ],
       "properties": {
-        "@type": "sc:Dataset",
         "archivedAt": "s3://scratchpad/00000000-9c56-4360-aace-631888242948",
-        "citeAs": "",
-        "conformsTo": "",
-        "country": "CH",
-        "datePublished": "2024-12-09",
-        "description": "Zoo animal species data",
-        "fieldOfScience": [
-          "BIOLOGICAL SCIENCES"
-        ],
-        "headline": "Zoo animal species data from Zurich Zoo.",
-        "inLanguage": [
-          "de"
-        ],
-        "keywords": [
-          "zoo",
-          "animals",
-          "species"
-        ],
-        "license": "Public Domain",
-        "name": "zoo_tierarten_2024",
-        "url": "",
-        "version": ""
+        "status": "staged"
       }
     },
     {
       "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "@id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
