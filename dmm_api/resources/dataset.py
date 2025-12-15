@@ -196,7 +196,7 @@ async def get_moma_object(
 
 async def get_dataset_metadata(
     dataset_id: str,
-    status: Optional[str] = None,
+    dataset_status: Optional[str] = None,
     client: Optional[httpx.AsyncClient] = None,
 ) -> tuple[bool, dict]:
     """
@@ -211,8 +211,8 @@ async def get_dataset_metadata(
         Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
     """
     url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
-    if status:
-        url += f"&status={status}"
+    if dataset_status:
+        url += f"&status={dataset_status}"
 
     should_close = client is None
     if client is None:
@@ -569,9 +569,7 @@ async def load_dataset(ap_payload: APRequest):
             msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
             if effective_status:
                 msg += f" with status '{effective_status}'."
-            msg += (
-                " Please register the dataset first using /dataset/register endpoint."
-            )
+            msg += "Please register the dataset first using /dataset/register endpoint."
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=ErrorEnvelope(
