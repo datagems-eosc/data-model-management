@@ -4,7 +4,6 @@ import networkx as nx
 from dmm_api.tools.AP.parse_AP import APRequest, json_to_graph
 
 
-# TODO: add dataset status update
 def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     G_load = json_to_graph(ap_payload)
 
@@ -21,6 +20,7 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
         raise ValueError("Required user or dataset information not found in AP payload")
 
     dataset_node[1]["properties"]["archivedAt"] = new_path
+    dataset_node[1]["properties"]["status"] = "loaded"
 
     ap_id = str(uuid.uuid4())
     operator_id = str(uuid.uuid4())
