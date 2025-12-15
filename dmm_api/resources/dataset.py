@@ -454,7 +454,7 @@ async def register_dataset(ap_payload: APRequest):
             # Check if dataset already exists with 'staged' status
             exists, _ = await get_dataset_metadata(
                 dataset_id,
-                status=DatasetState.Staged.value.lower(),
+                dataset_status=DatasetState.Staged.value.lower(),
                 client=client,
             )
 
@@ -563,7 +563,9 @@ async def load_dataset(ap_payload: APRequest):
             else DatasetState.Staged.value.lower()
         )
 
-        exists, _ = await get_dataset_metadata(dataset_id, status=effective_status)
+        exists, _ = await get_dataset_metadata(
+            dataset_id, dataset_status=effective_status
+        )
 
         if not exists:
             msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
