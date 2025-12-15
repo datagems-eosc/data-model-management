@@ -169,7 +169,22 @@ async def get_moma_object(
         # Check if the node has the expected label
         labels = node.get("labels", [])
         if expected_label not in labels:
-            return (False, {"nodes": []})
+            # Object exists but is not of the expected class/label
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    error=(
+                        f"Label mismatch for MoMa object id={node_id}: "
+                        f"expected '{expected_label}' not in labels {labels}"
+                    ),
+                    details={
+                        "id": node_id,
+                        "expected_label": expected_label,
+                        "labels": labels,
+                    },
+                ).model_dump(),
+            )
 
         return (True, {"nodes": [node]})
 
@@ -204,7 +219,7 @@ async def get_dataset_metadata(
 
     Args:
         dataset_id: The UUID of the dataset to retrieve
-        status: Optional status filter (e.g., 'staged', 'loaded', 'ready')
+        dataset_status: Optional status filter (e.g., 'staged', 'loaded', 'ready') for Dataset nodes
         client: Optional httpx client to reuse. If None, creates a new one.
 
     Returns:
@@ -763,13 +778,12 @@ async def update_dataset(ap_payload: APRequest):
                 )
 
                 if not exists:
-                    raise HTTPException(
-                        status_code=status.HTTP_404_NOT_FOUND,
-                        detail=ErrorEnvelope(
-                            code=status.HTTP_404_NOT_FOUND,
-                            error=f"Dataset with ID {dataset_id} does not exist in Neo4j",
-                        ).model_dump(),
-                    )
+                    # Do not raise 404 here; aggregate as per-item error
+                    errors[dataset_id] = {
+                        "status_code": 404,
+                        "message": f"Dataset with ID {dataset_id} not found in MoMa catalog",
+                    }
+                    continue
 
                 response = await client.post(ingest_url, json=dataset)
                 response.raise_for_status()
