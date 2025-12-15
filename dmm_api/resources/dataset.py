@@ -131,7 +131,7 @@ async def get_moma_object(
 
     Args:
         node_id: The UUID of the node to retrieve
-        expected_label: The expected label/class (e.g., 'sc:Dataset')
+        expected_label: The expected label/class (e.g., 'Dataset')
         client: Optional httpx client to reuse. If None, creates a new one.
 
     Returns:
@@ -759,7 +759,7 @@ async def update_dataset(ap_payload: APRequest):
             try:
                 # Check if dataset exists independently of its status
                 exists, _ = await get_moma_object(
-                    dataset_id, expected_label="sc:Dataset", client=client
+                    dataset_id, expected_label="Dataset", client=client
                 )
 
                 if not exists:
