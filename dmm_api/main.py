@@ -35,10 +35,19 @@ async def api_home():
         "message": f"API V1 is running (version: {app_version})",
         "endpoints": {
             "dataset": {
-                "description": "Get all datasets or specific dataset by ID",
+                "description": "Get information about dataset endpoints",
                 "methods": ["GET"],
                 "url": "/api/v1/dataset",
-                "example_url": "/api/v1/dataset/dataset_id",
+            },
+            "dataset_search": {
+                "description": "Search and filter datasets",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset/search",
+            },
+            "dataset_get": {
+                "description": "Get a specific dataset by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset/get/{dataset_id}",
             },
             "dataset_register": {
                 "description": "Register a new dataset",

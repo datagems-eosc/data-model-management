@@ -293,9 +293,20 @@ async def data_workflow(
     )
 
 
+@router.get("/dataset")
+async def dataset_home():
+    return {
+        "endpoints": {
+            "search": "/dataset/search",
+            "by_id": "/dataset/get/{dataset_id}",
+        },
+        "description": "Endpoints to retrieve and search datasets stored in MoMa",
+    }
+
+
 # TODO: remove metadata from the response
-@router.get("/dataset", response_model=DatasetsSuccessEnvelope)
-async def get_datasets(
+@router.get("/dataset/search", response_model=DatasetsSuccessEnvelope)
+async def search_datasets(
     nodeIds: Optional[List[str]] = Query(
         None,
         description="Filter datasets by their UUIDs.",
@@ -387,7 +398,7 @@ async def get_datasets(
 
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
-@router.get("/dataset/{dataset_id}", response_model=DatasetSuccessEnvelope)
+@router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(dataset_id: str):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
     try:
