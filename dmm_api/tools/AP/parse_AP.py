@@ -11,7 +11,7 @@ from dmm_api.config.constants import (
 
 
 class Node(BaseModel):
-    id: str | int = Field(..., alias="@id")
+    id: str | int = Field(..., alias="id")
     labels: List[str]
     # Make properties optional with default empty dict
     properties: Dict[str, Any] = Field(default_factory=dict)
@@ -50,7 +50,7 @@ def json_to_graph(query_data: APRequest) -> nx.DiGraph | nx.MultiDiGraph:
 
     for node in graph_data["nodes"]:
         G.add_node(
-            node["@id"],
+            node["id"],
             labels=node.get("labels", []),
             properties=node.get("properties", {}),
         )
@@ -287,7 +287,7 @@ def extract_datasets_from_AP(
                 node_props = node_attrs.get("properties", {}) or {}
                 node_labels = node_attrs.get("labels", []) or []
 
-                file_obj: Dict[str, Any] = {"@id": to_id}
+                file_obj: Dict[str, Any] = {"id": to_id}
                 file_obj["@type"] = node_props.get("@type") or next(
                     (
                         lbl

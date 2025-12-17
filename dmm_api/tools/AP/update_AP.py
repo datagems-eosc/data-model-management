@@ -60,7 +60,7 @@ def update_AP_after_query(
 
     new_file_node = Node(
         **{
-            "@id": new_file_id,
+            "id": new_file_id,
             "labels": ["cr:FileObject", "CSV"],
             "properties": {
                 "@type": "cr:FileObject",

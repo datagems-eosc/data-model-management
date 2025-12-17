@@ -113,7 +113,7 @@ This registers a new dataset using the JSON payload. The API returns:
    "ap":{
       "nodes":[
          {
-            "@id":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+            "id":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -123,7 +123,7 @@ This registers a new dataset using the JSON payload. The API returns:
             }
          },
          {
-            "@id":"69ce4693-e71e-4616-9320-037c90a88858",
+            "id":"69ce4693-e71e-4616-9320-037c90a88858",
             "labels":[
                "DataModelManagement_Operator"
             ],
@@ -133,7 +133,7 @@ This registers a new dataset using the JSON payload. The API returns:
             }
          },
          {
-            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
                "sc:Dataset"
             ],
@@ -143,7 +143,7 @@ This registers a new dataset using the JSON payload. The API returns:
             }
          },
          {
-            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
             "labels":[
                "User"
             ],
@@ -153,7 +153,7 @@ This registers a new dataset using the JSON payload. The API returns:
             }
          },
          {
-            "@id":"dca293c0-e20c-47de-be58-acad8b8c423c",
+            "id":"dca293c0-e20c-47de-be58-acad8b8c423c",
             "labels":[
                "Task"
             ],
@@ -206,7 +206,7 @@ This registers a new dataset using the JSON payload. The API returns:
 
 The response includes the dataset ID and the analytical pattern graph structure showing the registration process.
 
-The register worflow may decide to change the ID of the uploaded dataset. If that is the case the returned AP will have a different value for `@id` in the `sc:Dataset` node.
+The register worflow may decide to change the ID of the uploaded dataset. If that is the case the returned AP will have a different value for `id` in the `sc:Dataset` node.
 The `archivedAt` attribute will still point to the current folder in the S3 scratchpad.
 
 
@@ -227,7 +227,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
    "ap":{
       "nodes":[
          {
-            "@id":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
+            "id":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -237,7 +237,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
             }
          },
          {
-            "@id":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+            "id":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
             "labels":[
                "DataModelManagement_Operator"
             ],
@@ -247,7 +247,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
             }
          },
          {
-            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
                "sc:Dataset"
             ],
@@ -257,7 +257,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
             }
          },
          {
-            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
             "labels":[
                "User"
             ],
@@ -267,7 +267,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
             }
          },
          {
-            "@id":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+            "id":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
             "labels":[
                "Task"
             ],
@@ -338,7 +338,7 @@ This updates the dataset properties and creates file object distributions. The A
    "ap":{
       "nodes":[
          {
-            "@id":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
+            "id":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -348,7 +348,7 @@ This updates the dataset properties and creates file object distributions. The A
             }
          },
          {
-            "@id":"24a62ae9-41a9-472d-9a8a-438f35937980",
+            "id":"24a62ae9-41a9-472d-9a8a-438f35937980",
             "labels":[
                "DataModelManagement_Operator"
             ],
@@ -358,7 +358,7 @@ This updates the dataset properties and creates file object distributions. The A
             }
          },
          {
-            "@id":"475e6aa3-9c56-4360-aace-631888242947",
+            "id":"475e6aa3-9c56-4360-aace-631888242947",
             "labels":[
                "sc:Dataset"
             ],
@@ -368,7 +368,7 @@ This updates the dataset properties and creates file object distributions. The A
             }
          },
          {
-            "@id":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+            "id":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
             "labels":[
                "cr:FileObject"
             ],
@@ -378,7 +378,7 @@ This updates the dataset properties and creates file object distributions. The A
             }
          },
          {
-            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
             "labels":[
                "User"
             ],
@@ -388,7 +388,7 @@ This updates the dataset properties and creates file object distributions. The A
             }
          },
          {
-            "@id":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+            "id":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
             "labels":[
                "Task"
             ],
@@ -616,7 +616,7 @@ This query two dataset properties and creates a new dataset from the output. The
    "ap":{
       "nodes":[
          {
-            "@id":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+            "id:"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -626,7 +626,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+            "id":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
             "labels":[
                "SQL_Operator"
             ],
@@ -645,7 +645,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"928a3f45-7eec-474a-ab07-90736feb7ace",
+            "id":"928a3f45-7eec-474a-ab07-90736feb7ace",
             "labels":[
                "sc:Dataset"
             ],
@@ -656,7 +656,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
+            "id":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
             "labels":[
                "sc:Dataset"
             ],
@@ -667,7 +667,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"2c830b06-a1da-48ca-a982-15062002797c",
+            "id":"2c830b06-a1da-48ca-a982-15062002797c",
             "labels":[
                "sc:Dataset"
             ],
@@ -679,7 +679,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
+            "id":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
             "labels":[
                "cr:FileObject",
                "CSV"
@@ -689,7 +689,7 @@ This query two dataset properties and creates a new dataset from the output. The
                ...
          },
          {
-            "@id":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
+            "id":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
             "labels":[
                "cr:FileObject",
                "CSV"
@@ -700,7 +700,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
             "labels":[
                "User"
             ],
@@ -710,7 +710,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"474c2c12-4185-42a0-9e79-38af377bdcad",
+            "id":"474c2c12-4185-42a0-9e79-38af377bdcad",
             "labels":[
                "Task"
             ],
@@ -720,7 +720,7 @@ This query two dataset properties and creates a new dataset from the output. The
             }
          },
          {
-            "@id":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
+            "id":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
             "labels":[
                "cr:FileObject",
                "CSV"

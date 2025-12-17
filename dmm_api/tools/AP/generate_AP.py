@@ -78,7 +78,7 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     update_json = {
         "nodes": [
             {
-                "@id": node_id,
+                "id": node_id,
                 "labels": G_update.nodes[node_id]["labels"],
                 "properties": G_update.nodes[node_id]["properties"],
             }
@@ -181,7 +181,7 @@ def generate_register_AP_after_query(ap_payload: APRequest) -> APRequest:
     register_json = {
         "nodes": [
             {
-                "@id": node_id,
+                "id": node_id,
                 "labels": G_register.nodes[node_id]["labels"],
                 "properties": G_register.nodes[node_id]["properties"],
             }
