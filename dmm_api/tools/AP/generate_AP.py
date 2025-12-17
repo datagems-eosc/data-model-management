@@ -147,7 +147,7 @@ def generate_register_AP_after_query(ap_payload: APRequest) -> APRequest:
         properties={
             "Description": "An operator to register a dataset into DataGEMS",
             "Name": "Register Operator",
-            "Parameters": {"command": "create"},
+            "command": "create",
             "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
             "StartTime": datetime.now().strftime("%H:%M:%S"),
             "Step": 1,
