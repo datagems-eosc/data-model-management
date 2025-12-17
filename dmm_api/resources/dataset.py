@@ -756,7 +756,7 @@ async def load_dataset(ap_payload: APRequest):
 @router.put("/dataset/update", response_model=APSuccessEnvelope)
 async def update_dataset(ap_payload: APRequest):
     """Update a dataset in Neo4j"""
-    ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
+    update_url = f"{MOMA_URL}/updateNodes"
 
     try:
         datasets_list, _ = extract_datasets_from_AP(
@@ -796,7 +796,19 @@ async def update_dataset(ap_payload: APRequest):
                     }
                     continue
 
-                response = await client.post(ingest_url, json=dataset)
+                properties = {
+                    k: v for k, v in dataset.items() if k not in {"@id", "@context"}
+                }
+
+                payload = {
+                    "nodes": [
+                        {
+                            "id": dataset_id,
+                            "properties": properties,
+                        }
+                    ]
+                }
+                response = await client.post(update_url, json=payload)
                 response.raise_for_status()
                 results.append(dataset_id)
 
