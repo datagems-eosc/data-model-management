@@ -450,7 +450,7 @@ async def register_dataset(ap_payload: APRequest):
                 ).model_dump(),
             )
         dataset = datasets_list[0]
-        dataset_id = dataset.get("id")
+        dataset_id = dataset.get("@id")
         old_dataset_id = old_dataset_ids[0]
 
         # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
@@ -560,7 +560,7 @@ async def load_dataset(ap_payload: APRequest):
         )
 
         dataset = datasets_list[0]
-        dataset_id = dataset.get("id")
+        dataset_id = dataset.get("@id")
         dataset_path = dataset.get("archivedAt")
 
         if not dataset_path:
@@ -781,7 +781,7 @@ async def update_dataset(ap_payload: APRequest):
         errors = {}
 
         for dataset in datasets_list:
-            dataset_id = dataset.get("id")
+            dataset_id = dataset.get("@id")
             try:
                 # Check if dataset exists independently of its status
                 exists, _ = await get_moma_object(
