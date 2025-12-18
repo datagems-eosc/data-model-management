@@ -797,7 +797,7 @@ async def update_dataset(ap_payload: APRequest):
                     continue
 
                 properties = {
-                    k: v for k, v in dataset.items() if k not in {"id", "@context"}
+                    k: v for k, v in dataset.items() if k not in {"@id", "@context"}
                 }
 
                 payload = {
