@@ -45,7 +45,7 @@
   ],
   "nodes": [
     {
-      "@id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+      "id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
       "labels": [
         "Analytical_Pattern"
       ],
@@ -58,7 +58,7 @@
       }
     },
     {
-      "@id": "24a62ae9-41a9-472d-9a8a-438f35937980",
+      "id": "24a62ae9-41a9-472d-9a8a-438f35937980",
       "labels": [
         "DataModelManagement_Operator"
       ],
@@ -73,39 +73,13 @@
       }
     },
     {
-      "@id": "475e6aa3-9c56-4360-aace-631888242948",
+      "id": "475e6aa3-9c56-4360-aace-631888242948",
       "labels": [
         "sc:Dataset"
-      ],
-      "properties": {
-        "@type": "sc:Dataset",
-        "archivedAt": "s3://dataset/475e6aa3-9c56-4360-aace-631888242948",
-        "citeAs": "",
-        "conformsTo": "",
-        "country": "CH",
-        "datePublished": "2024-12-09",
-        "description": "Zoo animal species data",
-        "fieldOfScience": [
-          "BIOLOGICAL SCIENCES"
-        ],
-        "headline": "Zoo animal species data from Zurich Zoo.",
-        "inLanguage": [
-          "de"
-        ],
-        "keywords": [
-          "zoo",
-          "animals",
-          "species"
-        ],
-        "license": "Public Domain",
-        "name": "zoo_tierarten_2024",
-        "status": "loaded",
-        "url": "",
-        "version": ""
-      }
+      ]
     },
     {
-      "@id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
+      "id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917aa",
       "labels": [
         "FileObject"
       ],
@@ -120,7 +94,7 @@
       }
     },
     {
-      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
       ],
@@ -135,7 +109,7 @@
       }
     },
     {
-      "@id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+      "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
       "labels": [
         "Task"
       ],

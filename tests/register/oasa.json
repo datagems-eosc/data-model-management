@@ -12,7 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "fa512835-7ec9-41cc-87db-a94b99e8b97a"
+      "to": "767c4c36-e43b-4251-8ff3-4b5023e73f17"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -38,7 +38,7 @@
   ],
   "nodes": [
     {
-      "@id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
       "labels": [
         "Analytical_Pattern"
       ],
@@ -51,7 +51,7 @@
       }
     },
     {
-      "@id": "69ce4693-e71e-4616-9320-037c90a88858",
+      "id": "69ce4693-e71e-4616-9320-037c90a88858",
       "labels": [
         "DataModelManagement_Operator"
       ],
@@ -65,13 +65,13 @@
       }
     },
     {
-      "@id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "id": "767c4c36-e43b-4251-8ff3-4b5023e73f17",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
         "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+        "archivedAt": "s3://scratchpad/767c4c36-e43b-4251-8ff3-4b5023e73f17",
         "citeAs": "",
         "conformsTo": "",
         "country": "PT",
@@ -96,13 +96,13 @@
       }
     },
     {
-      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
       ]
     },
     {
-      "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
       "labels": [
         "Task"
       ],

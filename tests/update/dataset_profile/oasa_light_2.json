@@ -59,7 +59,7 @@
   ],
   "nodes": [
     {
-      "@id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+      "id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
       "labels": [
         "Analytical_Pattern"
       ],
@@ -72,7 +72,7 @@
       }
     },
     {
-      "@id": "24a62ae9-41a9-472d-9a8a-438f35937980",
+      "id": "24a62ae9-41a9-472d-9a8a-438f35937980",
       "labels": [
         "DataModelManagement_Operator"
       ],
@@ -86,7 +86,7 @@
       }
     },
     {
-      "@id": "d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b",
+      "id": "d5e7a9a2-2f4c-4b0e-9ad4-3b7f1c2a6e8b",
       "labels": [
         "sc:Dataset"
       ],
@@ -117,7 +117,7 @@
       }
     },
     {
-      "@id": "b1c2d3e4-5678-4b1a-9c2d-0e1f2a3b4c5d",
+      "id": "b1c2d3e4-5678-4b1a-9c2d-0e1f2a3b4c5d",
       "labels": [
         "cr:FileObject",
         "CSV"
@@ -133,7 +133,7 @@
       }
     },
     {
-      "@id": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f",
+      "id": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f",
       "labels": [
         "sc:Dataset"
       ],
@@ -164,7 +164,7 @@
       }
     },
     {
-      "@id": "c9d8e7f6-1234-4a5b-8c7d-9e0f1a2b3c4d",
+      "id": "c9d8e7f6-1234-4a5b-8c7d-9e0f1a2b3c4d",
       "labels": [
         "cr:FileObject",
         "CSV"
@@ -180,13 +180,13 @@
       }
     },
     {
-      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
       ]
     },
     {
-      "@id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+      "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
       "labels": [
         "Task"
       ],

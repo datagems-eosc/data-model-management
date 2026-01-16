@@ -12,7 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "fa512835-7ec9-41cc-87db-a94b99e8b97a"
+      "to": "767c4c36-e43b-4251-8ff3-4b5023e73f17"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -38,7 +38,7 @@
   ],
   "nodes": [
     {
-      "@id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+      "id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
       "labels": [
         "Analytical_Pattern"
       ],
@@ -51,7 +51,7 @@
       }
     },
     {
-      "@id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+      "id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
       "labels": [
         "DataModelManagement_Operator"
       ],
@@ -65,23 +65,23 @@
       }
     },
     {
-      "@id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "id": "767c4c36-e43b-4251-8ff3-4b5023e73f17",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
+        "archivedAt": "s3://scratchpad/767c4c36-e43b-4251-8ff3-4b5023e73f17",
         "status": "staged"
       }
     },
     {
-      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
       ]
     },
     {
-      "@id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+      "id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
       "labels": [
         "Task"
       ],

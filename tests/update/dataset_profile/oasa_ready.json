@@ -70,7 +70,7 @@
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://dataset/767c4c36-e43b-4251-8ff3-4b5023e73f17",
+        "archivedAt": "s3://dataset/9d392b09-5fa9-4011-854e-a1b78db457f5",
         "status": "ready"
       }
     },

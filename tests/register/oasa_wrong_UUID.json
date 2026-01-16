@@ -38,7 +38,7 @@
   ],
   "nodes": [
     {
-      "@id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+      "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
       "labels": [
         "Analytical_Pattern"
       ],
@@ -51,7 +51,7 @@
       }
     },
     {
-      "@id": "69ce4693-e71e-4616-9320-037c90a88858",
+      "id": "69ce4693-e71e-4616-9320-037c90a88858",
       "labels": [
         "DataModelManagement_Operator"
       ],
@@ -65,7 +65,7 @@
       }
     },
     {
-      "@id": "9c56-4360-631888242947",
+      "id": "9c56-4360-631888242947",
       "labels": [
         "sc:Dataset"
       ],
@@ -96,13 +96,13 @@
       }
     },
     {
-      "@id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
       ]
     },
     {
-      "@id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+      "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
       "labels": [
         "Task"
       ],
