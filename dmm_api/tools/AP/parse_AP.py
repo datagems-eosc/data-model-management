@@ -2,7 +2,7 @@ import re
 import networkx as nx
 from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Set, Tuple
 import uuid
 from dmm_api.config.constants import (
     CONTEXT_TEMPLATE,
@@ -340,3 +340,99 @@ def extract_dataset_id_from_AP(
 
     dataset_id = dataset_nodes[0]
     return dataset_id
+
+
+def extract_from_AP(
+    ap_payload: APRequest,
+    target_labels: Optional[Set[str]] = None,
+    include_partial_matches: bool = True,
+) -> Tuple[List[Dict], List[Dict]]:
+    """
+    Extract nodes with specific labels and their interconnecting edges.
+
+    Args:
+        ap_payload: The Analytical Pattern request payload
+        target_labels: Set of labels to filter (e.g., {"sc:Dataset", "cr:FileObject"})
+                      If None, defaults to Dataset/FileObject/RecordSet
+        include_partial_matches: If True, also matches labels containing "FileObject" or "RecordSet"
+
+    Returns:
+        Tuple of (filtered_nodes, filtered_edges) where:
+        - filtered_nodes: List of node dicts matching the target labels
+        - filtered_edges: List of edge dicts connecting the filtered nodes
+    """
+    # Convert AP to graph
+    graph = json_to_graph(ap_payload)
+
+    # Default target labels if not provided
+    if target_labels is None:
+        target_labels = {"sc:Dataset", "cr:FileObject", "cr:RecordSet"}
+
+    # Find nodes that have any of the target labels
+    filtered_node_ids: Set[str] = set()
+    for node_id, node_data in graph.nodes(data=True):
+        node_labels = set(node_data.get("labels", []))
+
+        # Check exact label matches
+        has_match = bool(node_labels & target_labels)
+
+        # Check partial matches if enabled
+        if not has_match and include_partial_matches:
+            has_match = any(
+                "FileObject" in label or "RecordSet" in label for label in node_labels
+            )
+
+        if has_match:
+            filtered_node_ids.add(node_id)
+
+    # Extract the original node and edge data from the AP payload
+    ap_data = ap_payload.model_dump(by_alias=True)
+    original_nodes = {node["id"]: node for node in ap_data["nodes"]}
+
+    # Build filtered nodes list
+    filtered_nodes = [original_nodes[node_id] for node_id in filtered_node_ids]
+
+    # Build filtered edges list - include ALL edges between filtered nodes
+    filtered_edges = []
+    for edge in ap_data["edges"]:
+        if edge["from"] in filtered_node_ids and edge["to"] in filtered_node_ids:
+            filtered_edges.append(edge)
+
+    return filtered_nodes, filtered_edges
+
+
+def compare_node_properties(
+    ap_node: Dict, moma_node: Dict
+) -> Tuple[bool, Dict[str, any]]:
+    """
+    Compare properties between AP node and MoMa node.
+
+    Args:
+        ap_node: Node from the Analytical Pattern
+        moma_node: Node from MoMa API response
+
+    Returns:
+        Tuple of (has_changes, updated_properties) where:
+        - has_changes: True if properties differ
+        - updated_properties: Dict of properties that need to be updated
+    """
+    ap_props = ap_node.get("properties", {})
+    moma_props = moma_node.get("properties", {})
+
+    # Find properties that are different or new
+    updated_properties = {}
+    has_changes = False
+
+    for key, value in ap_props.items():
+        # Skip internal fields that shouldn't be compared
+        if key.startswith("@"):
+            continue
+
+        moma_value = moma_props.get(key)
+
+        # Property is new or different
+        if moma_value != value:
+            updated_properties[key] = value
+            has_changes = True
+
+    return has_changes, updated_properties

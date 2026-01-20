@@ -14,6 +14,8 @@ from typing import Dict, Any, List, Optional
 from .query_executor import execute_query_csv
 
 from ..tools.AP.parse_AP import (
+    compare_node_properties,
+    extract_from_AP,
     extract_query_from_AP,
     extract_datasets_from_AP,
     APRequest,
@@ -335,9 +337,9 @@ async def search_datasets(
         ge=-1,
         le=1,
     ),
-    dataset_status: str = Query(
-        "ready",
-        description="Dataset status to filter on.",
+    dataset_status: Optional[str] = Query(
+        None,
+        description="Optional dataset status to filter on. If not provided, returns all statuses.",
     ),
 ):
     url = f"{MOMA_URL}/getDatasets"
@@ -357,7 +359,9 @@ async def search_datasets(
     if publishedDateTo:
         params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
     params["direction"] = direction
-    params["status"] = dataset_status
+
+    if dataset_status is not None:
+        params["status"] = dataset_status
 
     async with httpx.AsyncClient() as client:
         try:
@@ -755,16 +759,24 @@ async def load_dataset(ap_payload: APRequest):
 
 @router.put("/dataset/update", response_model=APSuccessEnvelope)
 async def update_dataset(ap_payload: APRequest):
-    """Update a dataset in Neo4j"""
-    update_url = f"{MOMA_URL}/updateNodes"
+    """
+    Update datasets in Neo4j by:
+    1. Extracting Dataset/FileObject/RecordSet nodes from AP
+    2. Checking if they exist in MoMa (single batch request)
+    3. Creating new nodes/edges or updating existing ones
+    """
 
     try:
-        datasets_list, _ = extract_datasets_from_AP(
-            ap_payload,
-            expected_ap_process="update",
-            expected_operator_command="update",
-        )
+        filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
 
+        if not filtered_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset/FileObject/RecordSet nodes found in AP",
+                ).model_dump(),
+            )
     except HTTPException:
         raise
     except Exception as e:
@@ -772,77 +784,195 @@ async def update_dataset(ap_payload: APRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during the dataset extraction: {type(e).__name__}: {str(e)}",
+                error=f"Failed to parse AP: {type(e).__name__}: {str(e)}",
             ).model_dump(),
         )
 
+    # Prepare tracking structures
+    nodes_to_create = []
+    nodes_to_update = []
+    edges_to_create = []
+    existing_nodes_map = {}  # node_id -> moma_node_data
+
     async with httpx.AsyncClient() as client:
-        results = []
-        errors = {}
+        # Step 1: Batch check which nodes exist using /dataset/search
+        node_ids = [node["id"] for node in filtered_nodes]
 
-        for dataset in datasets_list:
-            dataset_id = dataset.get("@id")
-            try:
-                # Check if dataset exists independently of its status
-                exists, _ = await get_moma_object(
-                    dataset_id, expected_label="Dataset", client=client
-                )
+        try:
+            # Use existing search_datasets logic via internal call
+            url = f"{MOMA_URL}/getDatasets"
+            params = {"nodeIds": node_ids}
 
-                if not exists:
-                    # Do not raise 404 here; aggregate as per-item error
-                    errors[dataset_id] = {
-                        "status_code": 404,
-                        "message": f"Dataset with ID {dataset_id} not found in MoMa catalog",
-                    }
-                    continue
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+            metadata = data.get("metadata", {})
+            existing_nodes = metadata.get("nodes", [])
 
-                properties = {
-                    k: v for k, v in dataset.items() if k not in {"@id", "@context"}
-                }
+            # Build map of existing nodes by ID
+            for moma_node in existing_nodes:
+                node_id = moma_node.get("id")
+                if node_id:
+                    existing_nodes_map[node_id] = moma_node
 
-                payload = {
-                    "nodes": [
-                        {
-                            "id": dataset_id,
-                            "properties": properties,
-                        }
-                    ]
-                }
-                response = await client.post(update_url, json=payload)
-                response.raise_for_status()
-                results.append(dataset_id)
-
-            except HTTPException:
-                raise
-            except httpx.HTTPStatusError as e:
-                errors[dataset_id] = {
-                    "status_code": e.response.status_code,
-                    "message": e.response.text or f"HTTP {e.response.status_code}",
-                }
-            except httpx.RequestError as e:
-                errors[dataset_id] = {
-                    "status_code": 503,
-                    "message": f"Connection Error: {str(e)}",
-                }
-            except Exception as e:
-                errors[dataset_id] = {
-                    "status_code": 500,
-                    "message": f"{type(e).__name__}: {str(e)}",
-                }
-
-        if errors:
+        except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to update {len(errors)} dataset(s)",
-                    details=errors,
+                    error=f"Failed to check node existence: HTTP {e.response.status_code}",
+                ).model_dump(),
+            )
+        except httpx.RequestError as e:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error=f"Failed to connect to MoMa API: {str(e)}",
+                ).model_dump(),
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Failed to verify node existence: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
 
+        # Step 2: Categorize nodes based on existence and changes
+        for node in filtered_nodes:
+            node_id = node["id"]
+
+            if node_id in existing_nodes_map:
+                # Node exists - check if update is needed
+                moma_node = existing_nodes_map[node_id]
+
+                has_changes, updated_props = compare_node_properties(node, moma_node)
+
+                if has_changes:
+                    nodes_to_update.append(
+                        {
+                            "id": node_id,
+                            "properties": updated_props,
+                        }
+                    )
+            else:
+                # Node doesn't exist - prepare for creation
+                nodes_to_create.append(node)
+
+        # Step 3: Create new nodes if any
+        if nodes_to_create:
+            try:
+                add_nodes_url = f"{MOMA_URL}/addMoMaNodes"
+                payload = {"nodes": nodes_to_create}
+                response = await client.post(add_nodes_url, json=payload)
+                response.raise_for_status()
+
+                result = response.json()
+                if result.get("status") != "success":
+                    raise Exception(result.get("status", "Unknown error"))
+
+            except httpx.HTTPStatusError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to create nodes: HTTP {e.response.status_code}",
+                    ).model_dump(),
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        error=f"Failed to create nodes: {type(e).__name__}: {str(e)}",
+                    ).model_dump(),
+                )
+
+        # Step 4: Update existing nodes if any have changes
+        if nodes_to_update:
+            try:
+                update_nodes_url = f"{MOMA_URL}/updateNodes"
+                payload = {"nodes": nodes_to_update}
+                response = await client.post(update_nodes_url, json=payload)
+                response.raise_for_status()
+
+            except httpx.HTTPStatusError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to update nodes: HTTP {e.response.status_code}",
+                    ).model_dump(),
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        error=f"Failed to update nodes: {type(e).__name__}: {str(e)}",
+                    ).model_dump(),
+                )
+
+        # Step 5: Determine which edges need to be created
+        # Create edges if at least one of the connected nodes was newly created
+        newly_created_ids = {node["id"] for node in nodes_to_create}
+
+        for edge in filtered_edges:
+            edge_from = edge["from"]
+            edge_to = edge["to"]
+
+            # Create edge if at least one node was newly created
+            if edge_from in newly_created_ids or edge_to in newly_created_ids:
+                edges_to_create.append(edge)
+
+        # Step 6: Create edges if any
+        if edges_to_create:
+            try:
+                add_edges_url = f"{MOMA_URL}/addMoMaEdjes"
+                payload = {"edges": edges_to_create}
+                response = await client.post(add_edges_url, json=payload)
+                response.raise_for_status()
+
+                result = response.json()
+                if result.get("status") != "success":
+                    raise Exception(result.get("status", "Unknown error"))
+
+            except httpx.HTTPStatusError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to create edges: HTTP {e.response.status_code}",
+                    ).model_dump(),
+                )
+            except Exception as e:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                        error=f"Failed to create edges: {type(e).__name__}: {str(e)}",
+                    ).model_dump(),
+                )
+
+        # Build summary message
+        summary_parts = []
+        if nodes_to_create:
+            summary_parts.append(f"{len(nodes_to_create)} node(s) created")
+        if nodes_to_update:
+            summary_parts.append(f"{len(nodes_to_update)} node(s) updated")
+        if edges_to_create:
+            summary_parts.append(f"{len(edges_to_create)} edge(s) created")
+
+        if not summary_parts:
+            summary_parts.append("No changes detected")
+
+        message = ", ".join(summary_parts)
+
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
-            message=f"{len(results)} dataset(s) updated successfully in Neo4j",
+            message=f"Dataset update completed: {message}",
             ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
         )
 
