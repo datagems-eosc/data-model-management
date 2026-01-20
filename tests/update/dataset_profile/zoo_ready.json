@@ -34,13 +34,6 @@
         "request"
       ],
       "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
-    },
-    {
-      "from": "725947a5-89a6-47d6-aa08-c46a0c96a62c",
-      "labels": [
-        "distribution"
-      ],
-      "to": "f0c20b7e-7f6d-4974-93c2-446497f14c1e"
     }
   ],
   "nodes": [
@@ -53,7 +46,7 @@
         "Description": "Analytical Pattern to update a dataset",
         "Name": "Update Dataset AP",
         "Process": "update",
-        "PublishedDate": "2025-12-09",
+        "PublishedDate": "2025-06-30",
         "StartTime": "10:00:00"
       }
     },
@@ -65,8 +58,7 @@
       "properties": {
         "Description": "An operator to update a dataset into DataGEMS",
         "Name": "Update Operator",
-        "PublishedDate": "2025-12-09",
-        "Software": {},
+        "PublishedDate": "2025-06-30",
         "StartTime": "10:00:00",
         "Step": 1,
         "command": "update"
@@ -76,38 +68,17 @@
       "id": "725947a5-89a6-47d6-aa08-c46a0c96a62c",
       "labels": [
         "sc:Dataset"
-      ]
-    },
-    {
-      "id": "f0c20b7e-7f6d-4974-93c2-446497f14c1e",
-      "labels": [
-        "cr:FileObject",
-        "CSV"
       ],
       "properties": {
-        "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/725947a5-89a6-47d6-aa08-c46a0c96a62c/zoo-2024.csv",
-        "description": "",
-        "encodingFormat": "text/csv",
-        "name": "zoo-2024.csv",
-        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
-        "type": "cr:FileObject"
+        "archivedAt": "s3://dataset/725947a5-89a6-47d6-aa08-c46a0c96a62c",
+        "status": "ready"
       }
     },
     {
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",

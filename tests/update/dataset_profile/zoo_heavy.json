@@ -40,7 +40,14 @@
       "labels": [
         "distribution"
       ],
-      "to": "f0c20b7e-7f6d-4974-93c2-446497f14c1e"
+      "to": "287a4312-6edc-4fbf-98ee-163c97704121"
+    },
+    {
+      "from": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+      "labels": [
+        "has"
+      ],
+      "to": "287a4312-6edc-4fbf-98ee-163c97704121"
     }
   ],
   "nodes": [
@@ -79,19 +86,21 @@
       ]
     },
     {
-      "id": "f0c20b7e-7f6d-4974-93c2-446497f14c1e",
+      "id": "287a4312-6edc-4fbf-98ee-163c97704121",
       "labels": [
-        "cr:FileObject",
-        "CSV"
+        "FileObject"
+      ]
+    },
+    {
+      "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+      "labels": [
+        "RecordSet"
       ],
       "properties": {
-        "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/725947a5-89a6-47d6-aa08-c46a0c96a62c/zoo-2024.csv",
         "description": "",
-        "encodingFormat": "text/csv",
-        "name": "zoo-2024.csv",
-        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
-        "type": "cr:FileObject"
+        "examples": "{\"id\": [115301479], \"latitude\": [45.942], \"longitude\": [7.8691], \"elevation\": [4520.19]}",
+        "name": "coordinates_of_highest_point",
+        "type": "cr:RecordSet"
       }
     },
     {

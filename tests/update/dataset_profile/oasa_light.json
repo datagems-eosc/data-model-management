@@ -40,7 +40,7 @@
       "labels": [
         "distribution"
       ],
-      "to": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf"
+      "to": "f0c20b7e-7f6d-4974-93c2-446497f14c1e"
     }
   ],
   "nodes": [
@@ -78,9 +78,9 @@
       ]
     },
     {
-      "id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+      "id": "f0c20b7e-7f6d-4974-93c2-446497f14c1e",
       "labels": [
-        "cr:FileObject",
+        "FileObject",
         "CSV"
       ],
       "properties": {
