@@ -12,7 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "767c4c36-e43b-4251-8ff3-4b5023e73f17"
+      "to": "01f5e38f-0160-4165-95c2-7a912dd2d3c7"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -65,13 +65,12 @@
       }
     },
     {
-      "id": "767c4c36-e43b-4251-8ff3-4b5023e73f17",
+      "id": "01f5e38f-0160-4165-95c2-7a912dd2d3c7",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/767c4c36-e43b-4251-8ff3-4b5023e73f17",
+        "archivedAt": "s3://scratchpad/01f5e38f-0160-4165-95c2-7a912dd2d3c7",
         "citeAs": "",
         "conformsTo": "",
         "country": "PT",
@@ -91,6 +90,7 @@
         "license": "Public Domain",
         "name": "OASA Data",
         "status": "staged",
+        "type": "sc:Dataset",
         "url": "",
         "version": ""
       }

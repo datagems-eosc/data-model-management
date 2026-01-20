@@ -12,7 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "fa512835-7ec9-41cc-87db-a94b99e8b97a"
+      "to": "01f5e38f-0160-4165-95c2-7a912dd2d3c7"
     },
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
@@ -36,7 +36,7 @@
       "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
     },
     {
-      "from": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "from": "01f5e38f-0160-4165-95c2-7a912dd2d3c7",
       "labels": [
         "distribution"
       ],
@@ -72,7 +72,7 @@
       }
     },
     {
-      "id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
+      "id": "01f5e38f-0160-4165-95c2-7a912dd2d3c7",
       "labels": [
         "sc:Dataset"
       ]
@@ -84,13 +84,13 @@
         "CSV"
       ],
       "properties": {
-        "@type": "cr:FileObject",
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/fa512835-7ec9-41cc-87db-a94b99e8b97a/weather_data_fr.csv",
+        "contentUrl": "s3://dataset/01f5e38f-0160-4165-95c2-7a912dd2d3c7/weather_data_fr.csv",
         "description": "",
         "encodingFormat": "text/csv",
         "name": "weather_data_fr.csv",
-        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad"
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
+        "type": "cr:FileObject"
       }
     },
     {
