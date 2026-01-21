@@ -424,10 +424,6 @@ def compare_node_properties(
     has_changes = False
 
     for key, value in ap_props.items():
-        # Skip internal fields that shouldn't be compared
-        if key.startswith("@"):
-            continue
-
         moma_value = moma_props.get(key)
 
         # Property is new or different
@@ -436,3 +432,44 @@ def compare_node_properties(
             has_changes = True
 
     return has_changes, updated_properties
+
+
+def group_datasets_by_components(
+    nodes: List[Dict[str, Any]], edges: List[Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """
+    Group nodes and edges into connected components (datasets).
+    Each component represents one dataset with its related nodes and edges.
+    """
+    # Create a graph
+    G = nx.Graph()
+
+    # Add all nodes
+    for node in nodes:
+        G.add_node(node["id"])
+
+    # Add all edges
+    for edge in edges:
+        G.add_edge(edge["from"], edge["to"])
+
+    # Find connected components
+    components = list(nx.connected_components(G))
+
+    # Create a node lookup dictionary for quick access
+    node_dict = {node["id"]: node for node in nodes}
+
+    # Build the result
+    result = []
+    for component in components:
+        component_nodes = [node_dict[node_id] for node_id in component]
+
+        # Filter edges that belong to this component
+        component_edges = [
+            edge
+            for edge in edges
+            if edge["from"] in component and edge["to"] in component
+        ]
+
+        result.append({"nodes": component_nodes, "edges": component_edges})
+
+    return result

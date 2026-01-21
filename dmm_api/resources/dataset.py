@@ -19,6 +19,7 @@ from ..tools.AP.parse_AP import (
     extract_query_from_AP,
     extract_datasets_from_AP,
     APRequest,
+    group_datasets_by_components,
 )
 from ..tools.AP.update_AP import (
     update_AP_after_query,
@@ -368,17 +369,19 @@ async def search_datasets(
             metadata = data.get("metadata")
 
             if isinstance(metadata, dict):
-                datasets = metadata.get("nodes", [])
-                edges = metadata.get("edges", [])
+                all_nodes = metadata.get("nodes", [])
+                all_edges = metadata.get("edges", [])
             else:
-                datasets = []
-                edges = []
+                all_nodes = []
+                all_edges = []
+
+            # Group datasets by connected components
+            datasets = group_datasets_by_components(all_nodes, all_edges)
 
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message="Datasets retrieved successfully",
                 datasets=datasets,
-                edges=edges,
             )
         except httpx.HTTPStatusError as e:
             raise HTTPException(
