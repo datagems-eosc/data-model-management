@@ -23,7 +23,6 @@ from ..tools.AP.parse_AP import (
 )
 from ..tools.AP.update_AP import (
     update_AP_after_query,
-    update_dataset_id,
     update_dataset_archivedAt,
     update_output_dataset_id,
 )
@@ -437,30 +436,43 @@ async def get_dataset(dataset_id: str):
 
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
 async def register_dataset(ap_payload: APRequest):
-    """Register a new dataset in Neo4j"""
-    ingest_url = f"{MOMA_URL}/ingestProfile2MoMa"
+    """
+    Register a new dataset in Neo4j by:
+    1. Extracting Dataset/FileObject/RecordSet nodes from AP
+    2. Checking if they already exist with 'staged' status
+    3. Creating new nodes and edges using addMoMaNodes
+    """
+
     try:
-        datasets_list, old_dataset_ids = extract_datasets_from_AP(
-            ap_payload,
-            expected_ap_process="register",
-            expected_operator_command="create",
+        # Extract only Dataset nodes
+        filtered_nodes, filtered_edges = extract_from_AP(
+            ap_payload, target_labels={"sc:Dataset"}, include_partial_matches=False
         )
-        if len(datasets_list) != 1:
+
+        if not filtered_nodes:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
-                    error="Register AP must contain exactly one dataset node.",
+                    error="No Dataset node found in AP",
                 ).model_dump(),
             )
-        dataset = datasets_list[0]
-        dataset_id = dataset.get("@id")
-        old_dataset_id = old_dataset_ids[0]
+
+        if len(filtered_nodes) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="Register AP must contain exactly one Dataset node.",
+                ).model_dump(),
+            )
+
+        dataset_node = filtered_nodes[0]
+        dataset_id = dataset_node.get("id")
 
         # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
         # at the specified S3 path before registering the dataset. This should check that the path
         # is valid and the file is accessible to prevent registering datasets with missing files.
-        # Similar validation exists in the load endpoint but should also happen here for consistency.
 
     except HTTPException:
         raise
@@ -473,39 +485,50 @@ async def register_dataset(ap_payload: APRequest):
             ).model_dump(),
         )
 
-    if dataset_id != old_dataset_id:
-        try:
-            update_dataset_id(ap_payload, old_dataset_id, dataset_id)
-        except Exception as e:
-            print(f"Warning: Failed to update the Dataset ID: {e}")
-
     async with httpx.AsyncClient() as client:
         try:
             # Check if dataset already exists with 'staged' status
-            exists, _ = await get_dataset_metadata(
-                dataset_id,
-                dataset_status=DatasetState.Staged.value.lower(),
-                client=client,
-            )
+            node_ids = [node["id"] for node in filtered_nodes]
 
-            if exists:
-                raise HTTPException(
-                    status_code=status.HTTP_409_CONFLICT,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_409_CONFLICT,
-                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                    ).model_dump(),
-                )
+            url = f"{MOMA_URL}/getDatasets"
+            params = {"nodeIds": node_ids}
 
-            # Ensure the dataset payload has status set to 'staged' before ingestion
-            current_status = dataset.get("status")
-            staged_status = DatasetState.Staged.value.lower()
-            if not current_status or str(current_status).lower() != staged_status:
-                dataset["status"] = staged_status
-
-            # If the dataset was not found, we proceed to register.
-            response = await client.post(ingest_url, json=dataset)
+            response = await client.get(url, params=params)
             response.raise_for_status()
+            data = response.json()
+            metadata = data.get("metadata", {})
+            existing_nodes = metadata.get("nodes", [])
+
+            # Check if any existing node is the dataset with 'staged' status
+            for existing_node in existing_nodes:
+                if existing_node.get("id") == dataset_id:
+                    node_status = (
+                        existing_node.get("properties", {}).get("status", "").lower()
+                    )
+                    if node_status == DatasetState.Staged.value.lower():
+                        raise HTTPException(
+                            status_code=status.HTTP_409_CONFLICT,
+                            detail=ErrorEnvelope(
+                                code=status.HTTP_409_CONFLICT,
+                                error=f"Dataset with ID {dataset_id} already exists in Neo4j with staged status",
+                            ).model_dump(),
+                        )
+
+            # Set status to 'staged' for the dataset node
+            staged_status = DatasetState.Staged.value.lower()
+            if "properties" not in dataset_node:
+                dataset_node["properties"] = {}
+            dataset_node["properties"]["status"] = staged_status
+
+            # Create the dataset node using addMoMaNodes
+            add_nodes_url = f"{MOMA_URL}/addMoMaNodes"
+            nodes_payload = {"nodes": filtered_nodes}
+            response = await client.post(add_nodes_url, json=nodes_payload)
+            response.raise_for_status()
+
+            result = response.json()
+            if result.get("status") != "success":
+                raise Exception(result.get("message", "Unknown error"))
 
             # Fake forward to AP Storage API
             try:
@@ -526,10 +549,9 @@ async def register_dataset(ap_payload: APRequest):
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Error from MoMa API on ingestion (Status: {e.response.status_code})",
+                    error=f"Error from MoMa API (Status: {e.response.status_code})",
                 ).model_dump(),
             )
-
         except httpx.RequestError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -538,13 +560,12 @@ async def register_dataset(ap_payload: APRequest):
                     error="Failed to connect to MoMa API",
                 ).model_dump(),
             )
-
-        except Exception:
+        except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error="Unexpected Internal Server error",
+                    error=f"Unexpected error: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
 
