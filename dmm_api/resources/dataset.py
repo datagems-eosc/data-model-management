@@ -49,7 +49,6 @@ class DatasetsSuccessEnvelope(BaseModel):
     code: int
     message: str
     datasets: List[Dict[str, Any]]
-    edges: List[Dict[str, Any]] = []
 
 
 class ErrorEnvelope(BaseModel):
