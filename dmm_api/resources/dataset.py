@@ -48,6 +48,7 @@ class DatasetsSuccessEnvelope(BaseModel):
     code: int
     message: str
     datasets: List[Dict[str, Any]]
+    edges: List[Dict[str, Any]] = []
 
 
 class ErrorEnvelope(BaseModel):
@@ -306,7 +307,6 @@ async def dataset_home():
     }
 
 
-# TODO: remove metadata from the response
 @router.get("/dataset/search", response_model=DatasetsSuccessEnvelope)
 async def search_datasets(
     nodeIds: Optional[List[str]] = Query(
@@ -343,7 +343,6 @@ async def search_datasets(
     ),
 ):
     url = f"{MOMA_URL}/getDatasets"
-
     params = {}
     if nodeIds:
         params["nodeIds"] = nodeIds
@@ -353,13 +352,11 @@ async def search_datasets(
         params["types"] = [t.value for t in types]
     if orderBy:
         params["orderBy"] = [o.value for o in orderBy]
-
     if publishedDateFrom:
         params["publishedDateFrom"] = publishedDateFrom.strftime("%Y-%m-%d")
     if publishedDateTo:
         params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
     params["direction"] = direction
-
     if dataset_status is not None:
         params["status"] = dataset_status
 
@@ -368,19 +365,21 @@ async def search_datasets(
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-
             metadata = data.get("metadata")
+
             if isinstance(metadata, dict):
                 datasets = metadata.get("nodes", [])
+                edges = metadata.get("edges", [])
             else:
                 datasets = []
+                edges = []
 
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message="Datasets retrieved successfully",
                 datasets=datasets,
+                edges=edges,
             )
-
         except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
@@ -389,7 +388,6 @@ async def search_datasets(
                     error=f"Error from MoMa API: {e}",
                 ).model_dump(),
             )
-
         except httpx.RequestError:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -762,7 +760,7 @@ async def update_dataset(ap_payload: APRequest):
     """
     Update datasets in Neo4j by:
     1. Extracting Dataset/FileObject/RecordSet nodes from AP
-    2. Checking if they exist in MoMa (single batch request)
+    2. Checking if they exist in MoMa
     3. Creating new nodes/edges or updating existing ones
     """
 
