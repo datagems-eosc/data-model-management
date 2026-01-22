@@ -8,24 +8,24 @@
       "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
-      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "from": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
       "labels": [
         "input"
       ],
       "properties": {
         "argname": "arg1"
       },
-      "to": "aca33450-d1b4-4721-af00-7f1a73d5e34f"
+      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
-      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+      "from": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
       "labels": [
         "input"
       ],
       "properties": {
         "argname": "arg2"
       },
-      "to": "c5a06fbd-887f-4562-8121-55dfe5a658c7"
+      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
       "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
