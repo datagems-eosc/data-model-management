@@ -12,14 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "b18b64f1-d32c-4271-be19-b7a346372e9c"
-    },
-    {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "intervene"
-      ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
+      "to": "b4617761-4524-443d-b421-e126963e8a71"
     },
     {
       "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
@@ -65,13 +58,12 @@
       }
     },
     {
-      "id": "b18b64f1-d32c-4271-be19-b7a346372e9c",
+      "id": "b4617761-4524-443d-b421-e126963e8a71",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "@type": "sc:Dataset",
-        "archivedAt": "s3://scratchpad/b18b64f1-d32c-4271-be19-b7a346372e9c",
+        "archivedAt": "s3://scratchpad/b4617761-4524-443d-b421-e126963e8a71",
         "citeAs": "",
         "conformsTo": "",
         "country": "CH",
@@ -92,6 +84,7 @@
         "license": "Public Domain",
         "name": "zoo_tierarten_2024",
         "status": "ready",
+        "type": "sc:Dataset",
         "url": "",
         "version": ""
       }

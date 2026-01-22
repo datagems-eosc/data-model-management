@@ -22,13 +22,6 @@
       "to": "a3f9b6c1-8d2e-4780-9f4a-5c6b7a8d9e0f"
     },
     {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "intervene"
-      ],
-      "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
-    },
-    {
       "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
       "labels": [
         "is_achieved"

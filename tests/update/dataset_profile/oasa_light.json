@@ -12,14 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "01f5e38f-0160-4165-95c2-7a912dd2d3c7"
-    },
-    {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "intervene"
-      ],
-      "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
+      "to": "0eef57a0-62ce-4cc7-99a3-febd8dc59b6a"
     },
     {
       "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
@@ -36,11 +29,11 @@
       "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
     },
     {
-      "from": "01f5e38f-0160-4165-95c2-7a912dd2d3c7",
+      "from": "0eef57a0-62ce-4cc7-99a3-febd8dc59b6a",
       "labels": [
         "distribution"
       ],
-      "to": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf"
+      "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2"
     }
   ],
   "nodes": [
@@ -72,20 +65,21 @@
       }
     },
     {
-      "id": "01f5e38f-0160-4165-95c2-7a912dd2d3c7",
+      "id": "0eef57a0-62ce-4cc7-99a3-febd8dc59b6a",
       "labels": [
         "sc:Dataset"
       ]
     },
     {
-      "id": "ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
+      "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
       "labels": [
-        "cr:FileObject",
-        "CSV"
+        "CSV",
+        "DataPart",
+        "cr:FileObject"
       ],
       "properties": {
         "contentSize": "2407043 B",
-        "contentUrl": "s3://dataset/01f5e38f-0160-4165-95c2-7a912dd2d3c7/weather_data_fr.csv",
+        "contentUrl": "s3://dataset/0eef57a0-62ce-4cc7-99a3-febd8dc59b6a/weather_data_fr.csv",
         "description": "",
         "encodingFormat": "text/csv",
         "name": "weather_data_fr.csv",

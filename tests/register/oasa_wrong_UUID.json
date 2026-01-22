@@ -15,13 +15,6 @@
       "to": "9c56-4360-631888242947"
     },
     {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "intervene"
-      ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
-    },
-    {
       "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
       "labels": [
         "is_accomplished"
@@ -70,7 +63,6 @@
         "sc:Dataset"
       ],
       "properties": {
-        "@type": "sc:Dataset",
         "archivedAt": "s3://scratchpad/9c56-4360-631888242947",
         "citeAs": "",
         "conformsTo": "",
@@ -91,6 +83,7 @@
         "license": "Public Domain",
         "name": "OASA Data",
         "status": "staged",
+        "type": "sc:Dataset",
         "url": "",
         "version": ""
       }

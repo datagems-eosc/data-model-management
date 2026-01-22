@@ -12,14 +12,7 @@
       "labels": [
         "input"
       ],
-      "to": "b18b64f1-d32c-4271-be19-b7a346372e9c"
-    },
-    {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "intervene"
-      ],
-      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+      "to": "b4617761-4524-443d-b421-e126963e8a71"
     },
     {
       "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
@@ -65,12 +58,12 @@
       }
     },
     {
-      "id": "b18b64f1-d32c-4271-be19-b7a346372e9c",
+      "id": "b4617761-4524-443d-b421-e126963e8a71",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/b18b64f1-d32c-4271-be19-b7a346372e9c",
+        "archivedAt": "s3://scratchpad/b4617761-4524-443d-b421-e126963e8a71",
         "status": "staged"
       }
     },
