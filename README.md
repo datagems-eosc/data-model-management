@@ -411,11 +411,11 @@ This updates the dataset properties and creates file object distributions. The A
 ```
 
 
-### 5) Get one or all (ready) Datasets
+### 5) Get one or all Datasets
 
 Retrieve one or all ready datasets.
 
-#### GET one or all (ready) datasets
+#### GET one or all datasets
 ```bash
 curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
 
