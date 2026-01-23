@@ -76,17 +76,17 @@ Before registering a dataset, the files should be already present on s3. This me
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
   -F "file=@data/oasa/oasa_daily_ridership_1.csv" \
   -F "file_name=oasa.csv" \
-  -F "dataset_id=00000000-9c56-4360-aace-631888242947"
+  -F "dataset_id=056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
 ```
 The API returns:
 ```json
 {
   "code": 201,
-  "message": "Dataset oasa.csv uploaded successfully with ID 475e6aa3-9c56-4360-aace-631888242947 at /s3/scratchpad 475e6aa3-9c56-4360-aace-631888242947",
+  "message": "Dataset oasa.csv uploaded successfully with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa at /s3/scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
   "dataset": {
-    "id": "475e6aa3-9c56-4360-aace-631888242947",
+    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
     "name": "oasa.csv",
-    "archivedAt": "/s3/scratchpad/475e6aa3-9c56-4360-aace-631888242947"
+    "archivedAt": "/s3/scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
   }
 }
 ```
@@ -108,99 +108,88 @@ curl -X POST -H "Content-Type: application/json" --data @../tests/register/oasa.
 This registers a new dataset using the JSON payload. The API returns:
 ```json
 {
-   "code":201,
-   "message":"Dataset with ID 475e6aa3-9c56-4360-aace-631888242947 registered successfully in Neo4j",
-   "ap":{
-      "nodes":[
-         {
-            "id":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-            "labels":[
-               "Analytical_Pattern"
-            ],
-            "properties":{
-               "Description":"Analytical Pattern to register a dataset",
-               ...
+    "code": 201,
+    "message": "Dataset with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa registered successfully in Neo4j",
+    "ap": {
+        "nodes": [
+            {
+                "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    "Description": "Analytical Pattern to register a dataset",
+                    ...
+                }
+            },
+            {
+                "id": "69ce4693-e71e-4616-9320-037c90a88858",
+                "labels": [
+                    "DataModelManagement_Operator"
+                ],
+                "properties": {
+                    "Description": "An operator to register a dataset into DataGEMS",
+                    ...
+                }
+            },
+            {
+                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {
+                    "archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    ...
+                }
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "Description": "Task to register a dataset",
+                    ...
+                }
             }
-         },
-         {
-            "id":"69ce4693-e71e-4616-9320-037c90a88858",
-            "labels":[
-               "DataModelManagement_Operator"
-            ],
-            "properties":{
-               "Description":"An operator to register a dataset into DataGEMS",
-               ...
+        ],
+        "edges": [
+            {
+                "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                "to": "69ce4693-e71e-4616-9320-037c90a88858",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "to": "69ce4693-e71e-4616-9320-037c90a88858",
+                "labels": [
+                    "input"
+                ]
+            },
+            {
+                "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                "labels": [
+                    "is_accomplished"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                "labels": [
+                    "request"
+                ]
             }
-         },
-         {
-            "id":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "@type": "sc:Dataset",
-               "archivedAt": "s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947"
-            }
-         },
-         {
-            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "labels":[
-               "User"
-            ],
-            "properties":{
-               "City":"Verona",
-               ...
-            }
-         },
-         {
-            "id":"dca293c0-e20c-47de-be58-acad8b8c423c",
-            "labels":[
-               "Task"
-            ],
-            "properties":{
-               "Description":"Task to register a dataset",
-               ...
-            }
-         }
-      ],
-      "edges":[
-         {
-            "from":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-            "to":"69ce4693-e71e-4616-9320-037c90a88858",
-            "labels":[
-               "consist_of"
-            ]
-         },
-         {
-            "from":"69ce4693-e71e-4616-9320-037c90a88858",
-            "to":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"69ce4693-e71e-4616-9320-037c90a88858",
-            "labels":[
-               "intervene"
-            ]
-         },
-         {
-            "from":"dca293c0-e20c-47de-be58-acad8b8c423c",
-            "to":"4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-            "labels":[
-               "is_accomplished"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"dca293c0-e20c-47de-be58-acad8b8c423c",
-            "labels":[
-               "request"
-            ]
-         }
-      ]
-   }
+        ]
+    }
 }
 ```
 
@@ -222,99 +211,88 @@ curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
 ```json
 {
-   "code":200,
-   "message":"Dataset moved from s3://scratchpad/475e6aa3-9c56-4360-aace-631888242947 to s3://dataset/475e6aa3-9c56-4360-aace-631888242947",
-   "ap":{
-      "nodes":[
-         {
-            "id":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
-            "labels":[
-               "Analytical_Pattern"
-            ],
-            "properties":{
-               "Description":"Analytical Pattern to load a dataset",
-               ...
+    "code": 200,
+    "message": "Dataset moved from s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa to s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+    "ap": {
+        "nodes": [
+            {
+                "id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    "Description": "Analytical Pattern to load a dataset",
+                    ...
+                }
+            },
+            {
+                "id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+                "labels": [
+                    "DataModelManagement_Operator"
+                ],
+                "properties": {
+                    "Description": "An operator to load a dataset into s3/dataset",
+                    ...
+                }
+            },
+            {
+                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {
+                    "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "status": "staged"
+                }
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "Description": "Task to change storage location of a dataset",
+                    ...
+                }
             }
-         },
-         {
-            "id":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
-            "labels":[
-               "DataModelManagement_Operator"
-            ],
-            "properties":{
-               "Description":"An operator to load a dataset into s3/dataset",
-               ...
+        ],
+        "edges": [
+            {
+                "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+                "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+                "labels": [
+                    "input"
+                ]
+            },
+            {
+                "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+                "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+                "labels": [
+                    "is_accomplished"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+                "labels": [
+                    "request"
+                ]
             }
-         },
-         {
-            "id":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "@type":"sc:Dataset",
-               ...
-            }
-         },
-         {
-            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "labels":[
-               "User"
-            ],
-            "properties":{
-               "City":"Verona",
-               ...
-            }
-         },
-         {
-            "id":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
-            "labels":[
-               "Task"
-            ],
-            "properties":{
-               "Description":"Task to change storage location of a dataset",
-               "Name":"Dataset Loading Task"
-            }
-         }
-      ],
-      "edges":[
-         {
-            "from":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
-            "to":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
-            "labels":[
-               "consist_of"
-            ]
-         },
-         {
-            "from":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
-            "to":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
-            "labels":[
-               "intervene"
-            ]
-         },
-         {
-            "from":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
-            "to":"c401292a-4c7a-4e7c-9856-682f626ee1ef",
-            "labels":[
-               "is_accomplished"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"a75097be-cd64-4942-bd2d-b2b6b399f7cd",
-            "labels":[
-               "request"
-            ]
-         }
-      ]
-   }
+        ]
+    }
 }
 ```
 
@@ -333,116 +311,102 @@ curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_
 This updates the dataset properties and creates file object distributions. The API returns:
 ```json
 {
-   "code":200,
-   "message":"Dataset with ID 475e6aa3-9c56-4360-aace-631888242947 updated successfully in Neo4j",
-   "ap":{
-      "nodes":[
-         {
-            "id":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
-            "labels":[
-               "Analytical_Pattern"
-            ],
-            "properties":{
-               "Description":"Analytical Pattern to update a dataset",
-               ...
+    "code": 200,
+    "message": "Dataset update completed: 1 node(s) created, 1 edge(s) created",
+    "ap": {
+        "nodes": [
+            {
+                "id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    "Description": "Analytical Pattern to update a dataset",
+                    ...
+                }
+            },
+            {
+                "id": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "DataModelManagement_Operator"
+                ],
+                "properties": {
+                    "Description": "An operator to update a dataset into DataGEMS",
+                    ...
+                }
+            },
+            {
+                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "labels": [
+                    "sc:Dataset"
+                ]
+            },
+            {
+                "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "labels": [
+                    "CSV",
+                    "cr:FileObject"
+                ],
+                "properties": {
+                    "contentSize": "2407043 B",
+                    ...
+                }
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "Description": "Task to update a dataset",
+                    ...
+                }
             }
-         },
-         {
-            "id":"24a62ae9-41a9-472d-9a8a-438f35937980",
-            "labels":[
-               "DataModelManagement_Operator"
-            ],
-            "properties":{
-               "Description":"An operator to update a dataset into DataGEMS",
-               ...
+        ],
+        "edges": [
+            {
+                "from": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "input"
+                ]
+            },
+            {
+                "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "labels": [
+                    "is_achieved"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "labels": [
+                    "request"
+                ]
+            },
+            {
+                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "labels": [
+                    "distribution"
+                ]
             }
-         },
-         {
-            "id":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "@type":"sc:Dataset",
-               ...
-            }
-         },
-         {
-            "id":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
-            "labels":[
-               "cr:FileObject"
-            ],
-            "properties":{
-               "@type":"cr:FileObject",
-               ...
-            }
-         },
-         {
-            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "labels":[
-               "User"
-            ],
-            "properties":{
-               "City":"Verona",
-               ...
-            }
-         },
-         {
-            "id":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
-            "labels":[
-               "Task"
-            ],
-            "properties":{
-               "Description":"Task to update a dataset",
-               ...
-            }
-         }
-      ],
-      "edges":[
-         {
-            "from":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
-            "to":"24a62ae9-41a9-472d-9a8a-438f35937980",
-            "labels":[
-               "consist_of"
-            ]
-         },
-         {
-            "from":"24a62ae9-41a9-472d-9a8a-438f35937980",
-            "to":"475e6aa3-9c56-4360-aace-631888242947",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"24a62ae9-41a9-472d-9a8a-438f35937980",
-            "labels":[
-               "intervene"
-            ]
-         },
-         {
-            "from":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
-            "to":"a8bbe300-c7f2-429c-83fd-ecafda705c90",
-            "labels":[
-               "is_achieved"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
-            "labels":[
-               "request"
-            ]
-         },
-         {
-            "from":"475e6aa3-9c56-4360-aace-631888242947",
-            "to":"ecb28ef4-9b68-4133-8d8b-12cf9f2917cf",
-            "labels":[
-               "distribution"
-            ]
-         }
-      ]
-   }
+        ]
+    }
 }
 ```
 
@@ -453,9 +417,9 @@ Retrieve one or all ready datasets.
 
 #### GET one or all (ready) datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
 
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/056ff7ea-ac5a-4496-abc5-ad254ddf58fa" | python -m json.tool
 ```
 
 The API returns:
@@ -465,75 +429,143 @@ The API returns:
     "message": "Datasets retrieved successfully",
     "datasets": [
         {
-            "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
-            "labels": [
-                "Dataset"
+            "nodes": [
+                {
+                    "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                    "labels": [
+                        "cr:FileObject",
+                        "CSV"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
+                        ...
+                    }
+                },
+                {
+                    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "country": "PT",
+                        ...
+                    }
+                }
             ],
-            "properties": {
-                "headline": "Meteorological data time series by ECWMF",
-                "fieldOfScience": [
-                    "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
-                ],
-                "name": "Era5land",
-                "conformsTo": "",
-                "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
-                "datePublished": "24-05-2025",
-                "license": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
-                "keywords": [
-                    "weather",
-                    "weather prediction"
-                ],
-                "description": "A global atmospheric reanalysis dataset produced by the European Centre for Medium\u2010Range Weather Forecast\u2019s (ECMWF) and has data available from 1950, providing a consistent view of the evolution of land variables. It has an enhanced resolution of 0.1\u00b0 x 0.1\u00b0, while the temporal frequency of the model output is hourly.",
-                "inLanguage": [
-                    "el"
-                ],
-                "version": "",
-                "archivedAt": "",
-                "country": "GR",
-                "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
-                "status": "ready"
-            }
+            "edges": [
+                {
+                    "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "properties": {}
+                }
+            ]
+        },
+        {
+            "nodes": [
+                {
+                    "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                    "labels": [
+                        "cr:FileObject",
+                        "CSV"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
+                        ...
+                    }
+                },
+                {
+                    "id": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "country": "CH",
+                        ...
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "properties": {}
+                }
+            ]
         }
     ]
 }
 
 {
     "code": 200,
-    "message": "Dataset with ID cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201 retrieved successfully from Neo4j",
+    "message": "Dataset with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa retrieved successfully from Neo4j",
     "dataset": {
         "nodes": [
             {
-                "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
+                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
                 "labels": [
-                    "Dataset"
+                    "sc:Dataset"
                 ],
                 "properties": {
-                    "headline": "Meteorological data time series by ECWMF",
-                    "fieldOfScience": [
-                        "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
-                    ],
-                    "name": "Era5land",
-                    "conformsTo": "",
-                    "url": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
-                    "datePublished": "24-05-2025",
-                    "license": "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-land?tab=download",
+                    "country": "PT",
+                    "citeAs": "",
                     "keywords": [
-                        "weather",
-                        "weather prediction"
+                        "dev",
+                        "keyword"
                     ],
-                    "description": "A global atmospheric reanalysis dataset produced by the European Centre for Medium\u2010Range Weather Forecast\u2019s (ECMWF) and has data available from 1950, providing a consistent view of the evolution of land variables. It has an enhanced resolution of 0.1\u00b0 x 0.1\u00b0, while the temporal frequency of the model output is hourly.",
                     "inLanguage": [
                         "el"
                     ],
+                    "description": "Subway data",
+                    "type": "sc:Dataset",
                     "version": "",
-                    "archivedAt": "",
-                    "country": "GR",
-                    "id": "cd3a2f580e24ccd002b70696b5c9e4ca39042cf4b584a7d854a67fa7e055b201",
-                    "status": "ready"
+                    "url": "",
+                    "datePublished": "24-05-2025",
+                    "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "license": "Public Domain",
+                    "fieldOfScience": [
+                        "CIVIL ENGINEERING"
+                    ],
+                    "name": "OASA Data",
+                    "conformsTo": "",
+                    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "headline": "Subway data.",
+                    "status": "loaded"
+                }
+            },
+            {
+                "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "labels": [
+                    "cr:FileObject",
+                    "CSV"
+                ],
+                "properties": {
+                    "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
+                    "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
+                    "contentSize": "2407043 B",
+                    "name": "weather_data_fr.csv",
+                    "encodingFormat": "text/csv",
+                    "description": "",
+                    "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                    "type": "cr:FileObject"
                 }
             }
         ],
-        "edges": []
+        "edges": [
+            {
+                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "labels": [
+                    "distribution"
+                ],
+                "properties": {}
+            }
+        ]
     }
 }
 ```
@@ -553,10 +585,9 @@ Parameters:
 - direction (int): 1 = ascending (default), -1 = descending.
 - publishedDateFrom (date YYYY-MM-DD): Minimum datePublished.
 - publishedDateTo (date YYYY-MM-DD): Maximum datePublished.
-- dataset_status (string): Dataset status filter (default: "ready").
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset?dataset_status=loaded" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt" | python -m json.tool
 ```
 
 The API returns:
@@ -566,34 +597,32 @@ The API returns:
     "message": "Datasets retrieved successfully",
     "datasets": [
         {
-            "id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
-            "labels": [
-                "Dataset"
+            "nodes": [
+                {
+                    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
+                    }
+                }
             ],
-            "properties": {
-                "name": "OASA Data",
-                "headline": "Subway data.",
-                "license": "Public Domain",
-                "fieldOfScience": [
-                    "CIVIL ENGINEERING"
-                ],
-                "conformsTo": "",
-                "version": "",
-                "url": "",
-                "datePublished": "24-05-2025",
-                "keywords": [
-                    "dev",
-                    "keyword"
-                ],
-                "description": "Subway data",
-                "inLanguage": [
-                    "el"
-                ],
-                "id": "fa512835-7ec9-41cc-87db-a94b99e8b97a",
-                "archivedAt": "s3://scratchpad/fa512835-7ec9-41cc-87db-a94b99e8b97a",
-                "country": "PT",
-                "status": "loaded"
-            }
+            "edges": []
+        },
+        {
+            "nodes": [
+                {
+                    "id": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+                    }
+                }
+            ],
+            "edges": []
         }
     ]
 }
@@ -650,7 +679,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "sc:Dataset"
             ],
             "properties":{
-               "@type":"sc:Dataset",
+               "type":"sc:Dataset",
                "archivedAt":"s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace",
                ...
             }
@@ -661,7 +690,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "sc:Dataset"
             ],
             "properties":{
-               "@type":"sc:Dataset",
+               "type":"sc:Dataset",
                "archivedAt":"s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768",
                ...
             }
@@ -672,7 +701,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "sc:Dataset"
             ],
             "properties":{
-               "@type":"sc:Dataset",
+               "type":"sc:Dataset",
                "archivedAt":"s3://data-model-management/results/2c830b06-a1da-48ca-a982-15062002797c",
                "description":"Temporary dataset created after a query",
                ...
@@ -685,7 +714,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "CSV"
             ],
             "properties":{
-               "@type":"cr:FileObject",
+               "type":"cr:FileObject",
                ...
          },
          {
@@ -695,7 +724,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "CSV"
             ],
             "properties":{
-               "@type":"cr:FileObject",
+               "type":"cr:FileObject",
                ...
             }
          },
@@ -726,7 +755,7 @@ This query two dataset properties and creates a new dataset from the output. The
                "CSV"
             ],
             "properties":{
-               "@type":"cr:FileObject",
+               "type":"cr:FileObject",
                ...
             }
          }
