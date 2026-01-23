@@ -8,7 +8,7 @@
       "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
     },
     {
-      "from": "0eef57a0-62ce-4cc7-99a3-febd8dc59b6a",
+      "from": "5204aaf2-99c8-4083-b2e6-8dce980fa922",
       "labels": [
         "input"
       ],
@@ -58,12 +58,12 @@
       }
     },
     {
-      "id": "0eef57a0-62ce-4cc7-99a3-febd8dc59b6a",
+      "id": "5204aaf2-99c8-4083-b2e6-8dce980fa922",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/0eef57a0-62ce-4cc7-99a3-febd8dc59b6a",
+        "archivedAt": "s3://scratchpad/5204aaf2-99c8-4083-b2e6-8dce980fa922",
         "status": "staged"
       }
     },

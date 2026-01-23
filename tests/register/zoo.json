@@ -8,7 +8,7 @@
       "to": "69ce4693-e71e-4616-9320-037c90a88858"
     },
     {
-      "from": "b4617761-4524-443d-b421-e126963e8a71",
+      "from": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "input"
       ],
@@ -58,12 +58,12 @@
       }
     },
     {
-      "id": "b4617761-4524-443d-b421-e126963e8a71",
+      "id": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/b4617761-4524-443d-b421-e126963e8a71",
+        "archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
         "citeAs": "",
         "conformsTo": "",
         "country": "CH",

@@ -82,7 +82,6 @@
       "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
       "labels": [
         "CSV",
-        "DataPart",
         "cr:FileObject"
       ],
       "properties": {
@@ -99,7 +98,6 @@
       "id": "f5234567-890a-bcde-f012-3456789abcde",
       "labels": [
         "CSV",
-        "DataPart",
         "cr:FileObject"
       ],
       "properties": {
