@@ -585,9 +585,10 @@ Parameters:
 - direction (int): 1 = ascending (default), -1 = descending.
 - publishedDateFrom (date YYYY-MM-DD): Minimum datePublished.
 - publishedDateTo (date YYYY-MM-DD): Maximum datePublished.
+- status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?dataset_status=loaded" | python -m json.tool
 ```
 
 The API returns:
