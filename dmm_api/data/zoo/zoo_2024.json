@@ -1,0 +1,292 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "access": "dg:access",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dg": "http://datagems.eu/TBD",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "uploadedBy": "dg:uploadedBy",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
+  "@id": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+  "@type": "sc:Dataset",
+  "access": "",
+  "archivedAt": "s3:/8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+  "citeAs": "",
+  "conformsTo": "",
+  "country": "PT",
+  "datePublished": "19-01-2026",
+  "description": "Description of dataset",
+  "distribution": [
+    {
+      "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397",
+      "@type": "cr:FileObject",
+      "contentSize": "11132 B",
+      "contentUrl": "s3:/zoo-2024.csv",
+      "description": "",
+      "encodingFormat": "text/csv",
+      "name": "zoo-2024.csv",
+      "sha256": "b5381d8405da46716af0a301e6c79e84b82cb977a185e7c1f7f377be6486b2fb"
+    }
+  ],
+  "doi": "",
+  "fieldOfScience": [
+    "MATHEMATICS"
+  ],
+  "headline": "Headline",
+  "inLanguage": [
+    "en"
+  ],
+  "keywords": [
+    "animals"
+  ],
+  "license": "CC0 1.0",
+  "name": "ZOO 2024 Dataset",
+  "recordSet": [
+    {
+      "@id": "17015c34-b598-438f-ac37-42ed59297149",
+      "@type": "cr:RecordSet",
+      "examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", \"Amphibien\", \"Amphibien\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\"], \"Art\": [\"Schmuckhornfrosch\", \"Rotaugenlaubfrosch\", \"Schwimmw\\u00c3\\u00bchle\", \"Trauermantelsalmler\", \"Antennenwels\", \"Schwielenwels\", \"Saugmaulwels\", \"Amerikanischer Wei\\u00c3\\u009fstirnmesserfisch\", \"Gr\\u00c3\\u00bcnflossen-Buntbarsch\", \"Saugbarbe\", \"Endlers Guppy\", \"Pfauenaugenbuntbarsch\", \"Augenfleckbuntbarsch\", \"Pfauenaugen-Stechrochen\", \"Hujeta Hechtsalmler\", \"Schmucksalmler\", \"Dickkopf-Scheibensalmler\", \"Roter Neon\", \"Roter Piranha\", \"Prachtkopfsteher\", \"Flaggenbuntbarsch\", \"\\u00c3\\u0084gyptische Landschildkr\\u00c3\\u00b6te\", \"Spornschildkr\\u00c3\\u00b6te\", \"Asiatischer Hausgekko\", \"Oman-Eidechse\", \"Kaiserboa\", \"Salvin Kreuzbrustschildkr\\u00c3\\u00b6te\", \"Waldschildkr\\u00c3\\u00b6te\", \"Stirnlappenbasilisk\", \"Streifenbasilisk\"], \"wissenschaftlicher Name\": [\"Ceratophrys cranwelli\", \"Agalychnis callidryas\", \"Typhlonectes natans\", \"Gymnocorymbus ternetzi\", \"Ancistrus spec.\", \"Leothoplosternum pectorale\", \"Hypostomus spec.\", \"Apteronotus albifrons\", \"Cichlasoma nigrofasciatum\", \"Garra spec.\", \"Poecilia wingei\", \"Astronotus oncellatus\", \"Heros severum\", \"Potamotrygon motoro\", \"Ctenolucius hujeta\", \"Hyphessobrycon rosaceus\", \"Methynis altidorsalis\", \"Paracheirodon axelrodi\", \"Pygocentrus nattereri\", \"Anostomus anostomus\", \"Mesonauta festivus\", \"Testudo kleinmanni\", \"Centrochelys sulcata\", \"Hemidactylus frenatus\", \"Omanosaura jayakari\", \"Boa imperator\", \"Staurotypus salvinii\", \"Chelonoides denticulata\", \"Basiliscus plumifrons\", \"Basiliscus vittatus\"], \"Anzahl\": [\"0\", \"0\", \"0\", \"0\", \"ca 15\", \"0\", \"0\", \"0\", \"ca 10\", \"0\", \"0\", \"0\", \"4\", \"4\", \"0\", \"0\", \"13\", \"21\", \"0\", \"1\", \"3\", \"4\", \"2\", \"15\", \"2\", \"0\", \"0\", \"0\", \"0\", \"0\"], \"Kommune\": [\"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\"]}",
+      "field": [
+        {
+          "@id": "a04cfd63-cc7a-499d-967a-386b8f30118f",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "\u00ef\u00bb\u00bfKategorie",
+          "sample": [
+            "S\u00c3\u00a4ugetiere",
+            "S\u00c3\u00a4ugetiere",
+            "S\u00c3\u00a4ugetiere",
+            "S\u00c3\u00a4ugetiere",
+            "V\u00c3\u00b6gel",
+            "V\u00c3\u00b6gel",
+            "Reptilien",
+            "S\u00c3\u00a4ugetiere",
+            "V\u00c3\u00b6gel",
+            "S\u00c3\u00a4ugetiere"
+          ],
+          "source": {
+            "extract": {
+              "column": "\u00ef\u00bb\u00bfKategorie"
+            },
+            "fileObject": {
+              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+            }
+          },
+          "statistics": {
+            "histogram": null,
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "missingCount": 0,
+            "missingPercentage": 0.0,
+            "row_count": 192,
+            "standardDeviation": null,
+            "uniqueCount": 6
+          }
+        },
+        {
+          "@id": "be707e9e-a5dd-4f3d-95e9-9c6f4f151d44",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Art",
+          "sample": [
+            "Steinhuhn",
+            "Braunhaar-G\u00c3\u00bcrteltier",
+            "S\u00c3\u00bcdamerikanische Riesenheuschrecke",
+            "Pfauenaugen-Stechrochen",
+            "Kinkajou",
+            "Hausmaus",
+            "Wildmeerschweinchen",
+            "Schnee-Eule",
+            "Turteltaube",
+            "Steinkauz"
+          ],
+          "source": {
+            "extract": {
+              "column": "Art"
+            },
+            "fileObject": {
+              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+            }
+          },
+          "statistics": {
+            "histogram": null,
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "missingCount": 0,
+            "missingPercentage": 0.0,
+            "row_count": 192,
+            "standardDeviation": null,
+            "uniqueCount": 192
+          }
+        },
+        {
+          "@id": "7b131827-b1d0-463e-b8bd-ccef64cf7f0c",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "wissenschaftlicher Name",
+          "sample": [
+            "Panthera pardus orientalis",
+            "Panthera leo",
+            "Gymnocorymbus ternetzi",
+            "Peruphasma schultei",
+            "Agalychnis callidryas",
+            "Hemidactylus frenatus",
+            "Dolichotis patagonum",
+            "Dryonastes caerulatus berthemyi",
+            "Hippotragus equinus langheldi",
+            "Anas bernieri"
+          ],
+          "source": {
+            "extract": {
+              "column": "wissenschaftlicher Name"
+            },
+            "fileObject": {
+              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+            }
+          },
+          "statistics": {
+            "histogram": null,
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "missingCount": 0,
+            "missingPercentage": 0.0,
+            "row_count": 192,
+            "standardDeviation": null,
+            "uniqueCount": 190
+          }
+        },
+        {
+          "@id": "347dbb29-4057-4c18-9679-2659873b33b8",
+          "@type": "cr:Field",
+          "dataType": "sc:Integer",
+          "description": "",
+          "name": "Anzahl",
+          "sample": [
+            "5",
+            "4",
+            "2",
+            "4",
+            "0",
+            "2",
+            "4",
+            "1",
+            "4",
+            "4"
+          ],
+          "source": {
+            "extract": {
+              "column": "Anzahl"
+            },
+            "fileObject": {
+              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+            }
+          },
+          "statistics": {
+            "histogram": null,
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "missingCount": 0,
+            "missingPercentage": 0.0,
+            "row_count": 192,
+            "standardDeviation": null,
+            "uniqueCount": 28
+          }
+        },
+        {
+          "@id": "0e8bf1b6-4421-407a-bd44-bbd6ef03a50a",
+          "@type": "cr:Field",
+          "dataType": "sc:Text",
+          "description": "",
+          "name": "Kommune",
+          "sample": [
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund",
+            "Dortmund"
+          ],
+          "source": {
+            "extract": {
+              "column": "Kommune"
+            },
+            "fileObject": {
+              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+            }
+          },
+          "statistics": {
+            "histogram": null,
+            "max": null,
+            "mean": null,
+            "median": null,
+            "min": null,
+            "missingCount": 0,
+            "missingPercentage": 0.0,
+            "row_count": 192,
+            "standardDeviation": null,
+            "uniqueCount": 1
+          }
+        }
+      ],
+      "name": "zoo-2024"
+    }
+  ],
+  "uploadedBy": "ADMIN",
+  "url": "https://real.domain/dataset/zoo_2024",
+  "version": ""
+}
