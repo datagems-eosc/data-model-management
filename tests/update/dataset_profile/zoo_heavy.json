@@ -52,16 +52,16 @@
     {
       "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
       "labels": [
-        "source"
-      ],
-      "to": "f5e66d72-641c-4e63-8f4f-1ac6b7a4c1d1"
-    },
-    {
-      "from": "f5e66d72-641c-4e63-8f4f-1ac6b7a4c1d1",
-      "labels": [
-        "FileObject"
+        "source/fileObject"
       ],
       "to": "287a4312-6edc-4fbf-98ee-163c97704121"
+    },
+    {
+      "from": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+      "labels": [
+        "dg:statistics"
+      ],
+      "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1"
     }
   ],
   "nodes": [
@@ -121,19 +121,42 @@
         "cr:Field"
       ],
       "properties": {
+        "cr:source/cr:extract/cr:fileProperty": "...",
         "dataType": "sc:Text",
         "description": "",
         "name": "\u00ef\u00bb\u00bfKategorie",
+        "sample": [
+          "S\u00c3\u00a4ugetiere",
+          "S\u00c3\u00a4ugetiere",
+          "S\u00c3\u00a4ugetiere",
+          "S\u00c3\u00a4ugetiere",
+          "V\u00c3\u00b6gel",
+          "V\u00c3\u00b6gel",
+          "Reptilien",
+          "S\u00c3\u00a4ugetiere",
+          "V\u00c3\u00b6gel",
+          "S\u00c3\u00a4ugetiere"
+        ],
         "type": "cr:Field"
       }
     },
     {
-      "id": "f5e66d72-641c-4e63-8f4f-1ac6b7a4c1d1",
+      "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
       "labels": [
-        "cr:DataSource"
+        "dg:Statistics"
       ],
       "properties": {
-        "type": "cr:DataSource"
+        "histogram": null,
+        "max": null,
+        "mean": null,
+        "median": null,
+        "min": null,
+        "missingCount": 0,
+        "missingPercentage": 0.0,
+        "row_count": 192,
+        "standardDeviation": null,
+        "type": "dg:Statistics",
+        "uniqueCount": 190
       }
     },
     {
