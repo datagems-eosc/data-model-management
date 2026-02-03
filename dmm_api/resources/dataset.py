@@ -810,6 +810,7 @@ async def update_dataset(ap_payload: APRequest):
     nodes_to_create = []
     nodes_to_update = []
     edges_to_create = []
+    existing_edges: set[tuple[str, str, tuple[str, ...]]] = set()
     existing_nodes_map = {}  # node_id -> moma_node_data
 
     async with httpx.AsyncClient() as client:
@@ -826,12 +827,20 @@ async def update_dataset(ap_payload: APRequest):
             data = response.json()
             metadata = data.get("metadata", {})
             existing_nodes = metadata.get("nodes", [])
+            existing_edges_list = metadata.get("edges", [])
 
             # Build map of existing nodes by ID
             for moma_node in existing_nodes:
                 node_id = moma_node.get("id")
                 if node_id:
                     existing_nodes_map[node_id] = moma_node
+
+            for moma_edge in existing_edges_list:
+                edge_from = moma_edge.get("from")
+                edge_to = moma_edge.get("to")
+                edge_labels = moma_edge.get("labels", []) or []
+                if edge_from and edge_to:
+                    existing_edges.add((edge_from, edge_to, tuple(edge_labels)))
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
@@ -940,9 +949,13 @@ async def update_dataset(ap_payload: APRequest):
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
+            edge_labels = edge.get("labels", []) or []
+            edge_key = (edge_from, edge_to, tuple(edge_labels))
 
             # Create edge if at least one node was newly created
-            if edge_from in newly_created_ids or edge_to in newly_created_ids:
+            if (
+                edge_from in newly_created_ids or edge_to in newly_created_ids
+            ) and edge_key not in existing_edges:
                 edges_to_create.append(edge)
 
         # Step 6: Create edges if any

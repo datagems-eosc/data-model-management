@@ -404,10 +404,11 @@ def extract_from_AP(
 
     # Build filtered edges list - include ALL edges between filtered nodes
     filtered_edges = []
-    seen_edges: Set[Tuple[str, str]] = set()
+    seen_edges: Set[Tuple[str, str, Tuple[str, ...]]] = set()
     for edge in ap_data["edges"]:
         if edge["from"] in filtered_node_ids and edge["to"] in filtered_node_ids:
-            edge_key = (edge["from"], edge["to"])
+            edge_labels = edge.get("labels", []) or []
+            edge_key = (edge["from"], edge["to"], tuple(edge_labels))
             if edge_key not in seen_edges:
                 filtered_edges.append(edge)
                 seen_edges.add(edge_key)
