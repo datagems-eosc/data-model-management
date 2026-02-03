@@ -943,7 +943,6 @@ async def update_dataset(ap_payload: APRequest):
                 )
 
         # Step 5: Determine which edges need to be created
-        # Create edges if at least one of the connected nodes was newly created
         newly_created_ids = {node["id"] for node in nodes_to_create}
 
         for edge in filtered_edges:
@@ -952,10 +951,21 @@ async def update_dataset(ap_payload: APRequest):
             edge_labels = edge.get("labels", []) or []
             edge_key = (edge_from, edge_to, tuple(edge_labels))
 
-            # Create edge if at least one node was newly created
-            if (
+            # Skip if edge already exists
+            if edge_key in existing_edges:
+                continue
+
+            # Create edge if:
+            # 1. At least one node was newly created, OR
+            # 2. Both nodes exist but edge is missing
+            both_nodes_exist = (
+                edge_from in existing_nodes_map and edge_to in existing_nodes_map
+            )
+            at_least_one_new = (
                 edge_from in newly_created_ids or edge_to in newly_created_ids
-            ) and edge_key not in existing_edges:
+            )
+
+            if at_least_one_new or both_nodes_exist:
                 edges_to_create.append(edge)
 
         # Step 6: Create edges if any
