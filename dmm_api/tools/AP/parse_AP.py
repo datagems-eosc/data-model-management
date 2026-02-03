@@ -366,7 +366,13 @@ def extract_from_AP(
 
     # Default target labels if not provided
     if target_labels is None:
-        target_labels = {"sc:Dataset", "cr:FileObject", "cr:RecordSet"}
+        target_labels = {
+            "sc:Dataset",
+            "cr:FileObject",
+            "cr:RecordSet",
+            "cr:Field",
+            "dg:Statistics",
+        }
 
     # Find nodes that have any of the target labels
     filtered_node_ids: Set[str] = set()
@@ -379,7 +385,11 @@ def extract_from_AP(
         # Check partial matches if enabled
         if not has_match and include_partial_matches:
             has_match = any(
-                "FileObject" in label or "RecordSet" in label for label in node_labels
+                "FileObject" in label
+                or "RecordSet" in label
+                or "Field" in label
+                or "Statistics" in label
+                for label in node_labels
             )
 
         if has_match:
