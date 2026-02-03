@@ -58,7 +58,7 @@
   "description": "Description of dataset",
   "distribution": [
     {
-      "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397",
+      "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14",
       "@type": "cr:FileObject",
       "contentSize": "11132 B",
       "contentUrl": "s3:/zoo-2024.csv",
@@ -83,168 +83,176 @@
   "name": "ZOO 2024 Dataset",
   "recordSet": [
     {
-      "@id": "17015c34-b598-438f-ac37-42ed59297149",
+      "@id": "a7b9f7ff-fe01-4b03-b78d-300416eb5e5b",
       "@type": "cr:RecordSet",
       "examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", \"Amphibien\", \"Amphibien\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\"], \"Art\": [\"Schmuckhornfrosch\", \"Rotaugenlaubfrosch\", \"Schwimmw\\u00c3\\u00bchle\", \"Trauermantelsalmler\", \"Antennenwels\", \"Schwielenwels\", \"Saugmaulwels\", \"Amerikanischer Wei\\u00c3\\u009fstirnmesserfisch\", \"Gr\\u00c3\\u00bcnflossen-Buntbarsch\", \"Saugbarbe\", \"Endlers Guppy\", \"Pfauenaugenbuntbarsch\", \"Augenfleckbuntbarsch\", \"Pfauenaugen-Stechrochen\", \"Hujeta Hechtsalmler\", \"Schmucksalmler\", \"Dickkopf-Scheibensalmler\", \"Roter Neon\", \"Roter Piranha\", \"Prachtkopfsteher\", \"Flaggenbuntbarsch\", \"\\u00c3\\u0084gyptische Landschildkr\\u00c3\\u00b6te\", \"Spornschildkr\\u00c3\\u00b6te\", \"Asiatischer Hausgekko\", \"Oman-Eidechse\", \"Kaiserboa\", \"Salvin Kreuzbrustschildkr\\u00c3\\u00b6te\", \"Waldschildkr\\u00c3\\u00b6te\", \"Stirnlappenbasilisk\", \"Streifenbasilisk\"], \"wissenschaftlicher Name\": [\"Ceratophrys cranwelli\", \"Agalychnis callidryas\", \"Typhlonectes natans\", \"Gymnocorymbus ternetzi\", \"Ancistrus spec.\", \"Leothoplosternum pectorale\", \"Hypostomus spec.\", \"Apteronotus albifrons\", \"Cichlasoma nigrofasciatum\", \"Garra spec.\", \"Poecilia wingei\", \"Astronotus oncellatus\", \"Heros severum\", \"Potamotrygon motoro\", \"Ctenolucius hujeta\", \"Hyphessobrycon rosaceus\", \"Methynis altidorsalis\", \"Paracheirodon axelrodi\", \"Pygocentrus nattereri\", \"Anostomus anostomus\", \"Mesonauta festivus\", \"Testudo kleinmanni\", \"Centrochelys sulcata\", \"Hemidactylus frenatus\", \"Omanosaura jayakari\", \"Boa imperator\", \"Staurotypus salvinii\", \"Chelonoides denticulata\", \"Basiliscus plumifrons\", \"Basiliscus vittatus\"], \"Anzahl\": [\"0\", \"0\", \"0\", \"0\", \"ca 15\", \"0\", \"0\", \"0\", \"ca 10\", \"0\", \"0\", \"0\", \"4\", \"4\", \"0\", \"0\", \"13\", \"21\", \"0\", \"1\", \"3\", \"4\", \"2\", \"15\", \"2\", \"0\", \"0\", \"0\", \"0\", \"0\"], \"Kommune\": [\"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\"]}",
       "field": [
         {
-          "@id": "a04cfd63-cc7a-499d-967a-386b8f30118f",
+          "@id": "c75cd6ed-0c7a-448b-a491-cf76aad02f18",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "sample": [
             "S\u00c3\u00a4ugetiere",
-            "S\u00c3\u00a4ugetiere",
-            "S\u00c3\u00a4ugetiere",
-            "S\u00c3\u00a4ugetiere",
             "V\u00c3\u00b6gel",
+            "V\u00c3\u00b6gel",
+            "S\u00c3\u00a4ugetiere",
             "V\u00c3\u00b6gel",
             "Reptilien",
+            "Wirbellose",
             "S\u00c3\u00a4ugetiere",
             "V\u00c3\u00b6gel",
-            "S\u00c3\u00a4ugetiere"
+            "Amphibien"
           ],
           "source": {
             "extract": {
               "column": "\u00ef\u00bb\u00bfKategorie"
             },
             "fileObject": {
-              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+              "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14"
             }
           },
           "statistics": {
-            "histogram": null,
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "missingCount": 0,
-            "missingPercentage": 0.0,
-            "row_count": 192,
-            "standardDeviation": null,
-            "uniqueCount": 6
+            "@id": "f14658b4-a8d9-447e-8a19-ef83513d95f4",
+            "@type": "dg:ColumnStatistics",
+            "dg:histogram": null,
+            "dg:max": null,
+            "dg:mean": null,
+            "dg:median": null,
+            "dg:min": null,
+            "dg:missingCount": 0,
+            "dg:missingPercentage": 0.0,
+            "dg:rowCount": 192,
+            "dg:standardDeviation": null,
+            "dg:uniqueCount": 6
           }
         },
         {
-          "@id": "be707e9e-a5dd-4f3d-95e9-9c6f4f151d44",
+          "@id": "def64740-0c91-4f35-bdff-cb7069e84b24",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "Art",
           "sample": [
-            "Steinhuhn",
-            "Braunhaar-G\u00c3\u00bcrteltier",
-            "S\u00c3\u00bcdamerikanische Riesenheuschrecke",
-            "Pfauenaugen-Stechrochen",
-            "Kinkajou",
-            "Hausmaus",
-            "Wildmeerschweinchen",
-            "Schnee-Eule",
-            "Turteltaube",
-            "Steinkauz"
+            "Simandoa-H\u00c3\u00b6hlenschabe",
+            "Nebelparder",
+            "Kurzkrallenotter",
+            "Sungay-Gespenstschrecke",
+            "Hausesel",
+            "Scharlachsichler",
+            "Reh",
+            "Temmincktragopan",
+            "Sumatra Orang-Utan",
+            "S\u00c3\u00bcdamerikanischer Seeb\u00c3\u00a4r"
           ],
           "source": {
             "extract": {
               "column": "Art"
             },
             "fileObject": {
-              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+              "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14"
             }
           },
           "statistics": {
-            "histogram": null,
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "missingCount": 0,
-            "missingPercentage": 0.0,
-            "row_count": 192,
-            "standardDeviation": null,
-            "uniqueCount": 192
+            "@id": "720363a7-0f84-435f-994a-27bae130358f",
+            "@type": "dg:ColumnStatistics",
+            "dg:histogram": null,
+            "dg:max": null,
+            "dg:mean": null,
+            "dg:median": null,
+            "dg:min": null,
+            "dg:missingCount": 0,
+            "dg:missingPercentage": 0.0,
+            "dg:rowCount": 192,
+            "dg:standardDeviation": null,
+            "dg:uniqueCount": 192
           }
         },
         {
-          "@id": "7b131827-b1d0-463e-b8bd-ccef64cf7f0c",
+          "@id": "14720ec2-0fe8-42b9-93ce-88c4276f6c6f",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "wissenschaftlicher Name",
           "sample": [
-            "Panthera pardus orientalis",
-            "Panthera leo",
-            "Gymnocorymbus ternetzi",
-            "Peruphasma schultei",
-            "Agalychnis callidryas",
-            "Hemidactylus frenatus",
-            "Dolichotis patagonum",
-            "Dryonastes caerulatus berthemyi",
-            "Hippotragus equinus langheldi",
-            "Anas bernieri"
+            "Pongo abelii",
+            "Hemitragus jemlahicus",
+            "Cavia porcellus",
+            "Gallus gallus f. dom.",
+            "Hydrochoeris hydrochaeris",
+            "Tyto alba",
+            "Ciconia ciconia ciconia",
+            "Strix nebulosa lapponica",
+            "Cariama cristata",
+            "Pygocentrus nattereri"
           ],
           "source": {
             "extract": {
               "column": "wissenschaftlicher Name"
             },
             "fileObject": {
-              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+              "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14"
             }
           },
           "statistics": {
-            "histogram": null,
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "missingCount": 0,
-            "missingPercentage": 0.0,
-            "row_count": 192,
-            "standardDeviation": null,
-            "uniqueCount": 190
+            "@id": "f40a5aef-e9b9-41ef-b480-88df07d4862a",
+            "@type": "dg:ColumnStatistics",
+            "dg:histogram": null,
+            "dg:max": null,
+            "dg:mean": null,
+            "dg:median": null,
+            "dg:min": null,
+            "dg:missingCount": 0,
+            "dg:missingPercentage": 0.0,
+            "dg:rowCount": 192,
+            "dg:standardDeviation": null,
+            "dg:uniqueCount": 190
           }
         },
         {
-          "@id": "347dbb29-4057-4c18-9679-2659873b33b8",
+          "@id": "fff2e5db-2bee-4b3f-9ed1-b58e6ae54508",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
           "name": "Anzahl",
           "sample": [
-            "5",
-            "4",
             "2",
-            "4",
+            "2",
             "0",
             "2",
-            "4",
-            "1",
-            "4",
-            "4"
+            "0",
+            "6",
+            "2",
+            "3",
+            "6",
+            "ca 10"
           ],
           "source": {
             "extract": {
               "column": "Anzahl"
             },
             "fileObject": {
-              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+              "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14"
             }
           },
           "statistics": {
-            "histogram": null,
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "missingCount": 0,
-            "missingPercentage": 0.0,
-            "row_count": 192,
-            "standardDeviation": null,
-            "uniqueCount": 28
+            "@id": "dceb8b24-bf75-419e-bfca-e062037731b4",
+            "@type": "dg:ColumnStatistics",
+            "dg:histogram": null,
+            "dg:max": null,
+            "dg:mean": null,
+            "dg:median": null,
+            "dg:min": null,
+            "dg:missingCount": 0,
+            "dg:missingPercentage": 0.0,
+            "dg:rowCount": 192,
+            "dg:standardDeviation": null,
+            "dg:uniqueCount": 28
           }
         },
         {
-          "@id": "0e8bf1b6-4421-407a-bd44-bbd6ef03a50a",
+          "@id": "81a4eba7-6af5-4a8a-9aa2-0770832d79e1",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
@@ -266,20 +274,22 @@
               "column": "Kommune"
             },
             "fileObject": {
-              "@id": "47c35a11-a2d0-4576-8e1e-29340fb83397"
+              "@id": "1ad04e9b-11a4-4d44-be61-0ba034e15c14"
             }
           },
           "statistics": {
-            "histogram": null,
-            "max": null,
-            "mean": null,
-            "median": null,
-            "min": null,
-            "missingCount": 0,
-            "missingPercentage": 0.0,
-            "row_count": 192,
-            "standardDeviation": null,
-            "uniqueCount": 1
+            "@id": "bb2541ba-6893-4055-b772-29de7c817c7e",
+            "@type": "dg:ColumnStatistics",
+            "dg:histogram": null,
+            "dg:max": null,
+            "dg:mean": null,
+            "dg:median": null,
+            "dg:min": null,
+            "dg:missingCount": 0,
+            "dg:missingPercentage": 0.0,
+            "dg:rowCount": 192,
+            "dg:standardDeviation": null,
+            "dg:uniqueCount": 1
           }
         }
       ],
