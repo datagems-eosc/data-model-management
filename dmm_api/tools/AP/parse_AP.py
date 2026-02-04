@@ -345,7 +345,6 @@ def extract_dataset_id_from_AP(
 def extract_from_AP(
     ap_payload: APRequest,
     target_labels: Optional[Set[str]] = None,
-    include_partial_matches: bool = True,
 ) -> Tuple[List[Dict], List[Dict]]:
     """
     Extract nodes with specific labels and their interconnecting edges.
@@ -354,7 +353,6 @@ def extract_from_AP(
         ap_payload: The Analytical Pattern request payload
         target_labels: Set of labels to filter (e.g., {"sc:Dataset", "cr:FileObject"})
                       If None, defaults to Dataset/FileObject/RecordSet
-        include_partial_matches: If True, also matches labels containing "FileObject" or "RecordSet"
 
     Returns:
         Tuple of (filtered_nodes, filtered_edges) where:
@@ -371,7 +369,7 @@ def extract_from_AP(
             "cr:FileObject",
             "cr:RecordSet",
             "cr:Field",
-            "dg:Statistics",
+            "dg:ColumnStatistics",
         }
 
     # Find nodes that have any of the target labels
@@ -381,16 +379,6 @@ def extract_from_AP(
 
         # Check exact label matches
         has_match = bool(node_labels & target_labels)
-
-        # Check partial matches if enabled
-        if not has_match and include_partial_matches:
-            has_match = any(
-                "FileObject" in label
-                or "RecordSet" in label
-                or "Field" in label
-                or "Statistics" in label
-                for label in node_labels
-            )
 
         if has_match:
             filtered_node_ids.add(node_id)

@@ -446,7 +446,7 @@ async def register_dataset(ap_payload: APRequest):
     try:
         # Extract only Dataset nodes
         filtered_nodes, filtered_edges = extract_from_AP(
-            ap_payload, target_labels={"sc:Dataset"}, include_partial_matches=False
+            ap_payload, target_labels={"sc:Dataset"}
         )
 
         if not filtered_nodes:
@@ -779,11 +779,10 @@ async def load_dataset(ap_payload: APRequest):
 async def update_dataset(ap_payload: APRequest):
     """
     Update datasets in Neo4j by:
-    1. Extracting Dataset/FileObject/RecordSet nodes from AP
-    2. Checking if they exist in MoMa
+    1. Extracting Dataset node IDs from AP
+    2. Fetching complete dataset subgraphs from MoMa
     3. Creating new nodes/edges or updating existing ones
     """
-
     try:
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
 
@@ -795,6 +794,23 @@ async def update_dataset(ap_payload: APRequest):
                     error="No Dataset/FileObject/RecordSet nodes found in AP",
                 ).model_dump(),
             )
+
+        # Extract Dataset node IDs
+        dataset_ids = [
+            node["id"]
+            for node in filtered_nodes
+            if "sc:Dataset" in node.get("labels", [])
+        ]
+
+        if not dataset_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset nodes found in AP",
+                ).model_dump(),
+            )
+
     except HTTPException:
         raise
     except Exception as e:
@@ -810,44 +826,43 @@ async def update_dataset(ap_payload: APRequest):
     nodes_to_create = []
     nodes_to_update = []
     edges_to_create = []
-    existing_edges: set[tuple[str, str, tuple[str, ...]]] = set()
     existing_nodes_map = {}  # node_id -> moma_node_data
+    existing_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
     async with httpx.AsyncClient() as client:
-        # Step 1: Batch check which nodes exist using /dataset/search
-        node_ids = [node["id"] for node in filtered_nodes]
-
+        # Step 1: Fetch complete dataset subgraphs using dataset IDs
         try:
-            # Use existing search_datasets logic via internal call
-            url = f"{MOMA_URL}/getDatasets"
-            params = {"nodeIds": node_ids}
+            url = f"{MOMA_URL}/dataset/search"
+            params = [("nodeIds", dataset_id) for dataset_id in dataset_ids]
 
             response = await client.get(url, params=params)
             response.raise_for_status()
             data = response.json()
-            metadata = data.get("metadata", {})
-            existing_nodes = metadata.get("nodes", [])
-            existing_edges_list = metadata.get("edges", [])
 
-            # Build map of existing nodes by ID
-            for moma_node in existing_nodes:
-                node_id = moma_node.get("id")
-                if node_id:
-                    existing_nodes_map[node_id] = moma_node
+            # Extract all nodes and edges from all dataset subgraphs
+            datasets = data.get("datasets", [])
 
-            for moma_edge in existing_edges_list:
-                edge_from = moma_edge.get("from")
-                edge_to = moma_edge.get("to")
-                edge_labels = moma_edge.get("labels", []) or []
-                if edge_from and edge_to:
-                    existing_edges.add((edge_from, edge_to, tuple(edge_labels)))
+            for dataset in datasets:
+                # Collect all nodes from this dataset
+                for node in dataset.get("nodes", []):
+                    node_id = node.get("id")
+                    if node_id:
+                        existing_nodes_map[node_id] = node
+
+                # Collect all edges from this dataset
+                for edge in dataset.get("edges", []):
+                    edge_from = edge.get("from")
+                    edge_to = edge.get("to")
+                    edge_labels = edge.get("labels", []) or []
+                    if edge_from and edge_to:
+                        existing_edges.add((edge_from, edge_to, tuple(edge_labels)))
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to check node existence: HTTP {e.response.status_code}",
+                    error=f"Failed to fetch datasets: HTTP {e.response.status_code}",
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -863,7 +878,7 @@ async def update_dataset(ap_payload: APRequest):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Failed to verify node existence: {type(e).__name__}: {str(e)}",
+                    error=f"Failed to fetch datasets: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
 
@@ -874,7 +889,6 @@ async def update_dataset(ap_payload: APRequest):
             if node_id in existing_nodes_map:
                 # Node exists - check if update is needed
                 moma_node = existing_nodes_map[node_id]
-
                 has_changes, updated_props = compare_node_properties(node, moma_node)
 
                 if has_changes:
@@ -943,29 +957,14 @@ async def update_dataset(ap_payload: APRequest):
                 )
 
         # Step 5: Determine which edges need to be created
-        newly_created_ids = {node["id"] for node in nodes_to_create}
-
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
             edge_labels = edge.get("labels", []) or []
             edge_key = (edge_from, edge_to, tuple(edge_labels))
 
-            # Skip if edge already exists
-            if edge_key in existing_edges:
-                continue
-
-            # Create edge if:
-            # 1. At least one node was newly created, OR
-            # 2. Both nodes exist but edge is missing
-            both_nodes_exist = (
-                edge_from in existing_nodes_map and edge_to in existing_nodes_map
-            )
-            at_least_one_new = (
-                edge_from in newly_created_ids or edge_to in newly_created_ids
-            )
-
-            if at_least_one_new or both_nodes_exist:
+            # Only create edge if it doesn't already exist
+            if edge_key not in existing_edges:
                 edges_to_create.append(edge)
 
         # Step 6: Create edges if any
