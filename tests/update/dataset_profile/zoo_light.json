@@ -69,7 +69,10 @@
       "id": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "sc:Dataset"
-      ]
+      ],
+      "properties": {
+        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+      }
     },
     {
       "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",

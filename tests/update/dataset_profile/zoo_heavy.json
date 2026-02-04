@@ -66,7 +66,7 @@
     {
       "from": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
       "labels": [
-        "statistics"
+        "dg:statistics"
       ],
       "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1"
     }
@@ -104,21 +104,42 @@
       "id": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "sc:Dataset"
-      ]
+      ],
+      "properties": {
+        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+      }
     },
     {
       "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
       "labels": [
         "CSV",
         "cr:FileObject"
-      ]
+      ],
+      "properties": {
+        "contentSize": "2407043 B",
+        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "zoo-2024.csv",
+        "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
+        "type": "cr:FileObject"
+      }
     },
     {
       "id": "f5234567-890a-bcde-f012-3456789abcde",
       "labels": [
         "CSV",
         "cr:FileObject"
-      ]
+      ],
+      "properties": {
+        "contentSize": "1500000 B",
+        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "zoo-metadata.csv",
+        "sha256": "7eg9d801g9d58644568c8c8c119g9g7eeg918585371ccd687g737d73208gb4be",
+        "type": "cr:FileObject"
+      }
     },
     {
       "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
@@ -157,27 +178,35 @@
     {
       "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
       "labels": [
-        "Statistics"
+        "dg:Statistics"
       ],
       "properties": {
-        "histogram": null,
-        "max": null,
-        "mean": null,
-        "median": null,
-        "min": null,
-        "missingCount": 0,
-        "missingPercentage": 0.0,
-        "row_count": 192,
-        "standardDeviation": null,
-        "type": "dg:Statistics",
-        "uniqueCount": 190
+        "dg:histogram": null,
+        "dg:max": null,
+        "dg:mean": null,
+        "dg:median": null,
+        "dg:min": null,
+        "dg:missingCount": 0,
+        "dg:missingPercentage": 0.0,
+        "dg:rowCount": 192,
+        "dg:standardDeviation": null,
+        "dg:uniqueCount": 190
       }
     },
     {
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ]
+      ],
+      "properties": {
+        "City": "Verona",
+        "Country": "Italy",
+        "Email": "user1@example.com",
+        "Name": "user1",
+        "Preferences": [
+          "preferredLanguage=it"
+        ]
+      }
     },
     {
       "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",

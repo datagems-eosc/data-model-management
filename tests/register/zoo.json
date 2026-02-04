@@ -63,12 +63,20 @@
         "sc:Dataset"
       ],
       "properties": {
-        "archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
         "citeAs": "",
         "conformsTo": "",
         "country": "CH",
         "datePublished": "2024-12-09",
         "description": "Zoo animal species data",
+        "dg:fieldOfScience": [
+          "BIOLOGICAL SCIENCES"
+        ],
+        "dg:keywords": [
+          "zoo",
+          "animals",
+          "species"
+        ],
+        "dg:status": "staged",
         "fieldOfScience": [
           "BIOLOGICAL SCIENCES"
         ],
@@ -83,7 +91,7 @@
         ],
         "license": "Public Domain",
         "name": "zoo_tierarten_2024",
-        "status": "staged",
+        "sc:archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
         "type": "sc:Dataset",
         "url": "",
         "version": ""
