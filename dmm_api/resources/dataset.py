@@ -17,7 +17,6 @@ from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
     extract_query_from_AP,
-    extract_datasets_from_AP,
     APRequest,
     group_datasets_by_components,
 )
@@ -71,7 +70,7 @@ class DatasetType(str, Enum):
 class DatasetProperty(str, Enum):
     type = "type"
     name = "name"
-    archivedAt = "archivedAt"
+    archivedAt = "sc:archivedAt"
     description = "description"
     conformsTo = "conformsTo"
     citeAs = "citeAs"
@@ -94,7 +93,7 @@ class DatasetOrderBy(str, Enum):
     id = "id"
     type = "type"
     name = "name"
-    archivedAt = "archivedAt"
+    archivedAt = "sc:archivedAt"
     description = "description"
     conformsTo = "conformsTo"
     citeAs = "citeAs"
@@ -291,7 +290,7 @@ async def data_workflow(
     return DatasetSuccessEnvelope(
         code=status.HTTP_201_CREATED,
         message=f"Dataset {file_name} uploaded successfully with ID {dataset_id} at {s3path}",
-        dataset={"id": dataset_id, "name": file_name, "archivedAt": s3path},
+        dataset={"id": dataset_id, "name": file_name, "sc:archivedAt": s3path},
     )
 
 
@@ -357,7 +356,7 @@ async def search_datasets(
         params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
     params["direction"] = direction
     if dataset_status is not None:
-        params["status"] = dataset_status
+        params["dg:status"] = dataset_status
 
     async with httpx.AsyncClient() as client:
         try:
@@ -470,7 +469,7 @@ async def register_dataset(ap_payload: APRequest):
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
 
-        # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
+        # TODO: Validate that the file referenced in dataset's 'sc:archivedAt' property actually exists
         # at the specified S3 path before registering the dataset. This should check that the path
         # is valid and the file is accessible to prevent registering datasets with missing files.
 
@@ -507,7 +506,7 @@ async def register_dataset(ap_payload: APRequest):
 
             if existing_dataset:
                 node_status = existing_dataset.get("properties", {}).get(
-                    "status", "unknown"
+                    "dg:status", "unknown"
                 )
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
@@ -570,20 +569,38 @@ async def register_dataset(ap_payload: APRequest):
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put("/dataset/load", response_model=APSuccessEnvelope)
 async def load_dataset(ap_payload: APRequest):
-    """Move dataset files from scratchpad to permanent storage"""
+    """Move dataset files from scratchpad to permanent storage and update Neo4j"""
     DATASET_DIR = os.getenv("DATASET_DIR")
+
     try:
-        # Extract dataset list once with exact_count=1 to validate cardinality early
-        datasets_list, _ = extract_datasets_from_AP(
-            ap_payload,
-            expected_ap_process="load",
-            expected_operator_command="update",
-            exact_count=1,
+        # Extract only Dataset nodes from AP
+        filtered_nodes, filtered_edges = extract_from_AP(
+            ap_payload, target_labels={"sc:Dataset"}
         )
 
-        dataset = datasets_list[0]
-        dataset_id = dataset.get("@id")
-        dataset_path = dataset.get("archivedAt")
+        if not filtered_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset node found in AP",
+                ).model_dump(),
+            )
+
+        if len(filtered_nodes) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Expected exactly 1 Dataset node, found {len(filtered_nodes)}",
+                ).model_dump(),
+            )
+
+        dataset_node = filtered_nodes[0]
+        dataset_id = dataset_node.get("id")
+        dataset_props = dataset_node.get("properties", {})
+        dataset_path = dataset_props.get("sc:archivedAt")
+        dataset_status = dataset_props.get("dg:status")
 
         if not dataset_path:
             raise ValueError("Dataset 'archivedAt' property is missing")
@@ -601,9 +618,6 @@ async def load_dataset(ap_payload: APRequest):
 
     # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged') before moving files
     try:
-        # Reuse the dataset node extracted earlier to read status if provided
-        dataset_status = dataset.get("status")
-
         # Use enum-backed default if not provided
         effective_status = (
             str(dataset_status).lower()
@@ -619,7 +633,9 @@ async def load_dataset(ap_payload: APRequest):
             msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
             if effective_status:
                 msg += f" with status '{effective_status}'."
-            msg += "Please register the dataset first using /dataset/register endpoint."
+            msg += (
+                " Please register the dataset first using /dataset/register endpoint."
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=ErrorEnvelope(
@@ -753,8 +769,14 @@ async def load_dataset(ap_payload: APRequest):
     try:
         ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
 
-        dataset = datasets_list[0]
-        json_dataset = json.dumps(dataset, indent=2)
+        # Reconstruct dataset for catalogue
+        dataset_for_catalogue = {
+            "@id": dataset_id,
+            "sc:archivedAt": new_path,
+            **dataset_props,
+        }
+
+        json_dataset = json.dumps(dataset_for_catalogue, indent=2)
         upload_dataset_to_catalogue(json_dataset, dataset_id)
 
     except HTTPException:
