@@ -77,14 +77,15 @@ class DatasetProperty(str, Enum):
     license = "license"
     url = "url"
     version = "version"
-    headline = "headline"
-    keywords = "keywords"
-    fieldOfScience = "fieldOfScience"
+    headline = "dg:headline"
+    keywords = "dg:keywords"
+    fieldOfScience = "dg:fieldOfScience"
     inLanguage = "inLanguage"
     country = "country"
     datePublished = "datePublished"
     access = "access"
     uploadedBy = "uploadedBy"
+    status = "dg:status"
     distribution = "distribution"  # Special value
     recordSet = "recordSet"  # Special value
 
