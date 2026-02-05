@@ -59,13 +59,15 @@
   "dg:fieldOfScience": [
     "MATHEMATICS"
   ],
+  "dg:headline": "Headline",
   "dg:keywords": [
     "animals"
   ],
+  "dg:status": "loaded",
   "dg:uploadedBy": "ADMIN",
   "distribution": [
     {
-      "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9",
+      "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8",
       "@type": "cr:FileObject",
       "contentSize": "11132 B",
       "contentUrl": "s3:/zoo-2024.csv",
@@ -75,7 +77,6 @@
       "sha256": "b5381d8405da46716af0a301e6c79e84b82cb977a185e7c1f7f377be6486b2fb"
     }
   ],
-  "headline": "Headline",
   "inLanguage": [
     "en"
   ],
@@ -83,26 +84,26 @@
   "name": "ZOO 2024 Dataset",
   "recordSet": [
     {
-      "@id": "8dcf1f3e-f4ce-42e6-9cba-f2d879146c99",
+      "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
       "@type": "cr:RecordSet",
       "examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", \"Amphibien\", \"Amphibien\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Fische\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\", \"Reptilien\"], \"Art\": [\"Schmuckhornfrosch\", \"Rotaugenlaubfrosch\", \"Schwimmw\\u00c3\\u00bchle\", \"Trauermantelsalmler\", \"Antennenwels\", \"Schwielenwels\", \"Saugmaulwels\", \"Amerikanischer Wei\\u00c3\\u009fstirnmesserfisch\", \"Gr\\u00c3\\u00bcnflossen-Buntbarsch\", \"Saugbarbe\", \"Endlers Guppy\", \"Pfauenaugenbuntbarsch\", \"Augenfleckbuntbarsch\", \"Pfauenaugen-Stechrochen\", \"Hujeta Hechtsalmler\", \"Schmucksalmler\", \"Dickkopf-Scheibensalmler\", \"Roter Neon\", \"Roter Piranha\", \"Prachtkopfsteher\", \"Flaggenbuntbarsch\", \"\\u00c3\\u0084gyptische Landschildkr\\u00c3\\u00b6te\", \"Spornschildkr\\u00c3\\u00b6te\", \"Asiatischer Hausgekko\", \"Oman-Eidechse\", \"Kaiserboa\", \"Salvin Kreuzbrustschildkr\\u00c3\\u00b6te\", \"Waldschildkr\\u00c3\\u00b6te\", \"Stirnlappenbasilisk\", \"Streifenbasilisk\"], \"wissenschaftlicher Name\": [\"Ceratophrys cranwelli\", \"Agalychnis callidryas\", \"Typhlonectes natans\", \"Gymnocorymbus ternetzi\", \"Ancistrus spec.\", \"Leothoplosternum pectorale\", \"Hypostomus spec.\", \"Apteronotus albifrons\", \"Cichlasoma nigrofasciatum\", \"Garra spec.\", \"Poecilia wingei\", \"Astronotus oncellatus\", \"Heros severum\", \"Potamotrygon motoro\", \"Ctenolucius hujeta\", \"Hyphessobrycon rosaceus\", \"Methynis altidorsalis\", \"Paracheirodon axelrodi\", \"Pygocentrus nattereri\", \"Anostomus anostomus\", \"Mesonauta festivus\", \"Testudo kleinmanni\", \"Centrochelys sulcata\", \"Hemidactylus frenatus\", \"Omanosaura jayakari\", \"Boa imperator\", \"Staurotypus salvinii\", \"Chelonoides denticulata\", \"Basiliscus plumifrons\", \"Basiliscus vittatus\"], \"Anzahl\": [\"0\", \"0\", \"0\", \"0\", \"ca 15\", \"0\", \"0\", \"0\", \"ca 10\", \"0\", \"0\", \"0\", \"4\", \"4\", \"0\", \"0\", \"13\", \"21\", \"0\", \"1\", \"3\", \"4\", \"2\", \"15\", \"2\", \"0\", \"0\", \"0\", \"0\", \"0\"], \"Kommune\": [\"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\", \"Dortmund\"]}",
       "field": [
         {
-          "@id": "b9c1a46e-a1f6-475d-8a5d-0b621a096fb1",
+          "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "sample": [
+            "V\u00c3\u00b6gel",
+            "Fische",
+            "Reptilien",
+            "V\u00c3\u00b6gel",
+            "V\u00c3\u00b6gel",
+            "V\u00c3\u00b6gel",
             "S\u00c3\u00a4ugetiere",
-            "V\u00c3\u00b6gel",
-            "Wirbellose",
-            "V\u00c3\u00b6gel",
-            "S\u00c3\u00a4ugetiere",
-            "V\u00c3\u00b6gel",
-            "S\u00c3\u00a4ugetiere",
-            "V\u00c3\u00b6gel",
-            "V\u00c3\u00b6gel",
+            "Reptilien",
+            "Reptilien",
             "V\u00c3\u00b6gel"
           ],
           "source": {
@@ -110,11 +111,11 @@
               "column": "\u00ef\u00bb\u00bfKategorie"
             },
             "fileObject": {
-              "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9"
+              "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
             }
           },
           "statistics": {
-            "@id": "53f15dc9-d8c8-4eb9-a933-85dd7aa7ae29",
+            "@id": "583474af-1be5-4f51-85d7-096f8a196cab",
             "@type": "dg:ColumnStatistics",
             "dg:histogram": null,
             "dg:max": null,
@@ -129,33 +130,33 @@
           }
         },
         {
-          "@id": "62079052-0999-4fb4-9180-4d3cca81af19",
+          "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "Art",
           "sample": [
-            "Pfauenaugenbuntbarsch",
-            "Schmucksalmler",
-            "Reh",
-            "Zwergaguti",
-            "Mara",
-            "H\u00c3\u00bchnerfresser",
-            "Afrikanischer Tausendf\u00c3\u00bc\u00c3\u009fer",
-            "Rotducker",
-            "Siamang",
-            "Goldsittich"
+            "Amerikanischer Wei\u00c3\u009fstirnmesserfisch",
+            "Streifenbasilisk",
+            "L\u00c3\u00b6ffelhund",
+            "Guineataube",
+            "Lux-Kaninchen",
+            "Dschungelwachtel",
+            "Scharlachsichler",
+            "Rotfu\u00c3\u009fseriema",
+            "Brasiltangare",
+            "Wellensittich"
           ],
           "source": {
             "extract": {
               "column": "Art"
             },
             "fileObject": {
-              "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9"
+              "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
             }
           },
           "statistics": {
-            "@id": "682d9448-d03d-4bc8-861b-47c637f5d630",
+            "@id": "88fa6df0-160b-49d7-adfb-70ac36fa265e",
             "@type": "dg:ColumnStatistics",
             "dg:histogram": null,
             "dg:max": null,
@@ -170,33 +171,33 @@
           }
         },
         {
-          "@id": "7c89d25e-3e7a-4691-bc21-e40496094168",
+          "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
           "name": "wissenschaftlicher Name",
           "sample": [
-            "Cynictis penicillata",
-            "Panthera leo",
-            "Tyto alba",
-            "Saguinus imperator subgrisescens",
-            "Lama guanicoe",
-            "Corallus hortulanus",
-            "Alectoris graeca",
-            "Agalychnis callidryas",
+            "Giraffa angolensis",
+            "Vanellus miles",
+            "Pavo cristatus",
+            "Taurotragus oryx",
+            "Equus burchelli boehmi",
             "Ovis aries",
-            "Ailurus fulgens fulgens"
+            "Camelus bactrianus",
+            "Melopsittacus undulatus",
+            "Bos taurus",
+            "Ardea goliath"
           ],
           "source": {
             "extract": {
               "column": "wissenschaftlicher Name"
             },
             "fileObject": {
-              "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9"
+              "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
             }
           },
           "statistics": {
-            "@id": "e74c1619-00f8-4c11-a5e6-79d534a596f5",
+            "@id": "b2fe40d4-5306-4e47-a710-9586b35c7263",
             "@type": "dg:ColumnStatistics",
             "dg:histogram": null,
             "dg:max": null,
@@ -211,33 +212,33 @@
           }
         },
         {
-          "@id": "4e6c21ae-bcdf-40b1-b73d-499695320209",
+          "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
           "@type": "cr:Field",
           "dataType": "sc:Integer",
           "description": "",
           "name": "Anzahl",
           "sample": [
-            "1",
+            "3",
             "2",
-            "0",
             "2",
-            "25",
+            "4",
             "4",
             "0",
-            "2",
-            "5",
-            "10"
+            "0",
+            "1",
+            "0",
+            "2"
           ],
           "source": {
             "extract": {
               "column": "Anzahl"
             },
             "fileObject": {
-              "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9"
+              "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
             }
           },
           "statistics": {
-            "@id": "11b6c073-5b3e-444e-9dd3-da579e977aff",
+            "@id": "52d15255-707d-4d04-b779-c92ba53de860",
             "@type": "dg:ColumnStatistics",
             "dg:histogram": null,
             "dg:max": null,
@@ -252,7 +253,7 @@
           }
         },
         {
-          "@id": "7962212c-d39a-4acf-a49e-5974651ef678",
+          "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
           "@type": "cr:Field",
           "dataType": "sc:Text",
           "description": "",
@@ -274,11 +275,11 @@
               "column": "Kommune"
             },
             "fileObject": {
-              "@id": "48430dd6-b086-4be0-9d14-3bc68ac0f0e9"
+              "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
             }
           },
           "statistics": {
-            "@id": "1b52225c-d538-4d68-af86-74456c9da462",
+            "@id": "3ab879a5-dd54-4af6-9851-beefaab4afba",
             "@type": "dg:ColumnStatistics",
             "dg:histogram": null,
             "dg:max": null,
