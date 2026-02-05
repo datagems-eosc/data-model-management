@@ -77,17 +77,9 @@
           "species"
         ],
         "dg:status": "staged",
-        "fieldOfScience": [
-          "BIOLOGICAL SCIENCES"
-        ],
         "headline": "Zoo animal species data from Zurich Zoo.",
         "inLanguage": [
           "de"
-        ],
-        "keywords": [
-          "zoo",
-          "animals",
-          "species"
         ],
         "license": "Public Domain",
         "name": "zoo_tierarten_2024",

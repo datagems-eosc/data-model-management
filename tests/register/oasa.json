@@ -76,16 +76,9 @@
           "keyword"
         ],
         "dg:status": "staged",
-        "fieldOfScience": [
-          "CIVIL ENGINEERING"
-        ],
         "headline": "Subway data.",
         "inLanguage": [
           "el"
-        ],
-        "keywords": [
-          "dev",
-          "keyword"
         ],
         "license": "Public Domain",
         "name": "OASA Data",
