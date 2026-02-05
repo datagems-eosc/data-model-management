@@ -190,7 +190,8 @@
         "dg:missingPercentage": 0.0,
         "dg:rowCount": 192,
         "dg:standardDeviation": null,
-        "dg:uniqueCount": 190
+        "dg:uniqueCount": 190,
+        "type": "dg:ColumnStatistics"
       }
     },
     {
