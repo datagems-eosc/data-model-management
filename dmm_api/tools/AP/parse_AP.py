@@ -267,7 +267,7 @@ def extract_datasets_from_AP(
     missing_archived = []
     for dataset_id in final_dataset_ids:
         dataset_properties = G.nodes[dataset_id].get("properties", {}).copy()
-        if "archivedAt" not in dataset_properties:
+        if "sc:archivedAt" not in dataset_properties:
             missing_archived.append(dataset_id)
             continue
 
@@ -310,7 +310,7 @@ def extract_datasets_from_AP(
     if missing_archived:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"The following Dataset nodes are missing 'archivedAt': {missing_archived}",
+            detail=f"The following Dataset nodes are missing 'sc:archivedAt': {missing_archived}",
         )
 
     return datasets, original_dataset_ids
