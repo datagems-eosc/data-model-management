@@ -123,6 +123,7 @@ router = APIRouter()
 
 
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+DMM_API_URL = os.getenv("DMM_API_URL", "http://localhost:5000/api/v1")
 
 
 async def get_moma_object(
@@ -857,15 +858,8 @@ async def update_dataset(ap_payload: APRequest):
     async with httpx.AsyncClient() as client:
         # Step 1: Fetch complete dataset subgraphs using dataset IDs
         try:
-            url = f"{MOMA_URL}/dataset/search"
-            params = [("nodeIds", dataset_id) for dataset_id in dataset_ids]
-
-            response = await client.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
-
-            # Extract all nodes and edges from all dataset subgraphs
-            datasets = data.get("datasets", [])
+            result = await search_datasets(nodeIds=dataset_ids)
+            datasets = result.datasets
 
             for dataset in datasets:
                 # Collect all nodes from this dataset
