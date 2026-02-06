@@ -56,6 +56,9 @@ class ErrorEnvelope(BaseModel):
 
 
 class DatasetType(str, Enum):
+    FileObject = "cr:FileObject"  # Special value
+    FileSet = "cr:FileSet"  # Special value
+    Field = "cr:Field"
     TextSet = "TextSet"
     ImageSet = "ImageSet"
     CSV = "CSV"
@@ -63,8 +66,6 @@ class DatasetType(str, Enum):
     RelationalDatabase = "RelationalDatabase"
     PDF = "PDF"
     Column = "Column"
-    FileObject = "FileObject"  # Special value
-    FileSet = "FileSet"  # Special value
 
 
 class DatasetProperty(str, Enum):
@@ -84,8 +85,8 @@ class DatasetProperty(str, Enum):
     inLanguage = "inLanguage"
     country = "country"
     datePublished = "datePublished"
-    access = "access"
-    uploadedBy = "uploadedBy"
+    access = "dg:access"
+    uploadedBy = "dg:uploadedBy"
     status = "dg:status"
     distribution = "distribution"  # Special value
     recordSet = "recordSet"  # Special value
@@ -95,7 +96,7 @@ class DatasetOrderBy(str, Enum):
     id = "id"
     type = "type"
     name = "name"
-    archivedAt = "sc:archivedAt"
+    archivedAt = "archivedAt"
     description = "description"
     conformsTo = "conformsTo"
     citeAs = "citeAs"
@@ -230,7 +231,7 @@ async def get_dataset_metadata(
     """
     url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
     if dataset_status:
-        url += f"&dg:status={dataset_status}"
+        url += f"&status={dataset_status}"
 
     should_close = client is None
     if client is None:
@@ -358,7 +359,7 @@ async def search_datasets(
         params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
     params["direction"] = direction
     if dataset_status is not None:
-        params["dg:status"] = dataset_status
+        params["status"] = dataset_status
 
     async with httpx.AsyncClient() as client:
         try:
