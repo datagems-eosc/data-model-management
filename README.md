@@ -867,7 +867,7 @@ Parameters:
 - status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?dataset_status=loaded" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=sc:archivedAt" | python -m json.tool
 ```
 
 The API returns:
@@ -884,7 +884,7 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
+                        "sc:archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
                     }
                 }
             ],
@@ -898,7 +898,7 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+                        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
                     }
                 }
             ],
