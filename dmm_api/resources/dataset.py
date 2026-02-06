@@ -76,6 +76,7 @@ class DatasetProperty(str, Enum):
     citeAs = "citeAs"
     license = "license"
     url = "url"
+    doi = "dg:doi"
     version = "version"
     headline = "dg:headline"
     keywords = "dg:keywords"
