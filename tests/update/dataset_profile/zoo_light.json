@@ -34,6 +34,13 @@
         "distribution"
       ],
       "to": "883b5c9b-408a-4dd8-8619-e34e664b9920"
+    },
+    {
+      "from": "c893daaf-680f-4947-88e5-03fd61900795",
+      "labels": [
+        "distribution"
+      ],
+      "to": "f5234567-890a-bcde-f012-3456789abcde"
     }
   ],
   "nodes": [
@@ -69,10 +76,7 @@
       "id": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "sc:Dataset"
-      ],
-      "properties": {
-        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
-      }
+      ]
     },
     {
       "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
@@ -91,19 +95,26 @@
       }
     },
     {
+      "id": "f5234567-890a-bcde-f012-3456789abcde",
+      "labels": [
+        "CSV",
+        "cr:FileObject"
+      ],
+      "properties": {
+        "contentSize": "1500000 B",
+        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
+        "description": "",
+        "encodingFormat": "text/csv",
+        "name": "zoo-metadata.csv",
+        "sha256": "7eg9d801g9d58644568c8c8c119g9g7eeg918585371ccd687g737d73208gb4be",
+        "type": "cr:FileObject"
+      }
+    },
+    {
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",

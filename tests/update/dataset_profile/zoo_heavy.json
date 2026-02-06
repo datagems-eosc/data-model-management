@@ -104,10 +104,7 @@
       "id": "c893daaf-680f-4947-88e5-03fd61900795",
       "labels": [
         "sc:Dataset"
-      ],
-      "properties": {
-        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
-      }
+      ]
     },
     {
       "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
@@ -199,16 +196,7 @@
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
       "labels": [
         "User"
-      ],
-      "properties": {
-        "City": "Verona",
-        "Country": "Italy",
-        "Email": "user1@example.com",
-        "Name": "user1",
-        "Preferences": [
-          "preferredLanguage=it"
-        ]
-      }
+      ]
     },
     {
       "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",

@@ -68,10 +68,7 @@
       "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
       "labels": [
         "sc:Dataset"
-      ],
-      "properties": {
-        "sc:archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
-      }
+      ]
     },
     {
       "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
