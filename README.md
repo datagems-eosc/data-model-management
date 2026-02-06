@@ -74,20 +74,20 @@ Before registering a dataset, the files should be already present on s3. This me
 #### POST a file to data-workflow
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
-  -F "file=@data/oasa/oasa_daily_ridership_1.csv" \
-  -F "file_name=oasa.csv" \
-  -F "dataset_id=056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
+ -F "file=@data/zoo/zoo-2024.csv" \
+ -F "file_name=zoo.csv" \
+ -F "dataset_id=c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
 ```
 The API returns:
 ```json
 {
-  "code": 201,
-  "message": "Dataset oasa.csv uploaded successfully with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa at /s3/scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-  "dataset": {
-    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-    "name": "oasa.csv",
-    "archivedAt": "/s3/scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
-  }
+    "code": 201,
+    "message": "Dataset zoo.csv uploaded successfully with ID c893daaf-680f-4947-88e5-03fd61900795 at /s3/scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
+    "dataset": {
+        "id": "c893daaf-680f-4947-88e5-03fd61900795",
+        "name": "zoo.csv",
+        "sc:archivedAt": "/s3/scratchpad/c893daaf-680f-4947-88e5-03fd61900795"
+    }
 }
 ```
 
@@ -109,7 +109,7 @@ This registers a new dataset using the JSON payload. The API returns:
 ```json
 {
     "code": 201,
-    "message": "Dataset with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa registered successfully in Neo4j",
+    "message": "Dataset with ID c893daaf-680f-4947-88e5-03fd61900795 registered successfully in Neo4j",
     "ap": {
         "nodes": [
             {
@@ -133,12 +133,11 @@ This registers a new dataset using the JSON payload. The API returns:
                 }
             },
             {
-                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "id": "c893daaf-680f-4947-88e5-03fd61900795",
                 "labels": [
                     "sc:Dataset"
                 ],
                 "properties": {
-                    "archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
                     ...
                 }
             },
@@ -168,7 +167,7 @@ This registers a new dataset using the JSON payload. The API returns:
                 ]
             },
             {
-                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
                 "to": "69ce4693-e71e-4616-9320-037c90a88858",
                 "labels": [
                     "input"
@@ -212,7 +211,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
 ```json
 {
     "code": 200,
-    "message": "Dataset moved from s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa to s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+    "message": "Dataset moved from s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795 to s3://dataset/c893daaf-680f-4947-88e5-03fd61900795",
     "ap": {
         "nodes": [
             {
@@ -236,13 +235,13 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                 }
             },
             {
-                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "id": "c893daaf-680f-4947-88e5-03fd61900795",
                 "labels": [
                     "sc:Dataset"
                 ],
                 "properties": {
-                    "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-                    "status": "staged"
+                    "dg:status": "staged",
+                    "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
                 }
             },
             {
@@ -271,7 +270,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                 ]
             },
             {
-                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
                 "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
                 "labels": [
                     "input"
@@ -305,14 +304,14 @@ To update an existing dataset with additional metadata or file information:
 
 #### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/oasa_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
 ```
 
-This updates the dataset properties and creates file object distributions. The API returns:
+This updates the dataset with the light profile. The API returns:
 ```json
 {
     "code": 200,
-    "message": "Dataset update completed: 1 node(s) created, 1 edge(s) created",
+    "message": "Dataset update completed: 2 node(s) created, 2 edge(s) created",
     "ap": {
         "nodes": [
             {
@@ -336,19 +335,182 @@ This updates the dataset properties and creates file object distributions. The A
                 }
             },
             {
-                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "id": "c893daaf-680f-4947-88e5-03fd61900795",
                 "labels": [
                     "sc:Dataset"
                 ]
             },
             {
-                "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                 "labels": [
                     "CSV",
                     "cr:FileObject"
                 ],
                 "properties": {
                     "contentSize": "2407043 B",
+                    ...
+                }
+            },
+            {
+                "id": "f5234567-890a-bcde-f012-3456789abcde",
+                "labels": [
+                    "CSV",
+                    "cr:FileObject"
+                ],
+                "properties": {
+                    "contentSize": "1500000 B",
+                    ...
+                }
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "Description": "Task to update a dataset",
+                    "Name": "Dataset Updating Task"
+                }
+            }
+        ],
+        "edges": [
+            {
+                "from": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "input"
+                ]
+            },
+            {
+                "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "labels": [
+                    "is_achieved"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
+                "labels": [
+                    "request"
+                ]
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "f5234567-890a-bcde-f012-3456789abcde",
+                "labels": [
+                    "distribution"
+                ]
+            }
+        ]
+    }
+}
+
+```bash
+curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+```
+This updates the dataset with the heavy profile. The API returns:
+```json
+{
+    "code": 200,
+    "message": "Dataset update completed: 3 node(s) created, 4 edge(s) created",
+    "ap": {
+        "nodes": [
+            {
+                "id": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    "Description": "Analytical Pattern to update a dataset",
+                    ...
+                }
+            },
+            {
+                "id": "24a62ae9-41a9-472d-9a8a-438f35937980",
+                "labels": [
+                    "DataModelManagement_Operator"
+                ],
+                "properties": {
+                    "Description": "An operator to update a dataset into DataGEMS",
+                    ...
+                }
+            },
+            {
+                "id": "c893daaf-680f-4947-88e5-03fd61900795",
+                "labels": [
+                    "sc:Dataset"
+                ]
+            },
+            {
+                "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "labels": [
+                    "CSV",
+                    "cr:FileObject"
+                ],
+                "properties": {
+                    "contentSize": "2407043 B",
+                    ...
+                }
+            },
+            {
+                "id": "f5234567-890a-bcde-f012-3456789abcde",
+                "labels": [
+                    "CSV",
+                    "cr:FileObject"
+                ],
+                "properties": {
+                    "contentSize": "1500000 B",
+                    ...
+                }
+            },
+            {
+                "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "labels": [
+                    "cr:RecordSet"
+                ],
+                "properties": {
+                    "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
+                    ...
+                }
+            },
+            {
+                "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "labels": [
+                    "cr:Field"
+                ],
+                "properties": {
+                    "dataType": "sc:Text",
+                    ...
+                }
+            },
+            {
+                "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                "labels": [
+                    "dg:ColumnStatistics"
+                ],
+                "properties": {
+                    "dg:histogram": null,
                     ...
                 }
             },
@@ -374,11 +536,11 @@ This updates the dataset properties and creates file object distributions. The A
                 "from": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
                 "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
                 "labels": [
-                    "consist_of"
+                    "consistOf"
                 ]
             },
             {
-                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
                 "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
                 "labels": [
                     "input"
@@ -388,7 +550,7 @@ This updates the dataset properties and creates file object distributions. The A
                 "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
                 "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
                 "labels": [
-                    "is_achieved"
+                    "isAchieved"
                 ]
             },
             {
@@ -399,10 +561,45 @@ This updates the dataset properties and creates file object distributions. The A
                 ]
             },
             {
-                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-                "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                 "labels": [
                     "distribution"
+                ]
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "f5234567-890a-bcde-f012-3456789abcde",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "labels": [
+                    "recordSet"
+                ]
+            },
+            {
+                "from": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "labels": [
+                    "field"
+                ]
+            },
+            {
+                "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "to": "c893daaf-680f-4947-88e5-03fd61900795",
+                "labels": [
+                    "source/fileObject"
+                ]
+            },
+            {
+                "from": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "labels": [
+                    "statistics"
                 ]
             }
         ]
@@ -419,7 +616,7 @@ Retrieve one or all ready datasets.
 ```bash
 curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
 
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/056ff7ea-ac5a-4496-abc5-ad254ddf58fa" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
 ```
 
 The API returns:
@@ -431,23 +628,23 @@ The API returns:
         {
             "nodes": [
                 {
-                    "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
-                    "labels": [
-                        "cr:FileObject",
-                        "CSV"
-                    ],
-                    "properties": {
-                        "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
-                        ...
-                    }
-                },
-                {
                     "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
                     "labels": [
                         "sc:Dataset"
                     ],
                     "properties": {
                         "country": "PT",
+                        ...
+                    }
+                },
+                {
+                    "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                    "labels": [
+                        "CSV",
+                        "cr:FileObject"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
                         ...
                     }
                 }
@@ -466,17 +663,6 @@ The API returns:
         {
             "nodes": [
                 {
-                    "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
-                    "labels": [
-                        "cr:FileObject",
-                        "CSV"
-                    ],
-                    "properties": {
-                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
-                        ...
-                    }
-                },
-                {
                     "id": "c893daaf-680f-4947-88e5-03fd61900795",
                     "labels": [
                         "sc:Dataset"
@@ -485,14 +671,80 @@ The API returns:
                         "country": "CH",
                         ...
                     }
+                },
+                {
+                    "id": "f5234567-890a-bcde-f012-3456789abcde",
+                    "labels": [
+                        "CSV",
+                        "cr:FileObject"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
+                        ...
+                    }
+                },
+                {
+                    "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                    "labels": [
+                        "CSV",
+                        "cr:FileObject"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
+                        ...
+                    }
+                },
+                {
+                    "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                    "labels": [
+                        "cr:Field"
+                    ],
+                    "properties": {
+                        "dataType": "sc:Text",
+                        ...
+                    }
+                },
+                {
+                    "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                    "labels": [
+                        "cr:RecordSet"
+                    ],
+                    "properties": {
+                        "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
+                        ...
+                    }
                 }
             ],
             "edges": [
                 {
                     "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "to": "f5234567-890a-bcde-f012-3456789abcde",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "from": "c893daaf-680f-4947-88e5-03fd61900795",
                     "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                     "labels": [
                         "distribution"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "from": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                    "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                    "labels": [
+                        "field"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                    "labels": [
+                        "recordSet"
                     ],
                     "properties": {}
                 }
@@ -503,65 +755,92 @@ The API returns:
 
 {
     "code": 200,
-    "message": "Dataset with ID 056ff7ea-ac5a-4496-abc5-ad254ddf58fa retrieved successfully from Neo4j",
+    "message": "Dataset with ID c893daaf-680f-4947-88e5-03fd61900795 retrieved successfully from Neo4j",
     "dataset": {
         "nodes": [
             {
-                "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+                "id": "c893daaf-680f-4947-88e5-03fd61900795",
                 "labels": [
                     "sc:Dataset"
                 ],
                 "properties": {
-                    "country": "PT",
-                    "citeAs": "",
-                    "keywords": [
-                        "dev",
-                        "keyword"
-                    ],
-                    "inLanguage": [
-                        "el"
-                    ],
-                    "description": "Subway data",
-                    "type": "sc:Dataset",
-                    "version": "",
-                    "url": "",
-                    "datePublished": "24-05-2025",
-                    "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-                    "license": "Public Domain",
-                    "fieldOfScience": [
-                        "CIVIL ENGINEERING"
-                    ],
-                    "name": "OASA Data",
-                    "conformsTo": "",
-                    "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-                    "headline": "Subway data.",
-                    "status": "loaded"
+                    "country": "CH",
+                    ...
                 }
             },
             {
-                "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "id": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
-                    "cr:FileObject",
-                    "CSV"
+                    "CSV",
+                    "cr:FileObject"
                 ],
                 "properties": {
-                    "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
-                    "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
-                    "contentSize": "2407043 B",
-                    "name": "weather_data_fr.csv",
-                    "encodingFormat": "text/csv",
-                    "description": "",
-                    "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
-                    "type": "cr:FileObject"
+                    "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
+                    ...
+                }
+            },
+            {
+                "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "labels": [
+                    "CSV",
+                    "cr:FileObject"
+                ],
+                "properties": {
+                    "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
+                    ...
+                }
+            },
+            {
+                "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "labels": [
+                    "cr:Field"
+                ],
+                "properties": {
+                    "dataType": "sc:Text",
+                    ...
+                }
+            },
+            {
+                "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "labels": [
+                    "cr:RecordSet"
+                ],
+                "properties": {
+                    "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
+                    ...
                 }
             }
         ],
         "edges": [
             {
-                "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-                "to": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
                     "distribution"
+                ],
+                "properties": {}
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "labels": [
+                    "distribution"
+                ],
+                "properties": {}
+            },
+            {
+                "from": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "labels": [
+                    "field"
+                ],
+                "properties": {}
+            },
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                "labels": [
+                    "recordSet"
                 ],
                 "properties": {}
             }
