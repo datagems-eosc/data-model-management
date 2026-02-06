@@ -230,7 +230,7 @@ async def get_dataset_metadata(
     """
     url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
     if dataset_status:
-        url += f"&status={dataset_status}"
+        url += f"&dg:status={dataset_status}"
 
     should_close = client is None
     if client is None:
