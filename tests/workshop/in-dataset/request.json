@@ -2,47 +2,65 @@
   "edges": [
     {
       "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": "request",
+      "labels": [
+        "request"
+      ],
       "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
     },
     {
       "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
-      "labels": "isAccomplished",
+      "labels": [
+        "isAccomplished"
+      ],
       "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
     },
     {
       "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": "consistOf",
+      "labels": [
+        "consistOf"
+      ],
       "to": "69ce4693-e71e-4616-9320-037c90a88858"
     },
     {
       "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": "consistOf",
+      "labels": [
+        "consistOf"
+      ],
       "to": "69ce4693-e71e-4616-9320-037c90a88859"
     },
     {
       "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": "consistOf",
+      "labels": [
+        "consistOf"
+      ],
       "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
       "from": "69ce4693-e71e-4616-9320-037c90a88858",
-      "labels": "follow",
+      "labels": [
+        "follow"
+      ],
       "to": "69ce4693-e71e-4616-9320-037c90a88859"
     },
     {
       "from": "69ce4693-e71e-4616-9320-037c90a88859",
-      "labels": "follow",
+      "labels": [
+        "follow"
+      ],
       "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
       "from": "7784bb29-28a3-406e-a571-e1ebdde7d368",
-      "labels": "distribution",
+      "labels": [
+        "distribution"
+      ],
       "to": "475e6aa3-9c56-4360-aace-631888242933db"
     },
     {
       "from": "475e6aa3-9c56-4360-aace-631888242933db",
-      "labels": "input",
+      "labels": [
+        "input"
+      ],
       "properties": {
         "argname": "arg1"
       },
@@ -50,24 +68,32 @@
     },
     {
       "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-      "labels": "output",
+      "labels": [
+        "output"
+      ],
       "to": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
     },
     {
       "from": "475e6aa3-9c56-4360-aace-631888242933db",
-      "labels": "containedIn",
+      "labels": [
+        "containedIn"
+      ],
       "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
     }
   ],
   "nodes": [
     {
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": "user",
+      "labels": [
+        "user"
+      ],
       "properties": {}
     },
     {
       "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
-      "labels": "task",
+      "labels": [
+        "task"
+      ],
       "properties": {
         "description": "Task to find the the mean daily temperature in Zurich for 2020",
         "name": "Temperature Task"
@@ -75,7 +101,9 @@
     },
     {
       "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": "analyticalPattern",
+      "labels": [
+        "analyticalPattern"
+      ],
       "properties": {
         "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
         "endTime": "10:00:00",
@@ -138,7 +166,9 @@
     },
     {
       "id": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
-      "labels": "sc:Dataset"
+      "labels": [
+        "sc:Dataset"
+      ]
     },
     {
       "id": "475e6aa3-9c56-4360-aace-631888242933db",
@@ -149,7 +179,9 @@
     },
     {
       "id": "7784bb29-28a3-406e-a571-e1ebdde7d368",
-      "labels": "sc:Dataset"
+      "labels": [
+        "sc:Dataset"
+      ]
     },
     {
       "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
