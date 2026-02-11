@@ -26,14 +26,7 @@
       "labels": [
         "output"
       ],
-      "to": "4e5f6a7b-8c9d-4e0f-1a2b-3c4d5e6f7a8b"
-    },
-    {
-      "from": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
-      "labels": [
-        "output"
-      ],
-      "to": "5f6a7b8c-9d0e-4f1a-2b3c-4d5e6f7a8b9c"
+      "to": "1c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f"
     },
     {
       "from": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a",
@@ -87,18 +80,6 @@
       "id": "1c3d4e5f-6a7b-4c8d-9e0f-1a2b3c4d5e6f",
       "labels": [
         "sc:Dataset"
-      ]
-    },
-    {
-      "id": "4e5f6a7b-8c9d-4e0f-1a2b-3c4d5e6f7a8b",
-      "labels": [
-        "cr:FileObject"
-      ]
-    },
-    {
-      "id": "5f6a7b8c-9d0e-4f1a-2b3c-4d5e6f7a8b9c",
-      "labels": [
-        "cr:FileObject"
       ]
     },
     {
