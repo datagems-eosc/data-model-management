@@ -8,24 +8,24 @@
       "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
-      "from": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
+      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
       "labels": [
         "input"
       ],
       "properties": {
         "argname": "arg1"
       },
-      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      "to": "aca33450-d1b4-4721-af00-7f1a73d5e34f"
     },
     {
-      "from": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
+      "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
       "labels": [
         "input"
       ],
       "properties": {
         "argname": "arg2"
       },
-      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      "to": "c5a06fbd-887f-4562-8121-55dfe5a658c7"
     },
     {
       "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
@@ -33,6 +33,13 @@
         "output"
       ],
       "to": "8756aa7a-2436-48c7-afb0-0f99401392ad"
+    },
+    {
+      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+      "labels": [
+        "intervene"
+      ],
+      "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
     {
       "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
@@ -95,6 +102,7 @@
         "PublishedDate": "2025-06-30",
         "Query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
         "StartTime": "10:00:00",
+        "Step": 1,
         "Type": "SQL Query",
         "command": "query",
         "queryType": "SELECT"
@@ -104,7 +112,32 @@
       "id": "928a3f45-7eec-474a-ab07-90736feb7ace",
       "labels": [
         "sc:Dataset"
-      ]
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "archivedAt": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace",
+        "citeAs": "",
+        "conformsTo": "",
+        "country": "GR",
+        "datePublished": "24-05-2025",
+        "description": "Kyonos electricity",
+        "dg:fieldOfScience": [
+          "OTHER ENGINEERING AND TECHNOLOGIES"
+        ],
+        "dg:keywords": [
+          "dev",
+          "keyword"
+        ],
+        "headline": "Kyonos electricity data.",
+        "inLanguage": [
+          "el"
+        ],
+        "license": "Public Domain",
+        "name": "kyonos_electricity",
+        "status": "ready",
+        "url": "",
+        "version": ""
+      }
     },
     {
       "id": "36f74548-0f4f-47c7-bfdf-6502e9fc0768",
@@ -116,28 +149,64 @@
       "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
       "labels": [
         "sc:Dataset"
-      ]
+      ],
+      "properties": {
+        "@type": "sc:Dataset",
+        "country": "GR",
+        "datePublished": "24-05-2025",
+        "description": "Temporary dataset created after a query",
+        "dg:fieldOfScience": [
+          "EARTH AND RELATED ENVIRONMENTAL SCIENCES"
+        ],
+        "dg:keywords": [
+          "dev",
+          "keyword"
+        ],
+        "headline": "Output of a query",
+        "inLanguage": [
+          "en"
+        ],
+        "license": "Public Domain",
+        "name": "output",
+        "status": "staged"
+      }
     },
     {
       "id": "91c383d9-bfdb-4d1e-bd9f-4164a30dc834",
       "labels": [
         "dg:DatabaseConnection",
         "RelationalDatabase"
-      ]
+      ],
+      "properties": {
+        "@type": "dg:DatabaseConnection",
+        "databaseName": "ds_era5_land",
+        "encodingFormat": "text/sql",
+        "name": "ds_era5_land"
+      }
     },
     {
       "id": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
       "labels": [
         "cr:FileObject",
         "RelationalDatabase"
-      ]
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentUrl": "s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace/kyonos_electricity",
+        "encodingFormat": "text/sql"
+      }
     },
     {
       "id": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
       "labels": [
         "cr:FileObject",
         "RelationalDatabase"
-      ]
+      ],
+      "properties": {
+        "@type": "cr:FileObject",
+        "contentUrl": "s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768/crete_electricity",
+        "encodingFormat": "text/sql"
+      }
     },
     {
       "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
