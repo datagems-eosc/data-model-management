@@ -65,6 +65,7 @@
         ],
         "properties": {
           "description": "Analytical Pattern to retrieve a list of datasets",
+          "endTime": "10:00:05",
           "name": "Retrieve Datasets AP",
           "process": "cross_dataset_discovery",
           "publishedDate": "2025-06-30",

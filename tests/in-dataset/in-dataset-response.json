@@ -23,13 +23,6 @@
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
       },
       {
-        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
-        "labels": [
-          "distribution"
-        ],
-        "to": "7784bb29-28a3-406e-a571-e1ebdde7d368"
-      },
-      {
         "from": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
         "labels": [
           "distribution"
@@ -51,9 +44,9 @@
         "to": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
       },
       {
-        "from": "7784bb29-28a3-406e-a571-e1ebdde7d368",
+        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
-          "contained_in"
+          "TBD"
         ],
         "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
       }
@@ -83,7 +76,7 @@
         ],
         "properties": {
           "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
-          "endTime": "10:00:00",
+          "endTime": "10:00:05",
           "name": "In-Dataset Discovery Temperature",
           "publishedDate": "2025-06-30",
           "startTime": "10:00:00"
@@ -136,12 +129,6 @@
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "sc:Dataset"
-        ]
-      },
-      {
-        "id": "7784bb29-28a3-406e-a571-e1ebdde7d368",
-        "labels": [
-          "cr:FileObject"
         ]
       },
       {
