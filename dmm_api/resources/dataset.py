@@ -916,10 +916,6 @@ async def update_dataset(ap_payload: APRequest):
         for node in filtered_nodes:
             node_id = node["id"]
             is_dataset = "sc:Dataset" in node.get("labels", [])
-            in_existing = node_id in existing_nodes_map
-            print(
-                f"[DEBUG] node={node_id} is_dataset={is_dataset} in_existing={in_existing}"
-            )
 
             if node_id in existing_nodes_map:
                 # Node exists - check if update is needed
