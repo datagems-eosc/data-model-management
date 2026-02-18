@@ -104,8 +104,8 @@
           "sc:Dataset"
         ],
         "properties": {
-          "archivedAt": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
-          "description": "Temporary dataset created after a query"
+          "description": "Temporary dataset created after a query",
+          "sc:archivedAt": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
         }
       },
       {
