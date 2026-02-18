@@ -175,6 +175,7 @@
     {
       "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
       "labels": [
+        "Statistics",
         "dg:ColumnStatistics"
       ],
       "properties": {
