@@ -17,7 +17,7 @@
     {
       "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
       "labels": [
-        "is_achieved"
+        "is_accomplished"
       ],
       "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90"
     },
@@ -50,11 +50,11 @@
         "Analytical_Pattern"
       ],
       "properties": {
-        "Description": "Analytical Pattern to update a dataset",
-        "Name": "Update Dataset AP",
-        "Process": "update",
-        "PublishedDate": "2025-12-09",
-        "StartTime": "10:00:00"
+        "description": "Analytical Pattern to update a dataset",
+        "name": "Update Dataset AP",
+        "process": "update",
+        "publishedDate": "2025-12-09",
+        "startTime": "10:00:00"
       }
     },
     {
@@ -63,13 +63,12 @@
         "DataModelManagement_Operator"
       ],
       "properties": {
-        "Description": "An operator to update a dataset into DataGEMS",
-        "Name": "Update Operator",
-        "PublishedDate": "2025-12-09",
-        "Software": {},
-        "StartTime": "10:00:00",
-        "Step": 1,
-        "command": "update"
+        "command": "update",
+        "description": "An operator to update a dataset into DataGEMS",
+        "name": "Update Operator",
+        "publishedDate": "2025-12-09",
+        "startTime": "10:00:00",
+        "step": 1
       }
     },
     {
@@ -122,8 +121,8 @@
         "Task"
       ],
       "properties": {
-        "Description": "Task to update a dataset",
-        "Name": "Dataset Updating Task"
+        "description": "Task to update a dataset",
+        "name": "Dataset Updating Task"
       }
     }
   ]
