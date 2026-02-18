@@ -1053,10 +1053,20 @@ async def update_dataset(ap_payload: APRequest):
 
         message = ", ".join(summary_parts)
 
+        # Build AP response, injecting dg:status into Dataset nodes if RecordSet is present
+        ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
+        if has_record_set:
+            for node in ap_data["nodes"]:
+                if "sc:Dataset" in node.get("labels", []):
+                    node.setdefault("properties", {})["dg:status"] = (
+                        DatasetState.Ready.value
+                    )
+
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Dataset update completed: {message}",
-            ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+            # ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+            ap=ap_data,
         )
 
 
