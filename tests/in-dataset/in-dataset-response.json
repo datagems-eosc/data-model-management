@@ -27,7 +27,7 @@
         "labels": [
           "distribution"
         ],
-        "to": "475e6aa3-9c56-4360-aace-631888242921s"
+        "to": "475e6aa3-9c56-4360-aace-631888242921"
       },
       {
         "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
@@ -109,7 +109,7 @@
         }
       },
       {
-        "id": "475e6aa3-9c56-4360-aace-631888242921s",
+        "id": "475e6aa3-9c56-4360-aace-631888242921",
         "labels": [
           "Data",
           "CSV",
@@ -117,7 +117,7 @@
         ],
         "properties": {
           "contentSize": "50 B",
-          "contentUrl": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8/475e6aa3-9c56-4360-aace-631888242921s",
+          "contentUrl": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8/475e6aa3-9c56-4360-aace-631888242921",
           "description": "Mean temperature in Zurich for 2020",
           "encodingFormat": "application/x-ipynb+json",
           "name": "mean-temperature-Zurich-2020",
