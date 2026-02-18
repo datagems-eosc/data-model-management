@@ -909,13 +909,27 @@ async def update_dataset(ap_payload: APRequest):
             )
 
         # Step 2: Categorize nodes based on existence and changes
+        has_record_set = any(
+            "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
+        )
+
         for node in filtered_nodes:
             node_id = node["id"]
+            is_dataset = "sc:Dataset" in node.get("labels", [])
+            in_existing = node_id in existing_nodes_map
+            print(
+                f"[DEBUG] node={node_id} is_dataset={is_dataset} in_existing={in_existing}"
+            )
 
             if node_id in existing_nodes_map:
                 # Node exists - check if update is needed
                 moma_node = existing_nodes_map[node_id]
                 has_changes, updated_props = compare_node_properties(node, moma_node)
+
+                # If RecordSet is present, force status to 'ready' on Dataset nodes
+                if has_record_set and is_dataset:
+                    updated_props["dg:status"] = DatasetState.Ready.value
+                    has_changes = True
 
                 if has_changes:
                     nodes_to_update.append(
@@ -926,7 +940,12 @@ async def update_dataset(ap_payload: APRequest):
                     )
             else:
                 # Node doesn't exist - prepare for creation
-                nodes_to_create.append(node)
+                node_to_create = node.copy()
+                if has_record_set and is_dataset:
+                    node_to_create.setdefault("properties", {})["dg:status"] = (
+                        DatasetState.Ready.value
+                    )
+                nodes_to_create.append(node_to_create)
 
         # Step 3: Create new nodes if any
         if nodes_to_create:
@@ -1030,6 +1049,8 @@ async def update_dataset(ap_payload: APRequest):
             summary_parts.append(f"{len(nodes_to_update)} node(s) updated")
         if edges_to_create:
             summary_parts.append(f"{len(edges_to_create)} edge(s) created")
+        if has_record_set:
+            summary_parts.append("dataset status set to 'ready'")
 
         if not summary_parts:
             summary_parts.append("No changes detected")
