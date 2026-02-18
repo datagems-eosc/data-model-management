@@ -3,7 +3,7 @@
     {
       "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
       "labels": [
-        "consistOf"
+        "consist_of"
       ],
       "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
     },
@@ -37,7 +37,7 @@
     {
       "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
       "labels": [
-        "isAccomplished"
+        "is_accomplished"
       ],
       "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf"
     },
@@ -51,7 +51,7 @@
     {
       "from": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
       "labels": [
-        "containedIn"
+        "contained_in"
       ],
       "to": "91c383d9-bfdb-4d1e-bd9f-4164a30dc834"
     },
@@ -74,7 +74,7 @@
     {
       "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
       "labels": [
-        "analyticalPattern"
+        "Analytical_Pattern"
       ],
       "properties": {
         "Description": "Analytical Pattern to query a dataset",
