@@ -571,7 +571,7 @@ async def register_dataset(ap_payload: APRequest):
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put("/dataset/load", response_model=APSuccessEnvelope)
-async def load_dataset(ap_payload: APRequest):
+async def load_dataset(ap_payload: APRequest, force: bool = Query(False)):
     """Move dataset files from scratchpad to permanent storage and update Neo4j"""
     DATASET_DIR = os.getenv("DATASET_DIR")
 
@@ -674,11 +674,15 @@ async def load_dataset(ap_payload: APRequest):
             )
 
         if target_path.exists():
-            raise FileExistsError(
-                f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
-            )
-
-        shutil.move(str(source_path), str(target_path))
+            # If force is True and source and target resolve to the same path, skip the move
+            if force and source_path.resolve() == target_path.resolve():
+                pass
+            else:
+                raise FileExistsError(
+                    f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
+                )
+        else:
+            shutil.move(str(source_path), str(target_path))
         new_path = f"s3://dataset/{dataset_id}"
 
     except FileNotFoundError as e:
