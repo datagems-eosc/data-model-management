@@ -207,6 +207,12 @@ To move a dataset from the scratchpad to the permanent storage location:
 curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
 ```
 
+Optional query parameter:
+- `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
+```bash
+curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" | python -m json.tool
+```
+
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
 ```json
 {
@@ -296,7 +302,6 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
 ```
 
 >  Note: the endpoint will return an AP with the same `DataModelManagement_Operator` as received in input with an updated `archivedAt` attribute of the dataset node pointing to the new location.
-
 
 ### 4) Update a Dataset
 
@@ -398,7 +403,7 @@ This updates the dataset with the light profile. The API returns:
                 "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
                 "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
                 "labels": [
-                    "is_achieved"
+                    "is_accomplished"
                 ]
             },
             {
@@ -1080,7 +1085,7 @@ This query two dataset properties and creates a new dataset from the output. The
             "from":"474c2c12-4185-42a0-9e79-38af377bdcad",
             "to":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
             "labels":[
-               "is_achieved"
+               "is_accomplished"
             ]
          },
          {
