@@ -6,65 +6,54 @@ from dmm_api.tools.AP.parse_AP import APRequest, json_to_graph
 
 def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
     G_load = json_to_graph(ap_payload)
-
     user_node = None
     dataset_node = None
-
     for node_id, attrs in G_load.nodes(data=True):
         if "User" in attrs.get("labels", []):
             user_node = (node_id, attrs)
         elif "sc:Dataset" in attrs.get("labels", []):
             dataset_node = (node_id, attrs)
-
     if not user_node or not dataset_node:
         raise ValueError("Required user or dataset information not found in AP payload")
-
     dataset_node[1]["properties"]["sc:archivedAt"] = new_path
     dataset_node[1]["properties"]["dg:status"] = "loaded"
-
     ap_id = str(uuid.uuid4())
     operator_id = str(uuid.uuid4())
     task_id = str(uuid.uuid4())
-
     G_update = nx.MultiDiGraph()
-
     G_update.add_node(
         ap_id,
         labels=["Analytical_Pattern"],
         properties={
-            "Description": "Analytical Pattern to update a dataset",
-            "Name": "Update Dataset AP",
-            "Process": "update",
-            "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
-            "StartTime": datetime.now().strftime("%H:%M:%S"),
+            "description": "Analytical Pattern to update a dataset",
+            "name": "Update Dataset AP",
+            "process": "update",
+            "publishedDate": datetime.now().strftime("%Y-%m-%d"),
+            "startTime": datetime.now().strftime("%H:%M:%S"),
         },
     )
-
     G_update.add_node(
         operator_id,
         labels=["DataModelManagement_Operator"],
         properties={
-            "Description": "An operator to update a dataset into DataGEMS",
-            "Name": "Update Operator",
+            "description": "An operator to update a dataset into DataGEMS",
+            "name": "Update Operator",
             "command": "update",
-            "PublishedDate": datetime.now().strftime("%Y-%m-%d"),
-            "StartTime": datetime.now().strftime("%H:%M:%S"),
-            "Step": 1,
+            "publishedDate": datetime.now().strftime("%Y-%m-%d"),
+            "startTime": datetime.now().strftime("%H:%M:%S"),
+            "step": 1,
         },
     )
-
     G_update.add_node(dataset_node[0], **dataset_node[1])
     G_update.add_node(user_node[0], **user_node[1])
-
     G_update.add_node(
         task_id,
         labels=["Task"],
         properties={
-            "Description": "Task to update a dataset",
-            "Name": "Dataset Updating Task",
+            "description": "Task to update a dataset",
+            "name": "Dataset Updating Task",
         },
     )
-
     edges = [
         (ap_id, operator_id, {"labels": ["consist_of"]}),
         (operator_id, dataset_node[0], {"labels": ["input"]}),
@@ -72,9 +61,7 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
         (task_id, ap_id, {"labels": ["is_achieved"]}),
         (user_node[0], task_id, {"labels": ["request"]}),
     ]
-
     G_update.add_edges_from(edges)
-
     update_json = {
         "nodes": [
             {
@@ -89,7 +76,6 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
             for u, v, data in G_update.edges(data=True)
         ],
     }
-
     return APRequest(**update_json)
 
 

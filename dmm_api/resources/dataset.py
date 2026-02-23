@@ -31,6 +31,10 @@ from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 
+class WrappedAPRequest(BaseModel):
+    ap: APRequest
+
+
 class APSuccessEnvelope(BaseModel):
     code: int
     message: str
@@ -437,13 +441,14 @@ async def get_dataset(dataset_id: str):
 
 
 @router.post("/dataset/register", response_model=APSuccessEnvelope)
-async def register_dataset(ap_payload: APRequest):
+async def register_dataset(wrapped: WrappedAPRequest):
     """
     Register a new dataset in Neo4j by:
     1. Extracting Dataset/FileObject/RecordSet nodes from AP
     2. Checking if they already exist with 'staged' status
     3. Creating new nodes and edges using addMoMaNodes
     """
+    ap_payload = wrapped.ap
 
     try:
         # Extract only Dataset nodes
@@ -571,9 +576,10 @@ async def register_dataset(ap_payload: APRequest):
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put("/dataset/load", response_model=APSuccessEnvelope)
-async def load_dataset(ap_payload: APRequest, force: bool = Query(False)):
+async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
     """Move dataset files from scratchpad to permanent storage and update Neo4j"""
     DATASET_DIR = os.getenv("DATASET_DIR")
+    ap_payload = wrapped.ap
 
     try:
         # Extract only Dataset nodes from AP
@@ -721,7 +727,7 @@ async def load_dataset(ap_payload: APRequest, force: bool = Query(False)):
     # Update the dataset metadata in Neo4j
     try:
         update_ap = generate_update_AP(ap_payload, new_path)
-        await update_dataset(update_ap)
+        await update_dataset(WrappedAPRequest(ap=update_ap))
 
     except HTTPException as exc:
         # Rollback: Move file back to original location
@@ -805,13 +811,14 @@ async def load_dataset(ap_payload: APRequest, force: bool = Query(False)):
 
 
 @router.put("/dataset/update", response_model=APSuccessEnvelope)
-async def update_dataset(ap_payload: APRequest):
+async def update_dataset(wrapped: WrappedAPRequest):
     """
     Update datasets in Neo4j by:
     1. Extracting Dataset node IDs from AP
     2. Fetching complete dataset subgraphs from MoMa
     3. Creating new nodes/edges or updating existing ones
     """
+    ap_payload = wrapped.ap
     try:
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
 
@@ -1075,9 +1082,10 @@ async def update_dataset(ap_payload: APRequest):
 
 
 @router.post("/polyglot/query", response_model=APSuccessEnvelope)
-async def execute_query(ap_payload: APRequest):
+async def execute_query(wrapped: WrappedAPRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
+        ap_payload = wrapped.ap
         query_info = extract_query_from_AP(ap_payload)
         software = query_info.get("software")
         query_filled = query_info.get("query_filled")
