@@ -69,6 +69,7 @@
           "country": "CH",
           "datePublished": "2024-12-09",
           "description": "Zoo animal species data",
+          "dg:doi": "10.1234/zoo-dataset",
           "dg:fieldOfScience": [
             "BIOLOGICAL SCIENCES"
           ],

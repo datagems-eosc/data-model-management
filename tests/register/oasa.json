@@ -69,6 +69,7 @@
           "country": "PT",
           "datePublished": "2025-05-24",
           "description": "Subway data",
+          "dg:doi": "10.1234/oasa-dataset",
           "dg:fieldOfScience": [
             "CIVIL ENGINEERING"
           ],
