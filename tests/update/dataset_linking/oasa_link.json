@@ -9,7 +9,7 @@
         "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
       },
       {
-        "from": "c893daaf-680f-4947-88e5-03fd61900795",
+        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
         "labels": [
           "input"
         ],
@@ -30,18 +30,18 @@
         "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
       },
       {
-        "from": "c893daaf-680f-4947-88e5-03fd61900795",
+        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
         "labels": [
-          "distribution"
+          "link"
         ],
-        "to": "883b5c9b-408a-4dd8-8619-e34e664b9920"
+        "to": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9"
       },
       {
-        "from": "c893daaf-680f-4947-88e5-03fd61900795",
+        "from": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
         "labels": [
-          "distribution"
+          "link"
         ],
-        "to": "f5234567-890a-bcde-f012-3456789abcde"
+        "to": "2de8ac9e-7985-49de-a757-00fc1a6234be"
       }
     ],
     "nodes": [
@@ -54,7 +54,7 @@
           "description": "Analytical Pattern to update a dataset",
           "name": "Update Dataset AP",
           "process": "update",
-          "publishedDate": "2025-12-09",
+          "publishedDate": "2025-06-30",
           "startTime": "10:00:00"
         }
       },
@@ -65,49 +65,34 @@
         ],
         "properties": {
           "command": "update",
-          "description": "An operator to update a dataset into DataGEMS",
+          "description": "An operator to update a dataset in DataGEMS",
           "name": "Update Operator",
-          "publishedDate": "2025-12-09",
+          "publishedDate": "2025-06-30",
           "startTime": "10:00:00",
           "step": 1
         }
       },
       {
-        "id": "c893daaf-680f-4947-88e5-03fd61900795",
+        "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
         "labels": [
           "sc:Dataset"
         ]
       },
       {
-        "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+        "id": "2de8ac9e-7985-49de-a757-00fc1a6234be",
         "labels": [
-          "CSV",
-          "cr:FileObject"
-        ],
-        "properties": {
-          "contentSize": "2407043 B",
-          "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
-          "description": "",
-          "encodingFormat": "text/csv",
-          "name": "zoo-2024.csv",
-          "sha256": "6df8c700f8c47533c567b7b3108f8f6ddf807474260bcb576f626b72107fa3ad",
-          "type": "cr:FileObject"
-        }
+          "sc:Dataset"
+        ]
       },
       {
-        "id": "f5234567-890a-bcde-f012-3456789abcde",
+        "id": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
         "labels": [
-          "CSV",
-          "cr:FileObject"
+          "Dataset linking"
         ],
         "properties": {
-          "contentSize": "1500000 B",
-          "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
-          "description": "",
-          "encodingFormat": "text/csv",
-          "name": "zoo-metadata.csv",
-          "sha256": "7eg9d801g9d58644568c8c8c119g9g7eeg918585371ccd687g737d73208gb4be",
-          "type": "cr:FileObject"
+          "Status": "approved",
+          "Threshold": 0.8,
+          "score": 0.91
         }
       },
       {

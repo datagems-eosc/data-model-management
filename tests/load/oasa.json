@@ -1,87 +1,89 @@
 {
-  "edges": [
-    {
-      "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
-      "labels": [
-        "consist_of"
-      ],
-      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
-    },
-    {
-      "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-      "labels": [
-        "input"
-      ],
-      "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
-    },
-    {
-      "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
-      "labels": [
-        "is_accomplished"
-      ],
-      "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef"
-    },
-    {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "request"
-      ],
-      "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd"
-    }
-  ],
-  "nodes": [
-    {
-      "id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
-      "labels": [
-        "Analytical_Pattern"
-      ],
-      "properties": {
-        "description": "Analytical Pattern to load a dataset",
-        "name": "Load Dataset AP",
-        "process": "load",
-        "publishedDate": "2025-06-30",
-        "startTime": "10:00:00"
+  "ap": {
+    "edges": [
+      {
+        "from": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+      },
+      {
+        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "labels": [
+          "input"
+        ],
+        "to": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b"
+      },
+      {
+        "from": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+        "labels": [
+          "is_accomplished"
+        ],
+        "to": "c401292a-4c7a-4e7c-9856-682f626ee1ef"
+      },
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "a75097be-cd64-4942-bd2d-b2b6b399f7cd"
       }
-    },
-    {
-      "id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
-      "labels": [
-        "DataModelManagement_Operator"
-      ],
-      "properties": {
-        "command": "update",
-        "description": "An operator to load a dataset into s3/dataset",
-        "name": "Load Operator",
-        "publishedDate": "2025-06-30",
-        "startTime": "10:00:00",
-        "step": 1
+    ],
+    "nodes": [
+      {
+        "id": "c401292a-4c7a-4e7c-9856-682f626ee1ef",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern to load a dataset",
+          "name": "Load Dataset AP",
+          "process": "load",
+          "publishedDate": "2025-06-30",
+          "startTime": "10:00:00"
+        }
+      },
+      {
+        "id": "1c1373cc-2abb-4f1e-b1e7-43befbb6130b",
+        "labels": [
+          "DataModelManagement_Operator"
+        ],
+        "properties": {
+          "command": "update",
+          "description": "An operator to update a dataset into s3/dataset",
+          "name": "Load Operator",
+          "publishedDate": "2025-06-30",
+          "startTime": "10:00:00",
+          "step": 1
+        }
+      },
+      {
+        "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "labels": [
+          "sc:Dataset"
+        ],
+        "properties": {
+          "dg:status": "staged",
+          "sc:archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
+        }
+      },
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ]
+      },
+      {
+        "id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to change storage location of a dataset",
+          "name": "Dataset Loading Task"
+        }
       }
-    },
-    {
-      "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-      "labels": [
-        "sc:Dataset"
-      ],
-      "properties": {
-        "dg:status": "staged",
-        "sc:archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
-      }
-    },
-    {
-      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "User"
-      ]
-    },
-    {
-      "id": "a75097be-cd64-4942-bd2d-b2b6b399f7cd",
-      "labels": [
-        "Task"
-      ],
-      "properties": {
-        "description": "Task to change storage location of a dataset",
-        "name": "Dataset Loading Task"
-      }
-    }
-  ]
+    ]
+  }
 }

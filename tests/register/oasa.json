@@ -1,108 +1,110 @@
 {
-  "edges": [
-    {
-      "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": [
-        "consist_of"
-      ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
-    },
-    {
-      "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-      "labels": [
-        "input"
-      ],
-      "to": "69ce4693-e71e-4616-9320-037c90a88858"
-    },
-    {
-      "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
-      "labels": [
-        "is_accomplished"
-      ],
-      "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
-    },
-    {
-      "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "request"
-      ],
-      "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
-    }
-  ],
-  "nodes": [
-    {
-      "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-      "labels": [
-        "Analytical_Pattern"
-      ],
-      "properties": {
-        "description": "Analytical Pattern to register a dataset",
-        "name": "Register Dataset AP",
-        "process": "register",
-        "publishedDate": "2025-06-30",
-        "startTime": "10:00:00"
-      }
-    },
-    {
-      "id": "69ce4693-e71e-4616-9320-037c90a88858",
-      "labels": [
-        "DataModelManagement_Operator"
-      ],
-      "properties": {
-        "command": "create",
-        "description": "An operator to register a dataset into DataGEMS",
-        "name": "Register Operator",
-        "publishedDate": "2025-06-30",
-        "startTime": "10:00:00",
-        "step": 1
-      }
-    },
-    {
-      "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-      "labels": [
-        "sc:Dataset"
-      ],
-      "properties": {
-        "citeAs": "",
-        "conformsTo": "",
-        "country": "PT",
-        "datePublished": "2025-05-24",
-        "description": "Subway data",
-        "dg:fieldOfScience": [
-          "CIVIL ENGINEERING"
+  "ap": {
+    "edges": [
+      {
+        "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+        "labels": [
+          "consist_of"
         ],
-        "dg:headline": "Subway data.",
-        "dg:keywords": [
-          "dev",
-          "keyword"
+        "to": "69ce4693-e71e-4616-9320-037c90a88858"
+      },
+      {
+        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "labels": [
+          "input"
         ],
-        "dg:status": "staged",
-        "inLanguage": [
-          "el"
+        "to": "69ce4693-e71e-4616-9320-037c90a88858"
+      },
+      {
+        "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+        "labels": [
+          "is_accomplished"
         ],
-        "license": "Public Domain",
-        "name": "OASA Data",
-        "sc:archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
-        "type": "sc:Dataset",
-        "url": "",
-        "version": ""
+        "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
+      },
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
       }
-    },
-    {
-      "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-      "labels": [
-        "User"
-      ]
-    },
-    {
-      "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
-      "labels": [
-        "Task"
-      ],
-      "properties": {
-        "description": "Task to register a dataset",
-        "name": "Dataset Registering Task"
+    ],
+    "nodes": [
+      {
+        "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern to register a dataset",
+          "name": "Register Dataset AP",
+          "process": "register",
+          "publishedDate": "2025-06-30",
+          "startTime": "10:00:00"
+        }
+      },
+      {
+        "id": "69ce4693-e71e-4616-9320-037c90a88858",
+        "labels": [
+          "DataModelManagement_Operator"
+        ],
+        "properties": {
+          "command": "create",
+          "description": "An operator to register a dataset into DataGEMS",
+          "name": "Register Operator",
+          "publishedDate": "2025-06-30",
+          "startTime": "10:00:00",
+          "step": 1
+        }
+      },
+      {
+        "id": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "labels": [
+          "sc:Dataset"
+        ],
+        "properties": {
+          "citeAs": "",
+          "conformsTo": "",
+          "country": "PT",
+          "datePublished": "2025-05-24",
+          "description": "Subway data",
+          "dg:fieldOfScience": [
+            "CIVIL ENGINEERING"
+          ],
+          "dg:headline": "Subway data.",
+          "dg:keywords": [
+            "dev",
+            "keyword"
+          ],
+          "dg:status": "staged",
+          "inLanguage": [
+            "el"
+          ],
+          "license": "Public Domain",
+          "name": "OASA Data",
+          "sc:archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+          "type": "sc:Dataset",
+          "url": "",
+          "version": ""
+        }
+      },
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ]
+      },
+      {
+        "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to register a dataset",
+          "name": "Dataset Registering Task"
+        }
       }
-    }
-  ]
+    ]
+  }
 }
