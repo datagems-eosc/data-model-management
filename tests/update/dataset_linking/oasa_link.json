@@ -9,7 +9,7 @@
         "to": "24a62ae9-41a9-472d-9a8a-438f35937980"
       },
       {
-        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "from": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
         "labels": [
           "input"
         ],
@@ -30,11 +30,11 @@
         "to": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6"
       },
       {
-        "from": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+        "from": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
         "labels": [
           "link"
         ],
-        "to": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9"
+        "to": "056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
       },
       {
         "from": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
@@ -87,12 +87,12 @@
       {
         "id": "b5b8fe6b-55e0-4987-a8cf-5ee9f89f4ab9",
         "labels": [
-          "Dataset linking"
+          "dg:DatasetLinking"
         ],
         "properties": {
-          "Status": "approved",
-          "Threshold": 0.8,
-          "score": 0.91
+          "score": 0.91,
+          "status": "valid",
+          "threshold": 0.8
         }
       },
       {
