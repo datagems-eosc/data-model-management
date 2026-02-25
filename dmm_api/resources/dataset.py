@@ -72,6 +72,24 @@ class DatasetType(str, Enum):
     Column = "Column"
 
 
+class MimeType(str, Enum):
+    application_vnd_ms_excel = "application/vnd.ms-excel"
+    application_x_ipynb_json = "application/x-ipynb+json"
+    application_docx = "application/docx"
+    application_pptx = "application/pptx"
+    application_pdf = "application/pdf"
+    image_jpeg = "image/jpeg"
+    image_png = "image/png"
+    text_csv = "text/csv"
+    text_sql = "text/sql"
+    application_xlsx = (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    application_docx_ooxml = (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+
+
 class DatasetProperty(str, Enum):
     type = "type"
     name = "name"
@@ -96,25 +114,13 @@ class DatasetProperty(str, Enum):
     recordSet = "recordSet"  # Special value
 
 
+# TODO: add sorting by Dataset size
 class DatasetOrderBy(str, Enum):
     id = "id"
-    type = "type"
     name = "name"
-    archivedAt = "archivedAt"
-    description = "description"
-    conformsTo = "conformsTo"
-    citeAs = "citeAs"
     license = "license"
-    url = "url"
     version = "version"
-    headline = "headline"
-    keywords = "keywords"
-    fieldOfScience = "fieldOfScience"
-    inLanguage = "inLanguage"
-    country = "country"
     datePublished = "datePublished"
-    access = "access"
-    uploadedBy = "uploadedBy"
 
 
 class DatasetState(str, Enum):
@@ -315,20 +321,16 @@ async def dataset_home():
 @router.get("/dataset/search", response_model=DatasetsSuccessEnvelope)
 async def search_datasets(
     nodeIds: Optional[List[str]] = Query(
-        None,
-        description="Filter datasets by their UUIDs.",
+        None, description="Filter datasets by their UUIDs."
     ),
     properties: Optional[List[DatasetProperty]] = Query(
-        None,
-        description="List of Dataset properties to include.",
+        None, description="List of Dataset properties to include."
     ),
     types: Optional[List[DatasetType]] = Query(
-        None,
-        description="Filter datasets based on their types.",
+        None, description="Filter datasets based on their types."
     ),
     orderBy: Optional[List[DatasetOrderBy]] = Query(
-        None,
-        description="List of Dataset properties to sort results.",
+        None, description="List of Dataset properties to sort results."
     ),
     publishedDateFrom: Optional[date] = Query(
         None, description="Minimum published date (YYYY-MM-DD).", format="YYYY-MM-DD"
@@ -345,6 +347,16 @@ async def search_datasets(
     dataset_status: Optional[str] = Query(
         None,
         description="Optional dataset status to filter on. If not provided, returns all statuses.",
+    ),
+    offset: Optional[int] = Query(
+        None, description="Number of results to skip for pagination.", ge=0
+    ),
+    count: Optional[int] = Query(
+        None, description="Maximum number of results to return.", ge=1
+    ),
+    mimeTypes: Optional[List[MimeType]] = Query(
+        None,
+        description="Filter datasets by file MIME types (from FileObject encodingFormat).",
     ),
 ):
     url = f"{MOMA_URL}/getDatasets"
@@ -364,6 +376,12 @@ async def search_datasets(
     params["direction"] = direction
     if dataset_status is not None:
         params["status"] = dataset_status
+    if offset is not None:
+        params["offset"] = offset
+    if count is not None:
+        params["count"] = count
+    if mimeTypes:
+        params["mimeTypes"] = [m.value for m in mimeTypes]
 
     async with httpx.AsyncClient() as client:
         try:
@@ -379,7 +397,6 @@ async def search_datasets(
                 all_nodes = []
                 all_edges = []
 
-            # Group datasets by connected components
             datasets = group_datasets_by_components(all_nodes, all_edges)
 
             return DatasetsSuccessEnvelope(
