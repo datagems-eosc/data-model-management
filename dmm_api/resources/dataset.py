@@ -5,7 +5,16 @@ import os
 from pathlib import Path
 import shutil
 import duckdb
-from fastapi import APIRouter, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import (
+    APIRouter,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    status,
+)
 from fastapi.responses import JSONResponse
 import httpx
 from pydantic import BaseModel
@@ -39,6 +48,7 @@ class APSuccessEnvelope(BaseModel):
     code: int
     message: str
     ap: Dict[str, Any]
+    metadata: Optional[Dict[str, Any]] = None
 
 
 class DatasetSuccessEnvelope(BaseModel):
@@ -136,6 +146,20 @@ router = APIRouter()
 
 
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+CDD_URL = os.getenv("CDD_URL")
+IDD_URL = os.getenv("IDD_URL")
+
+
+EXTERNAL_SERVICES = {
+    "/cross-dataset-discovery/search": {
+        "url": f"{CDD_URL}/search",
+        "name": "Cross-Dataset Discovery",
+    },
+    "/in-dataset-discovery/text2sql": {
+        "url": f"{IDD_URL}/text2sql",
+        "name": "In-Dataset Discovery (text2sql)",
+    },
+}
 
 
 async def get_moma_object(
@@ -1223,3 +1247,52 @@ async def test_postgres_connection():
     finally:
         if con:
             con.close()
+
+
+@router.post("/cross-dataset-discovery/search", response_model=APSuccessEnvelope)
+@router.post("/in-dataset-discovery/text2geo", response_model=APSuccessEnvelope)
+@router.post("/in-dataset-discovery/text2sql", response_model=APSuccessEnvelope)
+async def execute_and_store(
+    request: Request, wrapped: WrappedAPRequest
+) -> APSuccessEnvelope:
+    """Generic handler: forward AP to the appropriate service, store it, return full response."""
+    service = EXTERNAL_SERVICES[request.url.path]
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                service["url"],
+                json=wrapped.ap.model_dump(by_alias=True, exclude_defaults=True),
+            )
+            response.raise_for_status()
+            data = response.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorEnvelope(
+                code=status.HTTP_502_BAD_GATEWAY,
+                error=f"{service['name']} returned an error: {e.response.status_code}",
+            ).model_dump(),
+        )
+    except httpx.RequestError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=ErrorEnvelope(
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                error=f"Failed to connect to {service['name']}",
+            ).model_dump(),
+        )
+    ap, metadata = data.get("ap", {}), data.get("metadata", {})
+
+    try:
+        print(f"[{service['name']}] Storing AP in AP Storage:")
+        print(json.dumps(ap, indent=2))
+        print(f"[{service['name']}] AP stored successfully.")
+    except Exception as e:
+        print(f"[{service['name']}] AP Storage failed: {e}")
+
+    return APSuccessEnvelope(
+        code=status.HTTP_200_OK,
+        message=f"{service['name']} completed successfully",
+        ap=ap,
+        metadata=metadata,
+    )
