@@ -51,6 +51,9 @@ class DatasetsSuccessEnvelope(BaseModel):
     code: int
     message: str
     datasets: List[Dict[str, Any]]
+    offset: Optional[int] = None
+    count: Optional[int] = None
+    total: Optional[int] = None
 
 
 class ErrorEnvelope(BaseModel):
@@ -387,9 +390,9 @@ async def search_datasets(
         try:
             response = await client.get(url, params=params)
             response.raise_for_status()
+
             data = response.json()
             metadata = data.get("metadata")
-
             if isinstance(metadata, dict):
                 all_nodes = metadata.get("nodes", [])
                 all_edges = metadata.get("edges", [])
@@ -397,13 +400,20 @@ async def search_datasets(
                 all_nodes = []
                 all_edges = []
 
-            datasets = group_datasets_by_components(all_nodes, all_edges)
+            response_offset = data.get("offset")
+            response_count = data.get("count")
+            response_total = data.get("total")
 
+            datasets = group_datasets_by_components(all_nodes, all_edges)
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message="Datasets retrieved successfully",
                 datasets=datasets,
+                offset=response_offset,
+                count=response_count,
+                total=response_total,
             )
+
         except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
