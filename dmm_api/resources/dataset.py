@@ -1250,7 +1250,6 @@ async def test_postgres_connection():
 
 
 @router.post("/cross-dataset-discovery/search", response_model=APSuccessEnvelope)
-@router.post("/in-dataset-discovery/text2geo", response_model=APSuccessEnvelope)
 @router.post("/in-dataset-discovery/text2sql", response_model=APSuccessEnvelope)
 async def execute_and_store(
     request: Request, wrapped: WrappedAPRequest
