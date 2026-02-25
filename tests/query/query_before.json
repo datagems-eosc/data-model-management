@@ -78,11 +78,11 @@
           "Analytical_Pattern"
         ],
         "properties": {
-          "Description": "Analytical Pattern to query a dataset",
-          "Name": "Query Dataset AP",
-          "Process": "query",
-          "PublishedDate": "2025-06-30",
-          "StartTime": "10:00:00"
+          "description": "Analytical Pattern to query a dataset",
+          "name": "Query Dataset AP",
+          "process": "query",
+          "publishedDate": "2025-06-30",
+          "startTime": "10:00:00"
         }
       },
       {
@@ -91,14 +91,14 @@
           "SQL_Operator"
         ],
         "properties": {
-          "Description": "Query executed via DuckDB on two datasets",
-          "Name": "DuckDB Query Operator",
-          "PublishedDate": "2025-06-30",
-          "Query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
-          "StartTime": "10:00:00",
-          "Type": "SQL Query",
           "command": "query",
-          "queryType": "SELECT"
+          "description": "Query executed via DuckDB on two datasets",
+          "name": "DuckDB Query Operator",
+          "publishedDate": "2025-06-30",
+          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
+          "queryType": "SELECT",
+          "startTime": "10:00:00",
+          "type": "SQL Query"
         }
       },
       {
@@ -152,8 +152,8 @@
           "Task"
         ],
         "properties": {
-          "Description": "Task to query a dataset",
-          "Name": "Dataset Querying Task"
+          "description": "Task to query a dataset",
+          "name": "Dataset Querying Task"
         }
       }
     ]
