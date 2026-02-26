@@ -86,7 +86,7 @@ The API returns:
     "dataset": {
         "id": "c893daaf-680f-4947-88e5-03fd61900795",
         "name": "zoo.csv",
-        "sc:archivedAt": "/s3/scratchpad/c893daaf-680f-4947-88e5-03fd61900795"
+        "archivedAt": "/s3/scratchpad/c893daaf-680f-4947-88e5-03fd61900795"
     }
 }
 ```
@@ -246,8 +246,8 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                     "sc:Dataset"
                 ],
                 "properties": {
-                    "dg:status": "staged",
-                    "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+                    "status": "staged",
+                    "archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
                 }
             },
             {
@@ -515,7 +515,7 @@ This updates the dataset with the heavy profile. The API returns:
                     "dg:ColumnStatistics"
                 ],
                 "properties": {
-                    "dg:histogram": null,
+                    "histogram": null,
                     ...
                 }
             },
@@ -872,7 +872,7 @@ Parameters:
 - status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=sc:archivedAt" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt" | python -m json.tool
 ```
 
 The API returns:
@@ -889,7 +889,7 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "sc:archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
+                        "archivedAt": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa"
                     }
                 }
             ],
@@ -903,7 +903,7 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "sc:archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
+                        "archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
                     }
                 }
             ],
