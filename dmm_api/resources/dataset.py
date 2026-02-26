@@ -106,7 +106,7 @@ class MimeType(str, Enum):
 class DatasetProperty(str, Enum):
     type = "type"
     name = "name"
-    archivedAt = "sc:archivedAt"
+    archivedAt = "archivedAt"
     description = "description"
     conformsTo = "conformsTo"
     citeAs = "citeAs"
@@ -330,7 +330,7 @@ async def data_workflow(
     return DatasetSuccessEnvelope(
         code=status.HTTP_201_CREATED,
         message=f"Dataset {file_name} uploaded successfully with ID {dataset_id} at {s3path}",
-        dataset={"id": dataset_id, "name": file_name, "sc:archivedAt": s3path},
+        dataset={"id": dataset_id, "name": file_name, "archivedAt": s3path},
     )
 
 
@@ -528,7 +528,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
 
-        # TODO: Validate that the file referenced in dataset's 'sc:archivedAt' property actually exists
+        # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
         # at the specified S3 path before registering the dataset. This should check that the path
         # is valid and the file is accessible to prevent registering datasets with missing files.
 
@@ -659,7 +659,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
         dataset_props = dataset_node.get("properties", {})
-        dataset_path = dataset_props.get("sc:archivedAt")
+        dataset_path = dataset_props.get("archivedAt")
         dataset_status = dataset_props.get("dg:status")
 
         if not dataset_path:
@@ -836,7 +836,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         # Reconstruct dataset for catalogue
         dataset_for_catalogue = {
             "@id": dataset_id,
-            "sc:archivedAt": new_path,
+            "archivedAt": new_path,
             **dataset_props,
         }
 

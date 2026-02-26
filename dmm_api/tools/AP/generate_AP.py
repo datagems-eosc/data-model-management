@@ -15,7 +15,7 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
             dataset_node = (node_id, attrs)
     if not user_node or not dataset_node:
         raise ValueError("Required user or dataset information not found in AP payload")
-    dataset_node[1]["properties"]["sc:archivedAt"] = new_path
+    dataset_node[1]["properties"]["archivedAt"] = new_path
     dataset_node[1]["properties"]["dg:status"] = "loaded"
     ap_id = str(uuid.uuid4())
     operator_id = str(uuid.uuid4())
