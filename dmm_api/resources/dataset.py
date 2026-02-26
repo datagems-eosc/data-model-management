@@ -112,17 +112,17 @@ class DatasetProperty(str, Enum):
     citeAs = "citeAs"
     license = "license"
     url = "url"
-    doi = "dg:doi"
+    doi = "doi"
     version = "version"
-    headline = "dg:headline"
-    keywords = "dg:keywords"
-    fieldOfScience = "dg:fieldOfScience"
+    headline = "headline"
+    keywords = "keywords"
+    fieldOfScience = "fieldOfScience"
     inLanguage = "inLanguage"
     country = "country"
     datePublished = "datePublished"
-    access = "dg:access"
-    uploadedBy = "dg:uploadedBy"
-    status = "dg:status"
+    access = "access"
+    uploadedBy = "uploadedBy"
+    status = "status"
     distribution = "distribution"  # Special value
     recordSet = "recordSet"  # Special value
 
@@ -565,7 +565,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
 
             if existing_dataset:
                 node_status = existing_dataset.get("properties", {}).get(
-                    "dg:status", "unknown"
+                    "status", "unknown"
                 )
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
@@ -660,7 +660,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         dataset_id = dataset_node.get("id")
         dataset_props = dataset_node.get("properties", {})
         dataset_path = dataset_props.get("archivedAt")
-        dataset_status = dataset_props.get("dg:status")
+        dataset_status = dataset_props.get("status")
 
         if not dataset_path:
             raise ValueError("Dataset 'archivedAt' property is missing")
@@ -986,7 +986,7 @@ async def update_dataset(wrapped: WrappedAPRequest):
 
                 # If RecordSet is present, force status to 'ready' on Dataset nodes
                 if has_record_set and is_dataset:
-                    updated_props["dg:status"] = DatasetState.Ready.value
+                    updated_props["status"] = DatasetState.Ready.value
                     has_changes = True
 
                 if has_changes:
@@ -1000,7 +1000,7 @@ async def update_dataset(wrapped: WrappedAPRequest):
                 # Node doesn't exist - prepare for creation
                 node_to_create = node.copy()
                 if has_record_set and is_dataset:
-                    node_to_create.setdefault("properties", {})["dg:status"] = (
+                    node_to_create.setdefault("properties", {})["status"] = (
                         DatasetState.Ready.value
                     )
                 nodes_to_create.append(node_to_create)
@@ -1115,12 +1115,12 @@ async def update_dataset(wrapped: WrappedAPRequest):
 
         message = ", ".join(summary_parts)
 
-        # Build AP response, injecting dg:status into Dataset nodes if RecordSet is present
+        # Build AP response, injecting status into Dataset nodes if RecordSet is present
         ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
         if has_record_set:
             for node in ap_data["nodes"]:
                 if "sc:Dataset" in node.get("labels", []):
-                    node.setdefault("properties", {})["dg:status"] = (
+                    node.setdefault("properties", {})["status"] = (
                         DatasetState.Ready.value
                     )
 

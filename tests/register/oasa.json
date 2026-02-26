@@ -64,27 +64,27 @@
           "sc:Dataset"
         ],
         "properties": {
+          "archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
           "citeAs": "",
           "conformsTo": "",
           "country": "PT",
           "datePublished": "2025-05-24",
           "description": "Subway data",
-          "dg:doi": "10.1234/oasa-dataset",
-          "dg:fieldOfScience": [
+          "doi": "10.1234/oasa-dataset",
+          "fieldOfScience": [
             "CIVIL ENGINEERING"
           ],
-          "dg:headline": "Subway data.",
-          "dg:keywords": [
-            "dev",
-            "keyword"
-          ],
-          "dg:status": "staged",
+          "headline": "Subway data.",
           "inLanguage": [
             "el"
           ],
+          "keywords": [
+            "dev",
+            "keyword"
+          ],
           "license": "Public Domain",
           "name": "OASA Data",
-          "sc:archivedAt": "s3://scratchpad/056ff7ea-ac5a-4496-abc5-ad254ddf58fa",
+          "status": "staged",
           "type": "sc:Dataset",
           "url": "",
           "version": ""
