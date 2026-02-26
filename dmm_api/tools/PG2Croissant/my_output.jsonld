@@ -1,11 +1,73 @@
 {
-  "@context": "https://schema.org/",
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "access": "dg:access",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "dg": "http://datagems.eu/TBD/",
+    "doi": "dg:doi",
+    "examples": {
+      "@id": "cr:examples",
+      "@type": "@json"
+    },
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fieldOfScience": "dg:fieldOfScience",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "histogram": "dg:histogram",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "max": "dg:max",
+    "md5": "cr:md5",
+    "mean": "dg:mean",
+    "median": "dg:median",
+    "min": "dg:min",
+    "missingCount": "dg:missingCount",
+    "missingPercentage": "dg:missingPercentage",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "rai": "http://mlcommons.org/croissant/RAI/",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "rowCount": "dg:rowCount",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "standardDeviation": "dg:standardDeviation",
+    "statistics": "dg:statistics",
+    "status": "dg:status",
+    "subField": "cr:subField",
+    "transform": "cr:transform",
+    "uniqueCount": "dg:uniqueCount",
+    "uploadedBy": "dg:uploadedBy",
+    "wd": "https://www.wikidata.org/wiki/"
+  },
   "@type": "Dataset",
   "@id": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
   "distribution": [
     {
       "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8",
-      "type": "cr:FileObject",
+      "@type": "cr:FileObject",
       "name": "zoo-2024.csv",
       "description": "",
       "contentSize": "11132 B",
@@ -17,7 +79,7 @@
   "recordSets": [
     {
       "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
-      "type": "cr:RecordSet",
+      "@type": "cr:RecordSet",
       "name": "zoo-2024",
       "description": "",
       "examples": "{\\u00ef\\u00bb\\u00bf",
@@ -184,7 +246,7 @@
       "fields": [
         {
           "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "description": "",
           "dataType": "sc:Text",
@@ -213,7 +275,7 @@
         },
         {
           "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Art",
           "description": "",
           "dataType": "sc:Text",
@@ -242,7 +304,7 @@
         },
         {
           "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "wissenschaftlicher Name",
           "description": "",
           "dataType": "sc:Text",
@@ -271,7 +333,7 @@
         },
         {
           "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Anzahl",
           "description": "",
           "dataType": "sc:Integer",
@@ -300,7 +362,7 @@
         },
         {
           "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Kommune",
           "description": "",
           "dataType": "sc:Text",
@@ -331,7 +393,7 @@
     },
     {
       "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
-      "type": "cr:RecordSet",
+      "@type": "cr:RecordSet",
       "name": "zoo-2024",
       "description": "",
       "examples": "{\\u00ef\\u00bb\\u00bf",
@@ -498,7 +560,7 @@
       "fields": [
         {
           "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "description": "",
           "dataType": "sc:Text",
@@ -527,7 +589,7 @@
         },
         {
           "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Art",
           "description": "",
           "dataType": "sc:Text",
@@ -556,7 +618,7 @@
         },
         {
           "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "wissenschaftlicher Name",
           "description": "",
           "dataType": "sc:Text",
@@ -585,7 +647,7 @@
         },
         {
           "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Anzahl",
           "description": "",
           "dataType": "sc:Integer",
@@ -614,7 +676,7 @@
         },
         {
           "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Kommune",
           "description": "",
           "dataType": "sc:Text",
@@ -645,7 +707,7 @@
     },
     {
       "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
-      "type": "cr:RecordSet",
+      "@type": "cr:RecordSet",
       "name": "zoo-2024",
       "description": "",
       "examples": "{\\u00ef\\u00bb\\u00bf",
@@ -812,7 +874,7 @@
       "fields": [
         {
           "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "description": "",
           "dataType": "sc:Text",
@@ -841,7 +903,7 @@
         },
         {
           "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Art",
           "description": "",
           "dataType": "sc:Text",
@@ -870,7 +932,7 @@
         },
         {
           "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "wissenschaftlicher Name",
           "description": "",
           "dataType": "sc:Text",
@@ -899,7 +961,7 @@
         },
         {
           "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Anzahl",
           "description": "",
           "dataType": "sc:Integer",
@@ -928,7 +990,7 @@
         },
         {
           "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Kommune",
           "description": "",
           "dataType": "sc:Text",
@@ -959,7 +1021,7 @@
     },
     {
       "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
-      "type": "cr:RecordSet",
+      "@type": "cr:RecordSet",
       "name": "zoo-2024",
       "description": "",
       "examples": "{\\u00ef\\u00bb\\u00bf",
@@ -1126,7 +1188,7 @@
       "fields": [
         {
           "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "description": "",
           "dataType": "sc:Text",
@@ -1155,7 +1217,7 @@
         },
         {
           "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Art",
           "description": "",
           "dataType": "sc:Text",
@@ -1184,7 +1246,7 @@
         },
         {
           "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "wissenschaftlicher Name",
           "description": "",
           "dataType": "sc:Text",
@@ -1213,7 +1275,7 @@
         },
         {
           "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Anzahl",
           "description": "",
           "dataType": "sc:Integer",
@@ -1242,7 +1304,7 @@
         },
         {
           "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Kommune",
           "description": "",
           "dataType": "sc:Text",
@@ -1273,7 +1335,7 @@
     },
     {
       "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
-      "type": "cr:RecordSet",
+      "@type": "cr:RecordSet",
       "name": "zoo-2024",
       "description": "",
       "examples": "{\\u00ef\\u00bb\\u00bf",
@@ -1440,7 +1502,7 @@
       "fields": [
         {
           "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "\u00ef\u00bb\u00bfKategorie",
           "description": "",
           "dataType": "sc:Text",
@@ -1469,7 +1531,7 @@
         },
         {
           "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Art",
           "description": "",
           "dataType": "sc:Text",
@@ -1498,7 +1560,7 @@
         },
         {
           "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "wissenschaftlicher Name",
           "description": "",
           "dataType": "sc:Text",
@@ -1527,7 +1589,7 @@
         },
         {
           "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Anzahl",
           "description": "",
           "dataType": "sc:Integer",
@@ -1556,7 +1618,7 @@
         },
         {
           "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
-          "type": "cr:Field",
+          "@type": "cr:Field",
           "name": "Kommune",
           "description": "",
           "dataType": "sc:Text",
