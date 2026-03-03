@@ -74,6 +74,21 @@ async def api_home():
                 "methods": ["GET"],
                 "url": "/api/v1/swagger",
             },
+            "convertPG2LightCroissant": {
+                "description": "Convert a light profile to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/convertPG2LightCroissant",
+            },
+            "convertPG2HeavyCroissant": {
+                "description": "Convert a heavy profile to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/convertPG2HeavyCroissant",
+            },
+            "convertPG2DatasetCroissant": {
+                "description": "Convert a dataset to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/convertPG2DatasetCroissant",
+            }
         },
     }
 
