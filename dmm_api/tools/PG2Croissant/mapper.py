@@ -64,7 +64,7 @@ CONTEXT = {
     "wd": "https://www.wikidata.org/wiki/"
   }
 
-def map_to_croissant_dataset(datasets):
+def map_to_croissant_heavyProfile(datasets):
     for dataset in datasets:
         distribution = []
         recordSets = []
@@ -83,6 +83,30 @@ def map_to_croissant_dataset(datasets):
             dataset_dict[key] = val
     return dataset_dict   
 
+def map_to_croissant_lightProfile(datasets):
+    for dataset in datasets:
+        distribution = []
+        for fileObject in dataset.distribution:
+            distribution.append(map_fileObjects(fileObject))
+
+        dataset_dict = {    
+            "@context": CONTEXT,
+            "@type": "Dataset",
+            "@id": dataset.id,
+            "distribution": distribution}
+        for key,val in dataset.properties.items():
+            dataset_dict[key] = val
+    return dataset_dict
+
+def map_to_croissant_dataset(datasets):
+    for dataset in datasets:    
+        dataset_dict = {    
+            "@context": CONTEXT,    
+            "@type": "Dataset",
+            "@id": dataset.id}
+        for key,val in dataset.properties.items():
+            dataset_dict[key] = val
+    return dataset_dict
 
 def map_fileObjects(fileObject):
     fileObject_dict = {"@id": fileObject.id}
@@ -124,7 +148,8 @@ def map_field(field):
     return field_dict
 
 def map_statistics(statistic):
-    statistic_dict = {"@id": statistic.id}
+    statistic_dict = {"@id": statistic.id, 
+                      "@type": "dg:ColumnStatistics"}
     for key,val in statistic.properties.items():
         if key == "type":
             statistic_dict["@type"] = val  

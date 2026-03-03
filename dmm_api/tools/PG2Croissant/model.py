@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Dict   
+from typing import List, Dict   
 
 @dataclass 
 class FileObject:
@@ -12,10 +12,16 @@ class ColumnStatistics:
     properties: Dict[str, str]
 
 @dataclass
+class Source:
+    extract: Dict[str, str]
+    fileObject: str
+
+@dataclass
 class Field:
     id: str
     properties: Dict[str, str]
     statistics: List[ColumnStatistics]
+
 
 @dataclass
 class RecordSet:

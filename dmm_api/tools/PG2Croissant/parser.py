@@ -1,9 +1,8 @@
 from typing import List
-from dmm_api.tools.PG2Croissant.model import Dataset, FileObject, RecordSet, Field, ColumnStatistics 
+from dmm_api.tools.PG2Croissant.model import Dataset, FileObject, RecordSet, Field, ColumnStatistics, Source 
 
-def parse_pgjson(pgjson: dict) -> List[Dataset]:
+def parse_heavyProfile(pgjson: dict) -> List[Dataset]:
     datasets = []
-
     for node in pgjson.get("nodes", {}):
         if node.get("properties", {}).get("type") == "sc:Dataset":
             dataset_id = node.get("id")
@@ -11,6 +10,27 @@ def parse_pgjson(pgjson: dict) -> List[Dataset]:
             distribution = extract_distributions(dataset_id, pgjson=pgjson)
             recordSets = extract_recordSets(dataset_id, pgjson=pgjson)
             dataset = Dataset(id=dataset_id, distribution=distribution, recordSets=recordSets, properties=dataset_properties)
+            datasets.append(dataset)
+    return datasets
+
+def parse_lightProfile(pgjson: dict) -> List[Dataset]: 
+    datasets = []
+    for node in pgjson.get("nodes", {}):
+        if node.get("properties", {}).get("type") == "sc:Dataset":
+            dataset_id = node.get("id")
+            dataset_properties = node.get("properties", {})
+            distribution = extract_distributions(dataset_id, pgjson=pgjson)
+            dataset = Dataset(id=dataset_id, distribution=distribution, recordSets=[], properties=dataset_properties)
+            datasets.append(dataset)
+    return datasets
+
+def parse_dataset(pgjson: dict) -> List[Dataset]:
+    datasets = []
+    for node in pgjson.get("nodes", {}):
+        if node.get("properties", {}).get("type") == "sc:Dataset":
+            dataset_id = node.get("id")
+            dataset_properties = node.get("properties", {})
+            dataset = Dataset(id=dataset_id, distribution=[], recordSets=[], properties=dataset_properties)
             datasets.append(dataset)
     return datasets
 
@@ -22,6 +42,13 @@ def extract_fields(recordSet_id: str, pgjson: dict) -> List[Field]:
             field_nodes = [item for item in pgjson.get("nodes", []) if item.get("id") == field_id]
             field_properties = field_nodes[0].get("properties", {})
             statistics = extract_columnStatistics(field_id=field_id, pgjson=pgjson)
+            fileObject_id = extract_source(field_id=field_id, pgjson=pgjson)
+            source = {
+                "extract": {"column": field_nodes[0].get("properties", {}).get("name", "")},
+                "fileObject": {"@id": fileObject_id}
+            }
+            field_properties["source"] = source
+
             field = Field(id=field_id, statistics = statistics, properties=field_properties if field_properties else {})
             fields.append(field)
     return fields
@@ -57,3 +84,11 @@ def extract_distributions(dataset_id: str, pgjson: dict) -> List[FileObject]:
             fileObject = FileObject(id=fileObject_id, properties=fileObject_properties if fileObject_properties else {})
             distributions.append(fileObject)
     return distributions
+
+def extract_source(field_id: str, pgjson: dict) -> str:    
+    for edge in pgjson.get("edges", []):
+        if edge.get("from",{}) == field_id and "source/fileObject" in edge.get("labels", {}):
+            fileObject_id = edge.get("to")
+    return fileObject_id
+    
+
