@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 
+from dmm_api.resources.authtest import router as authtest_router
 from dmm_api.resources.dataset import router as dataset_router
 
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 
 # TODO: check if we need to change the API path prefix
 app.include_router(dataset_router, prefix="/api/v1")
+app.include_router(authtest_router, prefix="/api/v1")
 
 
 # Root
@@ -73,6 +75,11 @@ async def api_home():
                 "description": "Interactive API documentation (Swagger UI)",
                 "methods": ["GET"],
                 "url": "/api/v1/swagger",
+            },
+            "authtest": {
+                "description": "Test endpoint requiring a valid bearer token",
+                "methods": ["POST"],
+                "url": "/api/v1/authtest",
             },
         },
     }
