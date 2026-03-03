@@ -81,6 +81,11 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/authtest",
             },
+            "authtest_cdd_search": {
+                "description": "Forward payload to CDD search using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/authtest/cdd-search",
+            },
         },
     }
 

@@ -1154,6 +1154,50 @@ docker run -d -p 5000:5000 -v /path/to/your/local/results:/app/dmm_api/data/resu
 ```
 Replace `/path/to/your/local/results` with the actual path to your local results directory, e.g., `desktop/repositories/data-model-management/dmm_api/data/results`.
 
+#### Required Environment Variables (No Defaults)
+
+The following environment variables are read by the API **without defaults**.
+
+| Variable | Used by | Required when | Secret |
+|---|---|---|---|
+| `OIDC_CLIENT_SECRET` | Token exchange in `dmm_api/security/auth.py` | Using `POST /api/v1/authtest/cdd-search` (or any token-exchange flow) | Yes |
+| `CDD_URL` | External service mapping in `dmm_api/resources/dataset.py` | Using cross-dataset discovery routes via dataset resource | No |
+| `IDD_URL` | External service mapping in `dmm_api/resources/dataset.py` | Using in-dataset discovery routes via dataset resource | No |
+| `DATASET_DIR` | Dataset load flow in `dmm_api/resources/dataset.py` | Using `PUT /api/v1/dataset/load` | No |
+| `DATAGEMS_POSTGRES_HOST` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
+| `DATAGEMS_POSTGRES_PORT` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
+| `DS_READER_USER` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | Yes |
+| `DS_READER_PS` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | Yes |
+
+Notes:
+- For `authtest/cdd-search`, also review optional auth variables with defaults in `dmm_api/security/auth.py` (`OIDC_CLIENT_ID`, `OIDC_TOKEN_URL`, etc.).
+- `OIDC_CLIENT_SECRET` should never be hardcoded in image layers or committed files.
+
+#### Secrets with Vault (Kubernetes)
+
+If you use Vault in Kubernetes, expose secrets into a Kubernetes Secret (for example via `VaultStaticSecret`) and bind them as env vars in the Deployment.
+
+```yaml
+env:
+    - name: OIDC_CLIENT_SECRET
+        valueFrom:
+            secretKeyRef:
+                name: dmm-api-secrets
+                key: OIDC_CLIENT_SECRET
+    - name: DS_READER_USER
+        valueFrom:
+            secretKeyRef:
+                name: dmm-api-secrets
+                key: DS_READER_USER
+    - name: DS_READER_PS
+        valueFrom:
+            secretKeyRef:
+                name: dmm-api-secrets
+                key: DS_READER_PS
+```
+
+For local Docker runs, pass these with `-e` or `--env-file` (recommended for non-secret local setup only).
+
 ---
 
 ## License
