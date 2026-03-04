@@ -1,3 +1,4 @@
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -19,6 +20,8 @@ This module contains:
 Most values are configurable via environment variables. Defaults are provided for
 the DataGEMS dev realm to keep local/dev usage simple.
 """
+
+logger = logging.getLogger(__name__)
 
 # JSON Web Signature algorithm expected for incoming JWT tokens.
 # We keep this explicit to avoid algorithm confusion attacks.
@@ -155,9 +158,10 @@ async def require_valid_token(
             options={"verify_aud": False},
         )
     except JWTError as exc:
+        logger.warning("JWT validation failed: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {exc}",
+            detail="Invalid token",
         ) from exc
     except httpx.HTTPError as exc:
         # Infrastructure/network issue while retrieving verification keys.
