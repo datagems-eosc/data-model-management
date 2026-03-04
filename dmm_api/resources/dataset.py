@@ -491,7 +491,11 @@ async def get_dataset(dataset_id: str):
         )
 
 
-@router.post("/dataset/register", response_model=APSuccessEnvelope)
+@router.post(
+    "/dataset/register",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
 async def register_dataset(wrapped: WrappedAPRequest):
     """
     Register a new dataset in Neo4j by:
@@ -626,7 +630,9 @@ async def register_dataset(wrapped: WrappedAPRequest):
 
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
-@router.put("/dataset/load", response_model=APSuccessEnvelope)
+@router.put(
+    "/dataset/load", response_model=APSuccessEnvelope, response_model_exclude_none=True
+)
 async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
     """Move dataset files from scratchpad to permanent storage and update Neo4j"""
     DATASET_DIR = os.getenv("DATASET_DIR")
@@ -861,7 +867,11 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
     )
 
 
-@router.put("/dataset/update", response_model=APSuccessEnvelope)
+@router.put(
+    "/dataset/update",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
 async def update_dataset(wrapped: WrappedAPRequest):
     """
     Update datasets in Neo4j by:
@@ -1132,7 +1142,11 @@ async def update_dataset(wrapped: WrappedAPRequest):
         )
 
 
-@router.post("/polyglot/query", response_model=APSuccessEnvelope)
+@router.post(
+    "/polyglot/query",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
 async def execute_query(wrapped: WrappedAPRequest):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
@@ -1249,8 +1263,16 @@ async def test_postgres_connection():
             con.close()
 
 
-@router.post("/cross-dataset-discovery/search", response_model=APSuccessEnvelope)
-@router.post("/in-dataset-discovery/text2sql", response_model=APSuccessEnvelope)
+@router.post(
+    "/cross-dataset-discovery/search",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
+@router.post(
+    "/in-dataset-discovery/text2sql",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
 async def execute_and_store(
     request: Request, wrapped: WrappedAPRequest
 ) -> APSuccessEnvelope:
