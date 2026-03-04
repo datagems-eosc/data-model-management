@@ -27,7 +27,7 @@ def update_dataset_archivedAt(
         if str(node.id) == str(dataset_id) and "sc:Dataset" in node.labels:
             if "properties" not in node.model_dump():
                 node.properties = {}
-            node.properties["archivedAt"] = new_path
+            node.properties["sc:archivedAt"] = new_path
     return ap_payload
 
 

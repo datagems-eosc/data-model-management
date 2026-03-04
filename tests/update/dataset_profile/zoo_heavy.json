@@ -134,7 +134,8 @@
       {
         "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
         "labels": [
-          "cr:Field"
+          "cr:Field",
+          "Column"
         ],
         "properties": {
           "dataType": "sc:Text",

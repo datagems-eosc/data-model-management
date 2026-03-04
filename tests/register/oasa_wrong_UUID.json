@@ -64,7 +64,6 @@
           "sc:Dataset"
         ],
         "properties": {
-          "archivedAt": "s3://scratchpad/9c56-4360-631888242947",
           "citeAs": "",
           "conformsTo": "",
           "country": "PT",
@@ -84,6 +83,7 @@
           ],
           "license": "Public Domain",
           "name": "OASA Data",
+          "sc:archivedAt": "s3://scratchpad/9c56-4360-631888242947",
           "type": "sc:Dataset",
           "url": "",
           "version": ""
