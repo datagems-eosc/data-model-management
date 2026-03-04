@@ -137,7 +137,7 @@ This registers a new dataset using the JSON payload. The API returns:
 
 The response includes the dataset ID and the analytical pattern graph structure showing the registration process.
 
-The register worflow may decide to change the ID of the uploaded dataset. If that is the case the returned AP will have a different value for `id` in the `sc:Dataset` node.
+The register workflow may decide to change the ID of the uploaded dataset. If that is the case the returned AP will have a different value for `id` in the `sc:Dataset` node.
 The `archivedAt` attribute will still point to the current folder in the S3 scratchpad.
 
 
