@@ -64,8 +64,8 @@
           "sc:Dataset"
         ],
         "properties": {
-          "dg:status": "staged",
-          "sc:archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795"
+          "archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
+          "status": "staged"
         }
       },
       {

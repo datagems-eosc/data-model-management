@@ -70,20 +70,20 @@
           "country": "PT",
           "datePublished": "24-05-2025",
           "description": "Subway data",
-          "dg:fieldOfScience": [
+          "fieldOfScience": [
             "CIVIL ENGINEERING"
           ],
-          "dg:headline": "Subway data.",
-          "dg:keywords": [
-            "dev",
-            "keyword"
-          ],
-          "dg:status": "staged",
+          "headline": "Subway data.",
           "inLanguage": [
             "el"
           ],
+          "keywords": [
+            "dev",
+            "keyword"
+          ],
           "license": "Public Domain",
           "name": "OASA Data",
+          "status": "staged",
           "type": "sc:Dataset",
           "url": "",
           "version": ""
