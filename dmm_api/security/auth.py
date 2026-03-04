@@ -11,6 +11,7 @@ the DataGEMS dev realm to keep local/dev usage simple.
 
 import os
 import time
+import logging
 from dataclasses import dataclass
 import hashlib
 from typing import Any, Dict, Optional
