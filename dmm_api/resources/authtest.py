@@ -1,3 +1,12 @@
+"""Auth test endpoints.
+
+This module provides:
+- `POST /authtest`: simple token validation smoke test
+- `POST /authtest/cdd-search`: authenticated forwarding to CDD search endpoint
+
+Environment-based defaults are intentionally explicit for easier operations/debugging.
+"""
+
 import os
 from typing import Any
 
@@ -12,15 +21,6 @@ from dmm_api.security import (
     require_valid_credentials,
     require_valid_token,
 )
-
-"""Auth test endpoints.
-
-This module provides:
-- `POST /authtest`: simple token validation smoke test
-- `POST /authtest/cdd-search`: authenticated forwarding to CDD search endpoint
-
-Environment-based defaults are intentionally explicit for easier operations/debugging.
-"""
 
 router = APIRouter()
 

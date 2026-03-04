@@ -1,15 +1,3 @@
-import logging
-import os
-import time
-from dataclasses import dataclass
-import hashlib
-from typing import Any, Dict, Optional
-
-import httpx
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
-
 """Authentication utilities for incoming token validation and downstream token exchange.
 
 This module contains:
@@ -20,6 +8,17 @@ This module contains:
 Most values are configurable via environment variables. Defaults are provided for
 the DataGEMS dev realm to keep local/dev usage simple.
 """
+
+import os
+import time
+from dataclasses import dataclass
+import hashlib
+from typing import Any, Dict, Optional
+
+import httpx
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +105,19 @@ class _Token:
 _exchange_token_cache: Dict[str, _Token] = {}
 
 
+def _prune_exchange_token_cache() -> None:
+    """Remove all expired entries from `_exchange_token_cache`.
+
+    Called before inserting a new entry so the cache does not grow without bound
+    in long-lived processes.  An entry is considered expired when its `expires_at`
+    timestamp is in the past (i.e. ≤ current time).
+    """
+    now = time.time()
+    expired_keys = [k for k, v in _exchange_token_cache.items() if v.expires_at <= now]
+    for k in expired_keys:
+        del _exchange_token_cache[k]
+
+
 async def _get_jwks() -> dict[str, Any]:
     """Return JWKS, using a short-lived in-memory cache.
 
@@ -153,7 +165,7 @@ async def require_valid_token(
         payload = jwt.decode(
             credentials.credentials,
             await _get_jwks(),
-            algorithms=["RS256"],
+            algorithms=[JWT_SIGNING_ALGORITHM],
             issuer=OIDC_ISSUER,
             options={"verify_aud": False},
         )
@@ -244,6 +256,7 @@ async def get_exchanged_access_token(subject_token: str, scope: str) -> str:
             detail="Token exchange did not return access_token",
         )
 
+    _prune_exchange_token_cache()
     _exchange_token_cache[cache_key] = _Token(
         value=access_token,
         expires_at=time.time() + expires_in,

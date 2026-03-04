@@ -152,21 +152,21 @@ If you use Vault in Kubernetes, expose secrets into a Kubernetes Secret (for exa
 
 ```yaml
 env:
-    - name: OIDC_CLIENT_SECRET
-        valueFrom:
-            secretKeyRef:
-                name: dmm-api-secrets
-                key: OIDC_CLIENT_SECRET
-    - name: DS_READER_USER
-        valueFrom:
-            secretKeyRef:
-                name: dmm-api-secrets
-                key: DS_READER_USER
-    - name: DS_READER_PS
-        valueFrom:
-            secretKeyRef:
-                name: dmm-api-secrets
-                key: DS_READER_PS
+  - name: OIDC_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: dmm-api-secrets
+        key: OIDC_CLIENT_SECRET
+  - name: DS_READER_USER
+    valueFrom:
+      secretKeyRef:
+        name: dmm-api-secrets
+        key: DS_READER_USER
+  - name: DS_READER_PS
+    valueFrom:
+      secretKeyRef:
+        name: dmm-api-secrets
+        key: DS_READER_PS
 ```
 
 For local Docker runs, pass these with `-e` or `--env-file` (recommended for non-secret local setup only).
