@@ -20,6 +20,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
+logger = logging.getLogger(__name__)
+
 # JSON Web Signature algorithm expected for incoming JWT tokens.
 # We keep this explicit to avoid algorithm confusion attacks.
 JWT_SIGNING_ALGORITHM = "RS256"
@@ -168,9 +170,10 @@ async def require_valid_token(
             options={"verify_aud": False},
         )
     except JWTError as exc:
+        logger.warning("JWT validation failed: %s", exc)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Invalid token: {exc}",
+            detail="Invalid token",
         ) from exc
     except httpx.HTTPError as exc:
         # Infrastructure/network issue while retrieving verification keys.
