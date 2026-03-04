@@ -162,17 +162,17 @@
           "dg:ColumnStatistics"
         ],
         "properties": {
-          "histogram": null,
-          "max": null,
-          "mean": null,
-          "median": null,
-          "min": null,
-          "missingCount": 0,
-          "missingPercentage": 0.0,
-          "rowCount": 192,
-          "standardDeviation": null,
-          "type": "dg:ColumnStatistics",
-          "uniqueCount": 190
+          "dg:histogram": null,
+          "dg:max": null,
+          "dg:mean": null,
+          "dg:median": null,
+          "dg:min": null,
+          "dg:missingCount": 0,
+          "dg:missingPercentage": 0.0,
+          "dg:rowCount": 192,
+          "dg:standardDeviation": null,
+          "dg:uniqueCount": 190,
+          "type": "dg:ColumnStatistics"
         }
       },
       {
