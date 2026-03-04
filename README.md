@@ -60,10 +60,10 @@ This will also generate your `uv.lock` file
 The API is available at:
 https://datagems-dev.scayle.es/dmm/api/v1
 
-You can interact with it using curl commands, going into the `dmm_api` folder:
+You can interact with it using curl commands, going into the `tests` folder:
 
 ```bash
-cd dmm_api
+cd tests
 ```
 
 
@@ -102,7 +102,7 @@ To register a new dataset in the system:
 
 #### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
+curl -X POST -H "Content-Type: application/json" --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
 ```
 
 This registers a new dataset using the JSON payload. The API returns:
@@ -204,13 +204,13 @@ To move a dataset from the scratchpad to the permanent storage location:
 
 #### PUT a dataset load request
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
 ```
 
 Optional query parameter:
 - `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" | python -m json.tool
 ```
 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
@@ -309,7 +309,7 @@ To update an existing dataset with additional metadata or file information:
 
 #### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
 ```
 
 This updates the dataset with the light profile. The API returns:
@@ -432,7 +432,7 @@ This updates the dataset with the light profile. The API returns:
 }
 
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @../tests/update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
 ```
 This updates the dataset with the heavy profile. The API returns:
 ```json
@@ -919,7 +919,7 @@ To query one or more datasets:
 
 #### POST a query
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @../tests/query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
+curl -X POST -H "Content-Type: application/json" --data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
 ```
 
 This query two dataset properties and creates a new dataset from the output. The API returns:
