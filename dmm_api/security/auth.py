@@ -1,14 +1,3 @@
-import os
-import time
-from dataclasses import dataclass
-import hashlib
-from typing import Any, Dict, Optional
-
-import httpx
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
-
 """Authentication utilities for incoming token validation and downstream token exchange.
 
 This module contains:
@@ -19,6 +8,17 @@ This module contains:
 Most values are configurable via environment variables. Defaults are provided for
 the DataGEMS dev realm to keep local/dev usage simple.
 """
+
+import os
+import time
+from dataclasses import dataclass
+import hashlib
+from typing import Any, Dict, Optional
+
+import httpx
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
 
 # JSON Web Signature algorithm expected for incoming JWT tokens.
 # We keep this explicit to avoid algorithm confusion attacks.
