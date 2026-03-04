@@ -150,7 +150,7 @@ async def require_valid_token(
         payload = jwt.decode(
             credentials.credentials,
             await _get_jwks(),
-            algorithms=["RS256"],
+            algorithms=[JWT_SIGNING_ALGORITHM],
             issuer=OIDC_ISSUER,
             options={"verify_aud": False},
         )
