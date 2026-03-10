@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
 
 from dmm_api.security import (
     get_exchanged_access_token,
@@ -42,8 +42,11 @@ CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 class AuthTestRequest(BaseModel):
     """Input payload for the basic auth test endpoint."""
 
-    query: str
-    k: int
+    # Enforce exact payload shape: only `query` (string) and `k` (integer).
+    model_config = ConfigDict(extra="forbid")
+
+    query: StrictStr
+    k: StrictInt
 
 
 @router.post("/authtest")
@@ -63,7 +66,7 @@ async def authtest(
 
 @router.post("/authtest/cdd-search")
 async def authtest_cdd_search(
-    payload: Any,
+    payload: AuthTestRequest,
     credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
 ):
     """Forward exact input payload to CDD search using exchanged credentials.
@@ -83,7 +86,7 @@ async def authtest_cdd_search(
         response = await client.post(
             CDD_SEARCH_URL,
             headers={"Authorization": f"Bearer {exchanged_token}"},
-            json=payload,
+            json=payload.model_dump(),
         )
 
     try:
