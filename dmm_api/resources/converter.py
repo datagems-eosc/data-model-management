@@ -6,7 +6,6 @@ import tempfile
 from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import Response
 from dmm_api.tools.PG2Croissant.parser import parse_lightProfile, parse_heavyProfile, parse_dataset
-from dmm_api.tools.PG2Croissant.serializer import to_jsonld
 from dmm_api.tools.PG2Croissant.mapper import map_to_croissant_dataset, map_to_croissant_lightProfile, map_to_croissant_heavyProfile
 
 router = APIRouter()
@@ -60,10 +59,12 @@ async def moma2croissant_light(file: UploadFile = File(...)):
             "message": "MoMa light profile converted to Croissant format successfully",
             "croissant": croissant_dict
         }
-        return Response(content=json.dumps(response_data, indent=2), media_type="application/json")
+        return Response(content=json.dumps(response_data), media_type="application/json")
     except Exception as e:
         logging.error(f"Error processing file: {str(e)}")
         raise
+def to_jsonld(croissant_dict: dict) -> str:
+    return json.dumps(croissant_dict, indent=2)
 
 @router.post("/moma2croissant/heavy")
 async def moma2croissant_heavy(file: UploadFile = File(...)):
@@ -82,7 +83,7 @@ async def moma2croissant_heavy(file: UploadFile = File(...)):
             "message": "MoMa heavy profile converted to Croissant format successfully",
             "croissant": croissant_dict
         }
-        return Response(content=json.dumps(response_data, indent=2), media_type="application/json")
+        return Response(content=json.dumps(response_data), media_type="application/json")
     except Exception as e:
         logging.error(f"Error processing file: {str(e)}")
         raise

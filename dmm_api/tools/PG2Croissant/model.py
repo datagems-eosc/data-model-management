@@ -33,6 +33,6 @@ class RecordSet:
 class Dataset:
     id: str
     distribution: List[FileObject]
-    recordSets: List[RecordSet]
+    recordSet: List[RecordSet]
     properties: Dict[str, str]
 

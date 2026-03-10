@@ -9,7 +9,7 @@ def parse_heavyProfile(pgjson: dict) -> List[Dataset]:
             dataset_properties = node.get("properties", {})
             distribution = extract_distributions(dataset_id, pgjson=pgjson)
             recordSets = extract_recordSets(dataset_id, pgjson=pgjson)
-            dataset = Dataset(id=dataset_id, distribution=distribution, recordSets=recordSets, properties=dataset_properties)
+            dataset = Dataset(id=dataset_id, distribution=distribution, recordSet=recordSets, properties=dataset_properties)
             datasets.append(dataset)
     return datasets
 
@@ -20,7 +20,7 @@ def parse_lightProfile(pgjson: dict) -> List[Dataset]:
             dataset_id = node.get("id")
             dataset_properties = node.get("properties", {})
             distribution = extract_distributions(dataset_id, pgjson=pgjson)
-            dataset = Dataset(id=dataset_id, distribution=distribution, recordSets=[], properties=dataset_properties)
+            dataset = Dataset(id=dataset_id, distribution=distribution, recordSet=[], properties=dataset_properties)
             datasets.append(dataset)
     return datasets
 
@@ -30,7 +30,7 @@ def parse_dataset(pgjson: dict) -> List[Dataset]:
         if node.get("properties", {}).get("type") == "sc:Dataset":
             dataset_id = node.get("id")
             dataset_properties = node.get("properties", {})
-            dataset = Dataset(id=dataset_id, distribution=[], recordSets=[], properties=dataset_properties)
+            dataset = Dataset(id=dataset_id, distribution=[], recordSet=[], properties=dataset_properties)
             datasets.append(dataset)
     return datasets
 
@@ -68,10 +68,12 @@ def extract_recordSets(dataset_id: str, pgjson: dict) -> List[RecordSet]:
     for edge in pgjson.get("edges", []):
         if edge.get("from",{}) == dataset_id and "recordSet" in edge.get("labels", {}):
             recordSet_id = edge.get("to")
-            recordSet_properties = [item for item in pgjson.get("nodes", []) if item.get("id") == recordSet_id]
-            fields = extract_fields(recordSet_id, pgjson)
-            recordSet = RecordSet(id=recordSet_id, fields=fields, properties=recordSet_properties[0].get("properties", {}) if recordSet_properties else {})
-            recordSets.append(recordSet)
+            # Check if this recordSet isn't already in the list (because of the duplicate recordSet edges)
+            if not any(rs.id == recordSet_id for rs in recordSets):
+                recordSet_properties = [item for item in pgjson.get("nodes", []) if item.get("id") == recordSet_id]
+                fields = extract_fields(recordSet_id, pgjson)
+                recordSet = RecordSet(id=recordSet_id, fields=fields, properties=recordSet_properties[0].get("properties", {}) if recordSet_properties else {})
+                recordSets.append(recordSet)
     return recordSets
 
 def extract_distributions(dataset_id: str, pgjson: dict) -> List[FileObject]:
@@ -81,6 +83,9 @@ def extract_distributions(dataset_id: str, pgjson: dict) -> List[FileObject]:
             fileObject_id = edge.get("to")
             fileObject_properties = [item for item in pgjson.get("nodes", []) if item.get("id") == fileObject_id]
             fileObject_properties = fileObject_properties[0].get("properties", {}) if fileObject_properties else {}
+            for edge in pgjson.get("edges", []):
+                if edge.get("from",{}) == fileObject_id and "containedIn" in edge.get("labels", {}):
+                    fileObject_properties["containedIn"] = {"@id": edge.get("to")}
             fileObject = FileObject(id=fileObject_id, properties=fileObject_properties if fileObject_properties else {})
             distributions.append(fileObject)
     return distributions

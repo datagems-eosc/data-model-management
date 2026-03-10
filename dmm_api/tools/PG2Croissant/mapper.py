@@ -70,7 +70,7 @@ def map_to_croissant_heavyProfile(datasets):
         recordSets = []
         for fileObject in dataset.distribution:
             distribution.append(map_fileObjects(fileObject))
-        for recordSet in dataset.recordSets:
+        for recordSet in dataset.recordSet:
             recordSets.append(map_recordSet(recordSet))
 
         dataset_dict = {    
@@ -78,7 +78,7 @@ def map_to_croissant_heavyProfile(datasets):
             "@type": "Dataset",
             "@id": dataset.id,
             "distribution": distribution,
-            "recordSets": recordSets}
+            "recordSet": recordSets}
         for key,val in dataset.properties.items():
             dataset_dict[key] = val
     return dataset_dict   
@@ -89,13 +89,18 @@ def map_to_croissant_lightProfile(datasets):
         for fileObject in dataset.distribution:
             distribution.append(map_fileObjects(fileObject))
 
+        recordSet = []
+
         dataset_dict = {    
             "@context": CONTEXT,
-            "@type": "Dataset",
             "@id": dataset.id,
-            "distribution": distribution}
+            "distribution": distribution,
+            "recordSet": recordSet}
         for key,val in dataset.properties.items():
-            dataset_dict[key] = val
+            if key == "type":   
+                dataset_dict["@type"] = val
+            else:
+                dataset_dict[key] = val
     return dataset_dict
 
 def map_to_croissant_dataset(datasets):
@@ -128,7 +133,7 @@ def map_recordSet(recordSet):
             recordSet_dict["@type"] = val   
         else:   
             recordSet_dict[key] = val
-    recordSet_dict["fields"] = fields
+    recordSet_dict["field"] = fields
     return recordSet_dict
 
 
