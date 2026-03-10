@@ -4,6 +4,7 @@ from fastapi.responses import RedirectResponse
 import uvicorn
 
 from dmm_api.resources.dataset import router as dataset_router
+from dmm_api.resources.converter import router as converter_router
 
 app = FastAPI(
     title="Dataset API",
@@ -17,6 +18,7 @@ app = FastAPI(
 
 # TODO: check if we need to change the API path prefix
 app.include_router(dataset_router, prefix="/api/v1")
+app.include_router(converter_router, prefix="/api/v1")
 
 
 # Root
@@ -73,6 +75,16 @@ async def api_home():
                 "description": "Interactive API documentation (Swagger UI)",
                 "methods": ["GET"],
                 "url": "/api/v1/swagger",
+            },
+            "MoMa2Croissant_light": {
+                "description": "Convert MoMa light profile to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/moma2croissant/light",
+            },
+            "MoMa2Croissant_heavy": {
+                "description": "Convert MoMa heavy profile to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/moma2croissant/heavy",
             },
         },
     }
