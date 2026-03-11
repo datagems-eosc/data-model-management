@@ -1068,6 +1068,147 @@ This creates a new dataset with the query results and links it to the input data
 The output dataset is stored in a temporary location in S3 (`s3://data-model-management/results/`) and can be retrieved with the GET endpoints.
 
 
+## 8) Convert MoMa to Croissant
+
+To convert from MoMa (PG-Json) to Croissant (Json-LD). 
+
+```bash
+curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/moma2croissant" -F "file=@tests/data/zoo/zoo_2024_pg.json" | python3 -m json.tool
+```
+```json
+This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
+{
+    "message": "MoMa heavy profile converted to Croissant format successfully",
+    "croissant": {
+        "@context": {
+            "@language": "en",
+            "@vocab": "https://schema.org/",
+            ...
+        },
+        "@type": "Dataset",
+        "@id": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+        "distribution": [
+            {
+                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8",
+                "@type": "cr:FileObject",
+                ...
+            }
+        ],
+        "recordSet": [
+            {
+                "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
+                "@type": "cr:RecordSet",
+                ...,
+                "field": [
+                    {
+                        "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "\u00c3\u00af\u00c2\u00bb\u00c2\u00bfKategorie"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "583474af-1be5-4f51-85d7-096f8a196cab",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Art"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "88fa6df0-160b-49d7-adfb-70ac36fa265e",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
+                        "@type": "cr:Field",
+                        ...
+                        "source": {
+                            "extract": {
+                                "column": "wissenschaftlicher Name"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "b2fe40d4-5306-4e47-a710-9586b35c7263",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Anzahl"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "52d15255-707d-4d04-b779-c92ba53de860",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Kommune"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "3ab879a5-dd54-4af6-9851-beefaab4afba",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "name": "ZOO 2024 Dataset",
+        ...
+    }
+}
+```
+
 
 
 ## Auth Test (Bearer token required)
