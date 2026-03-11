@@ -18,7 +18,7 @@ app = FastAPI(
 )
 
 
-# TODO: check if we need to change the API path prefix
+# TODO: check if we need to change the API path prefix or not
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
 app.include_router(authtest_router, prefix="/api/v1")
