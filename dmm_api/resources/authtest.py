@@ -63,7 +63,7 @@ async def authtest(
 
 @router.post("/authtest/cdd-search")
 async def authtest_cdd_search(
-    payload: Any,
+    payload: AuthTestRequest,
     credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
 ):
     """Forward exact input payload to CDD search using exchanged credentials.
@@ -83,7 +83,7 @@ async def authtest_cdd_search(
         response = await client.post(
             CDD_SEARCH_URL,
             headers={"Authorization": f"Bearer {exchanged_token}"},
-            json=payload,
+            json=payload.model_dump(),
         )
 
     try:

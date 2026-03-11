@@ -57,7 +57,7 @@ OIDC_JWKS_URL = os.getenv(
 
 # Optional authorized-party (`azp`) gate.
 # When set, only tokens issued for this client/application are accepted.
-OIDC_AUTHORIZED_AZP = os.getenv("OIDC_AUTHORIZED_AZP", "DMM")
+OIDC_AUTHORIZED_AZP = os.getenv("OIDC_AUTHORIZED_AZP", "swagger-client")
 
 # OIDC token endpoint used for service token exchange.
 OIDC_TOKEN_URL = os.getenv(
