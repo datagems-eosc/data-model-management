@@ -63,8 +63,9 @@ def convertHeavyProfile(pgjson_path:str):
 #     except Exception as e:
 #         logging.error(f"Error processing file: {str(e)}")
 #         raise
-# def to_jsonld(croissant_dict: dict) -> str:
-#     return json.dumps(croissant_dict, indent=2)
+
+def to_jsonld(croissant_dict: dict) -> str:
+    return json.dumps(croissant_dict, indent=2)
 
 @router.post("/moma2croissant")
 async def moma2croissant(file: UploadFile = File(...)):
