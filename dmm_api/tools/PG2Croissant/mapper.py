@@ -89,7 +89,7 @@ def map_field(field):
         else:
             field_dict[key] = val 
 
-    field_dict["statistics"] = statistics  
+    field_dict["statistics"] = statistics[0] if statistics else None
     return field_dict
 
 def map_statistics(statistic):
