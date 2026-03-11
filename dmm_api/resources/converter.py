@@ -41,34 +41,34 @@ def convertHeavyProfile(pgjson_path:str):
     return croissant_jsonld
 
 
-@router.post("/moma2croissant/light")
-async def moma2croissant_light(file: UploadFile = File(...)):
-    """Convert MoMa light profile to Croissant format"""
-    temp_dir = tempfile.gettempdir()
-    pg_json = os.path.join(temp_dir, file.filename)
-    logging.info(f"Saving uploaded file to {pg_json}")
+# @router.post("/moma2croissant/light")
+# async def moma2croissant_light(file: UploadFile = File(...)):
+#     """Convert MoMa light profile to Croissant format"""
+#     temp_dir = tempfile.gettempdir()
+#     pg_json = os.path.join(temp_dir, file.filename)
+#     logging.info(f"Saving uploaded file to {pg_json}")
     
-    try:
-        with open(pg_json, "wb") as f:
-            f.write(await file.read())
+#     try:
+#         with open(pg_json, "wb") as f:
+#             f.write(await file.read())
         
-        croissant_jsonld = convertLightProfile(pgjson_path=pg_json)
-        croissant_dict = json.loads(croissant_jsonld)
+#         croissant_jsonld = convertLightProfile(pgjson_path=pg_json)
+#         croissant_dict = json.loads(croissant_jsonld)
 
-        response_data = {
-            "message": "MoMa light profile converted to Croissant format successfully",
-            "croissant": croissant_dict
-        }
-        return Response(content=json.dumps(response_data), media_type="application/json")
-    except Exception as e:
-        logging.error(f"Error processing file: {str(e)}")
-        raise
-def to_jsonld(croissant_dict: dict) -> str:
-    return json.dumps(croissant_dict, indent=2)
+#         response_data = {
+#             "message": "MoMa light profile converted to Croissant format successfully",
+#             "croissant": croissant_dict
+#         }
+#         return Response(content=json.dumps(response_data), media_type="application/json")
+#     except Exception as e:
+#         logging.error(f"Error processing file: {str(e)}")
+#         raise
+# def to_jsonld(croissant_dict: dict) -> str:
+#     return json.dumps(croissant_dict, indent=2)
 
-@router.post("/moma2croissant/heavy")
-async def moma2croissant_heavy(file: UploadFile = File(...)):
-    """Convert MoMa heavy profile to Croissant format"""
+@router.post("/moma2croissant")
+async def moma2croissant(file: UploadFile = File(...)):
+    """Convert MoMa profile to Croissant format"""
     temp_dir = tempfile.gettempdir()
     pg_json = os.path.join(temp_dir, file.filename)
     logging.info(f"Saving uploaded file to {pg_json}")

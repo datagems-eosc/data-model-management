@@ -78,15 +78,11 @@ async def api_home():
                 "methods": ["GET"],
                 "url": "/api/v1/swagger",
             },
-            "MoMa2Croissant_light": {
-                "description": "Convert MoMa light profile to Croissant format",
+            "MoMa2Croissant": {
+                "description": "Convert MoMa profile to Croissant format",
                 "methods": ["POST"],
-                "url": "/api/v1/moma2croissant/light",
+                "url": "/api/v1/moma2croissant",
             },
-            "MoMa2Croissant_heavy": {
-                "description": "Convert MoMa heavy profile to Croissant format",
-                "methods": ["POST"],
-                "url": "/api/v1/moma2croissant/heavy",
             "authtest": {
                 "description": "Test endpoint requiring a valid bearer token",
                 "methods": ["POST"],
