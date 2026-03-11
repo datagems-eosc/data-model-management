@@ -81,7 +81,7 @@ async def moma2croissant(file: UploadFile = File(...)):
         croissant_jsonld = convertHeavyProfile(pgjson_path=pg_json)
         croissant_dict = json.loads(croissant_jsonld)
         response_data = {
-            "message": "MoMa heavy profile converted to Croissant format successfully",
+            "message": "MoMa profile converted to Croissant format successfully",
             "croissant": croissant_dict
         }
         return Response(content=json.dumps(response_data), media_type="application/json")

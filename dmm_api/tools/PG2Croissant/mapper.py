@@ -1,68 +1,5 @@
+from dmm_api.constants import CROISSANT_CONTEXT
 from dmm_api.tools.PG2Croissant.model import Dataset, FileObject, RecordSet, Field, ColumnStatistics
-
-CONTEXT = {
-    "@language": "en",
-    "@vocab": "https://schema.org/",
-    "access": "dg:access",
-    "citeAs": "cr:citeAs",
-    "column": "cr:column",
-    "conformsTo": "dct:conformsTo",
-    "cr": "http://mlcommons.org/croissant/",
-    "data": {
-      "@id": "cr:data",
-      "@type": "@json"
-    },
-    "dataType": {
-      "@id": "cr:dataType",
-      "@type": "@vocab"
-    },
-    "dct": "http://purl.org/dc/terms/",
-    "dg": "http://datagems.eu/TBD/",
-    "doi": "dg:doi",
-    "examples": {
-      "@id": "cr:examples",
-      "@type": "@json"
-    },
-    "extract": "cr:extract",
-    "field": "cr:field",
-    "fieldOfScience": "dg:fieldOfScience",
-    "fileObject": "cr:fileObject",
-    "fileProperty": "cr:fileProperty",
-    "fileSet": "cr:fileSet",
-    "format": "cr:format",
-    "histogram": "dg:histogram",
-    "includes": "cr:includes",
-    "isLiveDataset": "cr:isLiveDataset",
-    "jsonPath": "cr:jsonPath",
-    "key": "cr:key",
-    "max": "dg:max",
-    "md5": "cr:md5",
-    "mean": "dg:mean",
-    "median": "dg:median",
-    "min": "dg:min",
-    "missingCount": "dg:missingCount",
-    "missingPercentage": "dg:missingPercentage",
-    "parentField": "cr:parentField",
-    "path": "cr:path",
-    "rai": "http://mlcommons.org/croissant/RAI/",
-    "recordSet": "cr:recordSet",
-    "references": "cr:references",
-    "regex": "cr:regex",
-    "repeated": "cr:repeated",
-    "replace": "cr:replace",
-    "rowCount": "dg:rowCount",
-    "sc": "https://schema.org/",
-    "separator": "cr:separator",
-    "source": "cr:source",
-    "standardDeviation": "dg:standardDeviation",
-    "statistics": "dg:statistics",
-    "status": "dg:status",
-    "subField": "cr:subField",
-    "transform": "cr:transform",
-    "uniqueCount": "dg:uniqueCount",
-    "uploadedBy": "dg:uploadedBy",
-    "wd": "https://www.wikidata.org/wiki/"
-  }
 
 def map_to_croissant_heavyProfile(datasets):
     for dataset in datasets:
@@ -74,7 +11,7 @@ def map_to_croissant_heavyProfile(datasets):
             recordSets.append(map_recordSet(recordSet))
 
         dataset_dict = {    
-            "@context": CONTEXT,
+            "@context": CROISSANT_CONTEXT,
             "@type": "Dataset",
             "@id": dataset.id,
             "distribution": distribution,
@@ -92,7 +29,7 @@ def map_to_croissant_lightProfile(datasets):
         recordSet = []
 
         dataset_dict = {    
-            "@context": CONTEXT,
+            "@context": CROISSANT_CONTEXT,
             "@id": dataset.id,
             "distribution": distribution,
             "recordSet": recordSet}
@@ -106,11 +43,14 @@ def map_to_croissant_lightProfile(datasets):
 def map_to_croissant_dataset(datasets):
     for dataset in datasets:    
         dataset_dict = {    
-            "@context": CONTEXT,    
+            "@context": CROISSANT_CONTEXT,    
             "@type": "Dataset",
             "@id": dataset.id}
         for key,val in dataset.properties.items():
-            dataset_dict[key] = val
+            if key == "type":   
+                dataset_dict["@type"] = val
+            else:
+                dataset_dict[key] = val
     return dataset_dict
 
 def map_fileObjects(fileObject):
