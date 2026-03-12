@@ -15,7 +15,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.responses import JSONResponse
 from fastapi.security import HTTPAuthorizationCredentials
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
 
 from dmm_api.security import (
     get_exchanged_access_token,
@@ -47,8 +47,11 @@ CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 class AuthTestRequest(BaseModel):
     """Input payload for the basic auth test endpoint."""
 
-    query: str
-    k: int
+    # Enforce exact payload shape: only `query` (string) and `k` (integer).
+    model_config = ConfigDict(extra="forbid")
+
+    query: StrictStr
+    k: StrictInt
 
 
 @router.post("/authtest")

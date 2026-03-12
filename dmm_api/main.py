@@ -5,6 +5,7 @@ import uvicorn
 
 from dmm_api.resources.authtest import router as authtest_router
 from dmm_api.resources.dataset import router as dataset_router
+from dmm_api.resources.converter import router as converter_router
 
 app = FastAPI(
     title="Dataset API",
@@ -16,8 +17,10 @@ app = FastAPI(
     root_path=os.getenv("ROOT_PATH", ""),
 )
 
-# TODO: check if we need to change the API path prefix
+
+# TODO: check if we need to change the API path prefix or not
 app.include_router(dataset_router, prefix="/api/v1")
+app.include_router(converter_router, prefix="/api/v1")
 app.include_router(authtest_router, prefix="/api/v1")
 
 
@@ -97,7 +100,7 @@ async def api_home():
                 "url": "/api/v1/authtest/cdd-search/ap",
             },
         },
-    }
+    )
 
 
 if __name__ == "__main__":

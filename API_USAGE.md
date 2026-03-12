@@ -9,12 +9,11 @@ You can interact with it using curl commands, going into the `tests` folder:
 cd tests
 ```
 
-
-### 1) Upload a Dataset to s3
+## 1) Upload a Dataset to s3
 
 Before registering a dataset, the files should be already present on s3. This method uploads the actual data file using the data-workflow endpoint:
 
-#### POST a file to data-workflow
+### POST a file to data-workflow
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
  -F "file=@data/zoo/zoo-2024.csv" \
@@ -39,11 +38,11 @@ The file is initially uploaded to the scratchpad location.
 > NOTE: This method is only for internal testing use. It may be removed in the future.
 
 
-### 2) Register a Dataset
+## 2) Register a Dataset
 
 To register a new dataset in the system:
 
-#### POST a dataset registration AP
+### POST a dataset registration AP
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
 ```
@@ -141,11 +140,11 @@ The register workflow may decide to change the ID of the uploaded dataset. If th
 The `archivedAt` attribute will still point to the current folder in the S3 scratchpad.
 
 
-### 3) Load a Dataset
+## 3) Load a Dataset
 
 To move a dataset from the scratchpad to the permanent storage location:
 
-#### PUT a dataset load request
+### PUT a dataset load request
 ```bash
 curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
 ```
@@ -246,11 +245,11 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
 
 >  Note: the endpoint will return an AP with the same `DataModelManagement_Operator` as received in input with an updated `archivedAt` attribute of the dataset node pointing to the new location.
 
-### 4) Update a Dataset
+## 4) Update a Dataset
 
 To update an existing dataset with additional metadata or file information:
 
-#### PUT a dataset update
+### PUT a dataset update
 ```bash
 curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
 ```
@@ -556,11 +555,11 @@ This updates the dataset with the heavy profile. The API returns:
 ```
 
 
-### 5) Get one or all Datasets
+## 5) Get one or all Datasets
 
 Retrieve one or all ready datasets.
 
-#### GET one or all datasets
+### GET one or all datasets
 ```bash
 curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
 
@@ -798,11 +797,11 @@ The API returns:
 ```
 
 
-### 6) Filter the Datasets
+## 6) Filter the Datasets
 
 You can filter the dataset, selecting the properties and sorting the results. All parameters are optional.
 
-#### GET one or more datasets after filtering
+### GET one or more datasets after filtering
 
 Parameters:
 - nodeIds: UUID(s) to fetch.
@@ -856,11 +855,11 @@ The API returns:
 }
 ```
 
-### 7) Query a Dataset
+## 7) Query a Dataset
 
 To query one or more datasets:
 
-#### POST a query
+### POST a query
 ```bash
 curl -X POST -H "Content-Type: application/json" --data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
 ```
@@ -1067,3 +1066,173 @@ This query two dataset properties and creates a new dataset from the output. The
 
 This creates a new dataset with the query results and links it to the input datasets and files.
 The output dataset is stored in a temporary location in S3 (`s3://data-model-management/results/`) and can be retrieved with the GET endpoints.
+
+
+## 8) Convert MoMa to Croissant
+
+To convert from MoMa (PG-Json) to Croissant (Json-LD). 
+
+```bash
+curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/moma2croissant" -F "file=@tests/data/zoo/zoo_2024_pg.json" | python3 -m json.tool
+```
+```json
+This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
+{
+    "message": "MoMa heavy profile converted to Croissant format successfully",
+    "croissant": {
+        "@context": {
+            "@language": "en",
+            "@vocab": "https://schema.org/",
+            ...
+        },
+        "@type": "Dataset",
+        "@id": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+        "distribution": [
+            {
+                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8",
+                "@type": "cr:FileObject",
+                ...
+            }
+        ],
+        "recordSet": [
+            {
+                "@id": "b66da86c-8f51-44ef-a6e6-13bdb61d0978",
+                "@type": "cr:RecordSet",
+                ...,
+                "field": [
+                    {
+                        "@id": "9fdc4471-a7c3-423b-bfc4-24e3869d11d6",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "\u00c3\u00af\u00c2\u00bb\u00c2\u00bfKategorie"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "583474af-1be5-4f51-85d7-096f8a196cab",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "5914f6ae-2163-4969-8f5f-9896832c798b",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Art"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "88fa6df0-160b-49d7-adfb-70ac36fa265e",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "70a2c485-38a9-4d85-a1aa-e1b4debced61",
+                        "@type": "cr:Field",
+                        ...
+                        "source": {
+                            "extract": {
+                                "column": "wissenschaftlicher Name"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "b2fe40d4-5306-4e47-a710-9586b35c7263",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "5bf587dd-4dd4-4d8f-ad05-b26d57fb3d39",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Anzahl"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "52d15255-707d-4d04-b779-c92ba53de860",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    },
+                    {
+                        "@id": "d9f55d08-4253-443d-8ccf-ad55dd93179b",
+                        "@type": "cr:Field",
+                        ...,
+                        "source": {
+                            "extract": {
+                                "column": "Kommune"
+                            },
+                            "fileObject": {
+                                "@id": "2560eadd-5f6a-4a59-a85c-f89a4996fac8"
+                            }
+                        },
+                        "statistics": [
+                            {
+                                "@id": "3ab879a5-dd54-4af6-9851-beefaab4afba",
+                                "@type": "dg:ColumnStatistics",
+                                ...
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "name": "ZOO 2024 Dataset",
+        ...
+    }
+}
+```
+
+
+
+## Auth Test (Bearer token required)
+
+The `POST /authtest` endpoint requires a valid bearer token.
+
+Current authorized-party (`azp`) accepted by the API: `swagger-client`.
+
+### 0) Get an access token (Keycloak dev realm)
+```bash
+TOKEN=$(curl --silent --location 'https://datagems-dev.scayle.es/oauth/realms/dev/protocol/openid-connect/token' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'grant_type=password' \
+    --data-urlencode 'client_id=swagger-client' \
+    --data-urlencode 'username=dg-user-1' \
+    --data-urlencode 'password=dg-user-1' \
+    --data-urlencode 'scope=data-model-management-api' \
+    | jq -r '.access_token')
+```
+
+### 0.1) Call auth test endpoint
+```bash
+curl --location 'https://datagems-dev.scayle.es/dmm/api/v1/authtest' \
+    --header "Authorization: Bearer $TOKEN" \
+    --header 'Content-Type: application/json' \
+    --data '{"query":"healthcheck","k":1}' | python -m json.tool
+```
