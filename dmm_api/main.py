@@ -36,65 +36,68 @@ async def home():
 async def api_home():
     """API root endpoint showing available endpoints"""
     app_version = os.getenv("APP_VERSION", "dev")
-    return (
-        {
-            "message": f"API V1 is running (version: {app_version})",
-            "endpoints": {
-                "dataset": {
-                    "description": "Get information about dataset endpoints",
-                    "methods": ["GET"],
-                    "url": "/api/v1/dataset",
-                },
-                "dataset_search": {
-                    "description": "Search and filter datasets",
-                    "methods": ["GET"],
-                    "url": "/api/v1/dataset/search",
-                },
-                "dataset_get": {
-                    "description": "Get a specific dataset by ID",
-                    "methods": ["GET"],
-                    "url": "/api/v1/dataset/get/{dataset_id}",
-                },
-                "dataset_register": {
-                    "description": "Register a new dataset",
-                    "methods": ["POST"],
-                    "url": "/api/v1/dataset/register",
-                },
-                "dataset_load": {
-                    "description": "Move a dataset from the scratchpad",
-                    "methods": ["PUT"],
-                    "url": "/api/v1/dataset/load",
-                },
-                "dataset_update": {
-                    "description": "Update an existing dataset after light profiling",
-                    "methods": ["PUT"],
-                    "url": "/api/v1/dataset/update",
-                },
-                "polyglot_query": {
-                    "description": "Execute queries on datasets",
-                    "methods": ["POST"],
-                    "url": "/api/v1/polyglot/query",
-                },
-                "swagger": {
-                    "description": "Interactive API documentation (Swagger UI)",
-                    "methods": ["GET"],
-                    "url": "/api/v1/swagger",
-                },
-                "MoMa2Croissant": {
-                    "description": "Convert MoMa light profile to Croissant format",
-                    "methods": ["POST"],
-                    "url": "/api/v1/moma2croissant",
-                },
-                "authtest": {
-                    "description": "Test endpoint requiring a valid bearer token",
-                    "methods": ["POST"],
-                    "url": "/api/v1/authtest",
-                },
-                "authtest_cdd_search": {
-                    "description": "Forward payload to CDD search using exchanged token",
-                    "methods": ["POST"],
-                    "url": "/api/v1/authtest/cdd-search",
-                },
+    return {
+        "message": f"API V1 is running (version: {app_version})",
+        "endpoints": {
+            "dataset": {
+                "description": "Get information about dataset endpoints",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset",
+            },
+            "dataset_search": {
+                "description": "Search and filter datasets",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset/search",
+            },
+            "dataset_get": {
+                "description": "Get a specific dataset by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset/get/{dataset_id}",
+            },
+            "dataset_register": {
+                "description": "Register a new dataset",
+                "methods": ["POST"],
+                "url": "/api/v1/dataset/register",
+            },
+            "dataset_load": {
+                "description": "Move a dataset from the scratchpad",
+                "methods": ["PUT"],
+                "url": "/api/v1/dataset/load",
+            },
+            "dataset_update": {
+                "description": "Update an existing dataset after light profiling",
+                "methods": ["PUT"],
+                "url": "/api/v1/dataset/update",
+            },
+            "polyglot_query": {
+                "description": "Execute queries on datasets",
+                "methods": ["POST"],
+                "url": "/api/v1/polyglot/query",
+            },
+            "swagger": {
+                "description": "Interactive API documentation (Swagger UI)",
+                "methods": ["GET"],
+                "url": "/api/v1/swagger",
+            },
+            "cross-dataset-discovery/search": {
+                "description": "Forward AP to CDD search endpoint using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/cross-dataset-discovery/search",
+            },
+            "authtest": {
+                "description": "Test endpoint requiring a valid bearer token",
+                "methods": ["POST"],
+                "url": "/api/v1/authtest",
+            },
+            "authtest_cdd_search": {
+                "description": "Forward payload to CDD search using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/authtest/cdd-search",
+            },
+            "authtest_cdd_search_ap": {
+                "description": "Forward payload to CDD search using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/authtest/cdd-search/ap",
             },
         },
     )
