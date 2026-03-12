@@ -154,17 +154,17 @@ router = APIRouter()
 
 
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
-CDD_URL = os.getenv("CDD_URL")
+CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 
 
 EXTERNAL_SERVICES = {
-    "/cross-dataset-discovery/search": {
+    "/api/v1/cross-dataset-discovery/search": {
         "url": f"{CDD_URL}/search-ap",
         "name": "Cross-Dataset Discovery",
     },
-    "/in-dataset-discovery/text2sql": {
+    "/api/v1/in-dataset-discovery/text2sql": {
         "url": f"{IDD_URL}/text2sql",
         "name": "In-Dataset Discovery (text2sql)",
     },
@@ -1297,7 +1297,7 @@ async def execute_and_store(
         scope=CDD_EXCHANGE_SCOPE,
     )
 
-    async with httpx.AsyncClient(timeout=CDD_REQUEST_TIMEOUT_SECONDS) as client:
+    async with httpx.AsyncClient(timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True) as client:
         response = await client.post(
             service["url"],
             headers={"Authorization": f"Bearer {exchanged_token}"},
@@ -1312,7 +1312,11 @@ async def execute_and_store(
             "content": response.text,
         }
 
-    return JSONResponse(status_code=response.status_code, content=response_payload)
+    return APSuccessEnvelope(
+        code=response.status_code,
+        message=f"{service['name']} completed successfully",
+        content=response_payload
+    )
 
     # return APSuccessEnvelope(
     #     code=status.HTTP_200_OK,
