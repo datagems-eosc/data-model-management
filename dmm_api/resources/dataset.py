@@ -160,8 +160,8 @@ CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 
 
 EXTERNAL_SERVICES = {
-    "/cross-dataset-discovery/search-ap": {
-        "url": f"{CDD_URL}/search",
+    "/cross-dataset-discovery/search": {
+        "url": f"{CDD_URL}/search-ap",
         "name": "Cross-Dataset Discovery",
     },
     "/in-dataset-discovery/text2sql": {
