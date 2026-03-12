@@ -1208,6 +1208,166 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
     }
 }
 ```
+## 9) Cross-dataset Discovery Search
+
+The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token. 
+
+### 9.1) Get an access token 
+```bash
+TOKEN=$(curl --silent --location 'https://datagems-dev.scayle.es/oauth/realms/dev/protocol/openid-connect/token' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --data-urlencode 'grant_type=password' \
+    --data-urlencode 'client_id=swagger-client' \
+    --data-urlencode 'username=dg-user-1' \
+    --data-urlencode 'password=dg-user-1' \
+    --data-urlencode 'scope=data-model-management-api' \
+    | jq -r '.access_token')
+```
+
+### 9.2) Forward AP to cross-dataset-discovery/search endpoint
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
+```
+
+This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns: 
+```json
+{
+    "code": 200,
+    "message": "Cross-Dataset Discovery completed successfully",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "id": "3f8a2b1c-4d5e-4a6b-9c7d-8e9f0a1b2c3d",
+                    "labels": [
+                        "User"
+                    ]
+                },
+                {
+                    "id": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d",
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "properties": {
+                        "description": "Analytical Pattern to retrieve a list of datasets",
+                        "name": "Retrieve Datasets AP",
+                        "process": "cross_dataset_discovery",
+                        "publishedDate": "2025-06-30",
+                        "startTime": "10:00:00"
+                    }
+                },
+                {
+                    "id": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "Query_Operator",
+                        "CDD_Operator"
+                    ],
+                    "properties": {
+                        "description": "Dataset search executed via Cross-Dataset Discovery",
+                        "k": 2,
+                        "name": "Cross-Dataset Discovery Operator",
+                        "publishedDate": "2025-06-30",
+                        "query": "Find datasets about the weather in Athens",
+                        "startTime": "10:00:00"
+                    }
+                },
+                {
+                    "id": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a",
+                    "labels": [
+                        "Task"
+                    ],
+                    "properties": {
+                        "description": "Task to find a dataset",
+                        "name": "Dataset Retrieval Task"
+                    }
+                },
+                {
+                    "id": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "sc:Dataset"
+                    ]
+                },
+                {
+                    "id": "article_Datenkompression",
+                    "labels": [
+                        "cr:FileObject"
+                    ]
+                },
+                {
+                    "id": "article_Putsch",
+                    "labels": [
+                        "cr:FileObject"
+                    ]
+                }
+            ],
+            "edges": [
+                {
+                    "from": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d",
+                    "labels": [
+                        "consist_of"
+                    ],
+                    "to": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
+                },
+                {
+                    "from": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a",
+                    "labels": [
+                        "is_accomplished"
+                    ],
+                    "to": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d"
+                },
+                {
+                    "from": "3f8a2b1c-4d5e-4a6b-9c7d-8e9f0a1b2c3d",
+                    "labels": [
+                        "request"
+                    ],
+                    "to": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a"
+                },
+                {
+                    "from": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "output"
+                    ],
+                    "to": "article_Datenkompression"
+                },
+                {
+                    "from": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "to": "article_Datenkompression"
+                },
+                {
+                    "from": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "output"
+                    ],
+                    "to": "article_Putsch"
+                },
+                {
+                    "from": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "to": "article_Putsch"
+                }
+            ]
+        },
+        "metadata": {
+            "query_time": 149.59,
+            "results": [
+                {
+                    ...
+                },
+                {
+                    ...
+                }
+            ]
+        }
+    }
+}
+```
 
 
 
