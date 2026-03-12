@@ -76,6 +76,11 @@ async def api_home():
                 "methods": ["GET"],
                 "url": "/api/v1/swagger",
             },
+            "cross-dataset-discovery/search": {
+                "description": "Forward AP to CDD search endpoint using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/cross-dataset-discovery/search",
+            },
             "authtest": {
                 "description": "Test endpoint requiring a valid bearer token",
                 "methods": ["POST"],
