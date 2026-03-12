@@ -31,6 +31,10 @@ CDD_SEARCH_URL = os.getenv(
     "https://datagems-dev.scayle.es/cross-dataset-discovery/search/",
 )
 
+CDD_SEARCH_AP_URL = os.getenv(
+    "CDD_SEARCH_AP_URL",
+    "https://datagems-dev.scayle.es/cross-dataset-discovery/search-ap/",
+)
 # Scope requested during token exchange to obtain a token accepted by CDD.
 CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
@@ -45,6 +49,10 @@ class AuthTestRequest(BaseModel):
     query: str
     k: int
 
+class APRequest(BaseModel):
+    """Input payload for the APRequest endpoint."""
+    ap: dict
+    metadata: dict
 
 @router.post("/authtest")
 async def authtest(
@@ -64,6 +72,41 @@ async def authtest(
 @router.post("/authtest/cdd-search")
 async def authtest_cdd_search(
     payload: AuthTestRequest,
+    credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
+):
+    """Forward exact input payload to CDD search using exchanged credentials.
+
+    Flow:
+    1) Validate caller bearer token
+    2) Exchange caller token for CDD scope
+    3) POST incoming JSON payload unchanged to CDD endpoint
+    4) Return downstream status and body as-is (JSON when possible)
+    """
+    exchanged_token = await get_exchanged_access_token(
+        subject_token=credentials.credentials,
+        scope=CDD_EXCHANGE_SCOPE,
+    )
+
+    async with httpx.AsyncClient(timeout=CDD_REQUEST_TIMEOUT_SECONDS) as client:
+        response = await client.post(
+            CDD_SEARCH_URL,
+            headers={"Authorization": f"Bearer {exchanged_token}"},
+            json=payload.model_dump(),
+        )
+
+    try:
+        response_payload = response.json()
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+
+    return JSONResponse(status_code=response.status_code, content=response_payload)
+
+@router.post("/authtest/cdd-search/ap")
+async def authtest_cdd_search(
+    payload: APRequest,
     credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
 ):
     """Forward exact input payload to CDD search using exchanged credentials.
