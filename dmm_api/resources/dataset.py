@@ -4,7 +4,8 @@ import json
 import os
 from pathlib import Path
 import shutil
-from dmm_api.resources.converter import convertHeavyProfile
+from dmm_api.resources.converter import convertProfile
+
 import duckdb
 from fastapi import (
     APIRouter,
@@ -159,7 +160,7 @@ class DatasetState(str, Enum):
 router = APIRouter()
 
 
-MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
@@ -490,7 +491,7 @@ async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")
             )
 
         if format == "croissant":
-            croissant_jsonld = convertHeavyProfile(pgjson_path=metadata)
+            croissant_jsonld = convertProfile(pgjson=metadata)
             metadata = json.loads(croissant_jsonld)
 
         return DatasetSuccessEnvelope(

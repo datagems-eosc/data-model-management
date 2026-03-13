@@ -579,6 +579,14 @@ curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/
 | python -m json.tool
 ```
 
+Optional query parameter:
+- `format` (str, default `None`): if `croissant`, the output will be given in Croissant format.
+```bash
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795?format=croissant" \
+| python -m json.tool
+```
+
+
 The API returns:
 ```json
 {
@@ -1230,7 +1238,7 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
 ## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
 
 
-The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token. 
+The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token.
 
 ```bash
 curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
@@ -1238,7 +1246,7 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset
 -F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
 ```
 
-This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns: 
+This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns:
 ```json
 {
     "code": 200,

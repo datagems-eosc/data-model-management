@@ -15,6 +15,10 @@ def convertHeavyProfile(pgjson_path: str):
     with open(pgjson_path, "r", encoding="utf-8") as f:
         pgjson = json.load(f)
 
+    return convertProfile(pgjson)
+
+
+def convertProfile(pgjson):
     datasets = parse_heavyProfile(pgjson)
     croissant_dict = map_to_croissant_heavyProfile(datasets)
     croissant_jsonld = to_jsonld(croissant_dict)
