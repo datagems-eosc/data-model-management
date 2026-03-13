@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+from dmm_api.resources.converter import convertHeavyProfile
 import duckdb
 from fastapi import (
     APIRouter,
@@ -459,7 +460,7 @@ async def search_datasets(
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
 @router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
-async def get_dataset(dataset_id: str):
+async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
     try:
         exists, metadata = await get_dataset_metadata(dataset_id)
@@ -472,6 +473,10 @@ async def get_dataset(dataset_id: str):
                     error=f"Dataset with ID {dataset_id} not found in Neo4j",
                 ).model_dump(),
             )
+
+        if format == "croissant":
+            croissant_jsonld = convertHeavyProfile(pgjson_path=metadata)
+            metadata = json.loads(croissant_jsonld)
 
         return DatasetSuccessEnvelope(
             code=status.HTTP_200_OK,
