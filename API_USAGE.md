@@ -44,7 +44,9 @@ To register a new dataset in the system:
 
 ### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
+curl -X POST -H "Content-Type: application/json" \
+--data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
+| python -m json.tool
 ```
 
 This registers a new dataset using the JSON payload. The API returns:
@@ -146,13 +148,17 @@ To move a dataset from the scratchpad to the permanent storage location:
 
 ### PUT a dataset load request
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
+| python -m json.tool
 ```
 
 Optional query parameter:
 - `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" \
+| python -m json.tool
 ```
 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
@@ -251,7 +257,9 @@ To update an existing dataset with additional metadata or file information:
 
 ### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+| python -m json.tool
 ```
 
 This updates the dataset with the light profile. The API returns:
@@ -372,9 +380,12 @@ This updates the dataset with the light profile. The API returns:
         ]
     }
 }
+```
 
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+| python -m json.tool
 ```
 This updates the dataset with the heavy profile. The API returns:
 ```json
@@ -561,9 +572,11 @@ Retrieve one or all ready datasets.
 
 ### GET one or all datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" \
+| python -m json.tool
 
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" \
+| python -m json.tool
 ```
 
 The API returns:
@@ -814,7 +827,8 @@ Parameters:
 - status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt"\
+| python -m json.tool
 ```
 
 The API returns:
@@ -861,7 +875,9 @@ To query one or more datasets:
 
 ### POST a query
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
+curl -X POST -H "Content-Type: application/json" \
+--data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+| python -m json.tool
 ```
 
 This query two dataset properties and creates a new dataset from the output. The API returns:
@@ -872,7 +888,7 @@ This query two dataset properties and creates a new dataset from the output. The
    "ap":{
       "nodes":[
          {
-            "id:"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+            "id":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -1073,10 +1089,12 @@ The output dataset is stored in a temporary location in S3 (`s3://data-model-man
 To convert from MoMa (PG-Json) to Croissant (Json-LD). 
 
 ```bash
-curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/moma2croissant" -F "file=@tests/data/zoo/zoo_2024_pg.json" | python3 -m json.tool
+curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/moma2croissant" \
+-F "file=@tests/data/zoo/zoo_2024_pg.json" | python3 -m json.tool
 ```
-```json
+
 This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
+```json
 {
     "message": "MoMa heavy profile converted to Croissant format successfully",
     "croissant": {
@@ -1208,23 +1226,11 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
     }
 }
 ```
-## 9) Cross-dataset Discovery Search
+## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
+
 
 The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token. 
 
-### 9.1) Get an access token 
-```bash
-TOKEN=$(curl --silent --location 'https://datagems-dev.scayle.es/oauth/realms/dev/protocol/openid-connect/token' \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode 'grant_type=password' \
-    --data-urlencode 'client_id=swagger-client' \
-    --data-urlencode 'username=dg-user-1' \
-    --data-urlencode 'password=dg-user-1' \
-    --data-urlencode 'scope=data-model-management-api' \
-    | jq -r '.access_token')
-```
-
-### 9.2) Forward AP to cross-dataset-discovery/search endpoint
 ```bash
 curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
 -H "Authorization: Bearer $TOKEN" \
