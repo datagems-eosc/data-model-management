@@ -3,7 +3,7 @@ import logging
 import os
 import tempfile
 
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, UploadFile, Query, HTTPException
 from fastapi.responses import Response
 from dmm_api.tools.PG2Croissant.parser import (
     parse_lightProfile,
@@ -58,11 +58,11 @@ def convertHeavyProfile(pgjson_path: str):
 #     temp_dir = tempfile.gettempdir()
 #     pg_json = os.path.join(temp_dir, file.filename)
 #     logging.info(f"Saving uploaded file to {pg_json}")
-    
+
 #     try:
 #         with open(pg_json, "wb") as f:
 #             f.write(await file.read())
-        
+
 #         croissant_jsonld = convertLightProfile(pgjson_path=pg_json)
 #         croissant_dict = json.loads(croissant_jsonld)
 
@@ -75,12 +75,27 @@ def convertHeavyProfile(pgjson_path: str):
 #         logging.error(f"Error processing file: {str(e)}")
 #         raise
 
+
 def to_jsonld(croissant_dict: dict) -> str:
     return json.dumps(croissant_dict, indent=2)
 
-@router.post("/moma2croissant")
-async def moma2croissant(file: UploadFile = File(...)):
-    """Convert MoMa profile to Croissant format"""
+
+@router.post("/convert")
+async def convert(
+    file: UploadFile = File(...),
+    from_format: str = Query(..., alias="from"),
+    to_format: str = Query(..., alias="to"),
+):
+    # Validate formats
+    if from_format != "moma":
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported from format: {from_format}"
+        )
+    if to_format != "croissant":
+        raise HTTPException(
+            status_code=400, detail=f"Unsupported to format: {to_format}"
+        )
+
     temp_dir = tempfile.gettempdir()
     pg_json = os.path.join(temp_dir, file.filename)
     logging.info(f"Saving uploaded file to {pg_json}")
@@ -92,8 +107,8 @@ async def moma2croissant(file: UploadFile = File(...)):
         croissant_jsonld = convertHeavyProfile(pgjson_path=pg_json)
         croissant_dict = json.loads(croissant_jsonld)
         response_data = {
-            "message": "MoMa profile converted to Croissant format successfully",
-            "croissant": croissant_dict
+            "message": f"Converted from {from_format} to {to_format} successfully",
+            "output": croissant_dict,
         }
         return Response(
             content=json.dumps(response_data), media_type="application/json"

@@ -83,7 +83,7 @@ async def api_home():
                 "MoMa2Croissant": {
                     "description": "Convert MoMa light profile to Croissant format",
                     "methods": ["POST"],
-                    "url": "/api/v1/moma2croissant",
+                    "url": "/api/v1/convert",
                 },
                 "authtest": {
                     "description": "Test endpoint requiring a valid bearer token",
