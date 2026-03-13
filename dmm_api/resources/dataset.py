@@ -15,11 +15,18 @@ from fastapi import (
     Request,
     UploadFile,
     status,
+    Depends,
 )
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials
 import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
+
+from dmm_api.security import (
+    get_exchanged_access_token,
+    require_valid_credentials,
+)
 
 from .query_executor import execute_query_csv
 
@@ -50,6 +57,12 @@ class APSuccessEnvelope(BaseModel):
     message: str
     ap: Dict[str, Any]
     metadata: Optional[Dict[str, Any]] = None
+
+
+class APResponseSuccessEnvelope(BaseModel):
+    code: int
+    message: str
+    content: Dict[str, Any]
 
 
 class DatasetSuccessEnvelope(BaseModel):
@@ -147,13 +160,14 @@ router = APIRouter()
 
 
 MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
-CDD_URL = os.getenv("CDD_URL")
+CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
+CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 
 
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
-        "url": f"{CDD_URL}/search",
+        "url": f"{CDD_URL}/search-ap/",
         "name": "Cross-Dataset Discovery",
     },
     "/in-dataset-discovery/text2sql": {
@@ -161,6 +175,7 @@ EXTERNAL_SERVICES = {
         "name": "In-Dataset Discovery (text2sql)",
     },
 }
+CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
 
 async def get_moma_object(
@@ -1268,47 +1283,43 @@ async def test_postgres_connection():
             con.close()
 
 
+@router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
 @router.post(
-    "/cross-dataset-discovery/search",
-    response_model=APSuccessEnvelope,
-    response_model_exclude_none=True,
-)
-@router.post(
-    "/in-dataset-discovery/text2sql",
-    response_model=APSuccessEnvelope,
-    response_model_exclude_none=True,
+    "/cross-dataset-discovery/search", response_model=APResponseSuccessEnvelope
 )
 async def execute_and_store(
-    request: Request, wrapped: WrappedAPRequest
-) -> APSuccessEnvelope:
+    request: Request,
+    file: UploadFile = File(...),
+    credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
+) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response."""
-    service = EXTERNAL_SERVICES[request.url.path]
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                service["url"],
-                json=wrapped.ap.model_dump(by_alias=True, exclude_defaults=True),
-            )
-            response.raise_for_status()
-            data = response.json()
-    except httpx.HTTPStatusError as e:
+    # Strip the API prefix to get the route path
+    route_path = request.url.path.replace("/api/v1", "", 1)
+    if route_path not in EXTERNAL_SERVICES:
         raise HTTPException(
-            status_code=status.HTTP_502_BAD_GATEWAY,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorEnvelope(
-                code=status.HTTP_502_BAD_GATEWAY,
-                error=f"{service['name']} returned an error: {e.response.status_code}",
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"Unknown endpoint: {route_path}",
             ).model_dump(),
         )
-    except httpx.RequestError:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=ErrorEnvelope(
-                code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                error=f"Failed to connect to {service['name']}",
-            ).model_dump(),
-        )
-    ap, metadata = data.get("ap", {}), data.get("metadata", {})
+    service = EXTERNAL_SERVICES[route_path]
 
+    # Read and parse the uploaded JSON file
+    content = await file.read()
+    try:
+        payload_data = json.loads(content)
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error=f"Invalid JSON in uploaded file: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Extract ap and metadata from the uploaded file to store only ap
+    ap = payload_data.get("ap", {})
     try:
         print(f"[{service['name']}] Storing AP in AP Storage:")
         print(json.dumps(ap, indent=2))
@@ -1316,9 +1327,42 @@ async def execute_and_store(
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
-    return APSuccessEnvelope(
-        code=status.HTTP_200_OK,
+    exchanged_token = await get_exchanged_access_token(
+        subject_token=credentials.credentials,
+        scope=CDD_EXCHANGE_SCOPE,
+    )
+
+    print(service["url"])
+
+    async with httpx.AsyncClient(
+        timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
+        response = await client.post(
+            service["url"],
+            headers={"Authorization": f"Bearer {exchanged_token}"},
+            json=payload_data,
+        )
+
+    try:
+        response_payload = response.json()
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+
+    # If response is not successful, raise an error
+    if response.status_code >= 400:
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=ErrorEnvelope(
+                code=response.status_code,
+                error=f"{service['name']} returned error: {response.status_code}",
+            ).model_dump(),
+        )
+
+    return APResponseSuccessEnvelope(
+        code=response.status_code,
         message=f"{service['name']} completed successfully",
-        ap=ap,
-        metadata=metadata,
+        content=response_payload,
     )

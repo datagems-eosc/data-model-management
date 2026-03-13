@@ -44,7 +44,9 @@ To register a new dataset in the system:
 
 ### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register | python -m json.tool
+curl -X POST -H "Content-Type: application/json" \
+--data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
+| python -m json.tool
 ```
 
 This registers a new dataset using the JSON payload. The API returns:
@@ -146,13 +148,17 @@ To move a dataset from the scratchpad to the permanent storage location:
 
 ### PUT a dataset load request
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
+| python -m json.tool
 ```
 
 Optional query parameter:
 - `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" \
+| python -m json.tool
 ```
 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
@@ -251,7 +257,9 @@ To update an existing dataset with additional metadata or file information:
 
 ### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+| python -m json.tool
 ```
 
 This updates the dataset with the light profile. The API returns:
@@ -372,9 +380,12 @@ This updates the dataset with the light profile. The API returns:
         ]
     }
 }
+```
 
 ```bash
-curl -X PUT -H "Content-Type: application/json" --data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update | python -m json.tool
+curl -X PUT -H "Content-Type: application/json" \
+--data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+| python -m json.tool
 ```
 This updates the dataset with the heavy profile. The API returns:
 ```json
@@ -561,9 +572,11 @@ Retrieve one or all ready datasets.
 
 ### GET one or all datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" \
+| python -m json.tool
 
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" \
+| python -m json.tool
 ```
 
 The API returns:
@@ -814,7 +827,8 @@ Parameters:
 - status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt" | python -m json.tool
+curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt"\
+| python -m json.tool
 ```
 
 The API returns:
@@ -861,7 +875,9 @@ To query one or more datasets:
 
 ### POST a query
 ```bash
-curl -X POST -H "Content-Type: application/json" --data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query | python -m json.tool
+curl -X POST -H "Content-Type: application/json" \
+--data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+| python -m json.tool
 ```
 
 This query two dataset properties and creates a new dataset from the output. The API returns:
@@ -872,7 +888,7 @@ This query two dataset properties and creates a new dataset from the output. The
    "ap":{
       "nodes":[
          {
-            "id:"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+            "id":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
             "labels":[
                "Analytical_Pattern"
             ],
@@ -1208,6 +1224,154 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
         ],
         "name": "ZOO 2024 Dataset",
         ...
+    }
+}
+```
+## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
+
+
+The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token. 
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
+```
+
+This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns: 
+```json
+{
+    "code": 200,
+    "message": "Cross-Dataset Discovery completed successfully",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "id": "3f8a2b1c-4d5e-4a6b-9c7d-8e9f0a1b2c3d",
+                    "labels": [
+                        "User"
+                    ]
+                },
+                {
+                    "id": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d",
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "properties": {
+                        "description": "Analytical Pattern to retrieve a list of datasets",
+                        "name": "Retrieve Datasets AP",
+                        "process": "cross_dataset_discovery",
+                        "publishedDate": "2025-06-30",
+                        "startTime": "10:00:00"
+                    }
+                },
+                {
+                    "id": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "Query_Operator",
+                        "CDD_Operator"
+                    ],
+                    "properties": {
+                        "description": "Dataset search executed via Cross-Dataset Discovery",
+                        "k": 2,
+                        "name": "Cross-Dataset Discovery Operator",
+                        "publishedDate": "2025-06-30",
+                        "query": "Find datasets about the weather in Athens",
+                        "startTime": "10:00:00"
+                    }
+                },
+                {
+                    "id": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a",
+                    "labels": [
+                        "Task"
+                    ],
+                    "properties": {
+                        "description": "Task to find a dataset",
+                        "name": "Dataset Retrieval Task"
+                    }
+                },
+                {
+                    "id": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "sc:Dataset"
+                    ]
+                },
+                {
+                    "id": "article_Datenkompression",
+                    "labels": [
+                        "cr:FileObject"
+                    ]
+                },
+                {
+                    "id": "article_Putsch",
+                    "labels": [
+                        "cr:FileObject"
+                    ]
+                }
+            ],
+            "edges": [
+                {
+                    "from": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d",
+                    "labels": [
+                        "consist_of"
+                    ],
+                    "to": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e"
+                },
+                {
+                    "from": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a",
+                    "labels": [
+                        "is_accomplished"
+                    ],
+                    "to": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d"
+                },
+                {
+                    "from": "3f8a2b1c-4d5e-4a6b-9c7d-8e9f0a1b2c3d",
+                    "labels": [
+                        "request"
+                    ],
+                    "to": "2d4e5f6a-7b8c-4d9e-0f1a-2b3c4d5e6f7a"
+                },
+                {
+                    "from": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "output"
+                    ],
+                    "to": "article_Datenkompression"
+                },
+                {
+                    "from": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "to": "article_Datenkompression"
+                },
+                {
+                    "from": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
+                    "labels": [
+                        "output"
+                    ],
+                    "to": "article_Putsch"
+                },
+                {
+                    "from": "1f6fba0c-9aea-4345-b5a3-457c924f9e0c",
+                    "labels": [
+                        "distribution"
+                    ],
+                    "to": "article_Putsch"
+                }
+            ]
+        },
+        "metadata": {
+            "query_time": 149.59,
+            "results": [
+                {
+                    ...
+                },
+                {
+                    ...
+                }
+            ]
+        }
     }
 }
 ```
