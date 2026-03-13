@@ -91,8 +91,14 @@ def extract_distributions(dataset_id: str, pgjson: dict) -> List[FileObject]:
     return distributions
 
 def extract_source(field_id: str, pgjson: dict) -> str:    
+    fileObject_id = None
     for edge in pgjson.get("edges", []):
-        if edge.get("from",{}) == field_id and "source/fileObject" in edge.get("labels", {}):
+        labels = edge.get("labels", [])
+        # Accept variations: source/fileObject, source_fileObject, source___fileObject, etc.
+        if edge.get("from",{}) == field_id and any(
+            label in ["source/fileObject", "source_fileObject", "source___fileObject"] 
+            for label in labels
+        ):
             fileObject_id = edge.get("to")
     return fileObject_id
     
