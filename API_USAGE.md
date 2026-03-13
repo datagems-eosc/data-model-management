@@ -1084,13 +1084,14 @@ This creates a new dataset with the query results and links it to the input data
 The output dataset is stored in a temporary location in S3 (`s3://data-model-management/results/`) and can be retrieved with the GET endpoints.
 
 
-## 8) Convert MoMa to Croissant
+## 8) Converter
 
-To convert from MoMa (PG-Json) to Croissant (Json-LD). 
+This converter support a conversion from MoMa (PG-Json) to Croissant (Json-LD).
 
 ```bash
-curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/moma2croissant" \
--F "file=@tests/data/zoo/zoo_2024_pg.json" | python3 -m json.tool
+curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/convert?from=moma&to=croissant" \
+-F "file=@tests/data/zoo/zoo_2024_pg.json" \
+| python3 -m json.tool
 ```
 
 This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
