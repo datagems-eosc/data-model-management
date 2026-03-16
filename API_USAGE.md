@@ -1395,13 +1395,13 @@ Current authorized-party (`azp`) accepted by the API: `swagger-client`.
 ### 0) Get an access token (Keycloak dev realm)
 ```bash
 TOKEN=$(curl --silent --location 'https://datagems-dev.scayle.es/oauth/realms/dev/protocol/openid-connect/token' \
-    --header 'Content-Type: application/x-www-form-urlencoded' \
-    --data-urlencode 'grant_type=password' \
-    --data-urlencode 'client_id=swagger-client' \
-    --data-urlencode 'username=dg-user-1' \
-    --data-urlencode 'password=dg-user-1' \
-    --data-urlencode 'scope=data-model-management-api' \
-    | jq -r '.access_token')
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'grant_type=password' \
+--data-urlencode 'client_id=swagger-client' \
+--data-urlencode 'username=<CLIENT_ID>' \
+--data-urlencode 'password=<CLIENT_SECRET>' \
+--data-urlencode 'scope=<SCOPE>' \
+| jq -r '.access_token')
 ```
 
 ### 0.1) Call auth test endpoint
