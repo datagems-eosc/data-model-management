@@ -68,8 +68,7 @@
           "endTime": "10:00:05",
           "name": "Retrieve Datasets AP",
           "process": "cross_dataset_discovery",
-          "publishedDate": "2025-06-30",
-          "startTime": "10:00:00"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
@@ -83,9 +82,8 @@
           "endTime": "10:00:05",
           "k": 2,
           "name": "Cross-Dataset Discovery Operator",
-          "publishedDate": "2025-06-30",
           "query": "Find datasets about the weather in Athens",
-          "startTime": "10:00:00"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {

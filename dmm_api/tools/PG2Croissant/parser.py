@@ -254,7 +254,7 @@ def extract_source(field_id: str, pgjson: dict = None, edge_index: dict = None) 
     # Get edges from this field
     for edge in edge_index.get(field_id, []):
         labels = edge.get("labels", [])
-        # Accept variations: source/fileObject, source_fileObject, source___fileObject, etc.
+        # Accept variations: source/fileObject, source_fileObject, source___fileObject
         if any(
             label in ["source/fileObject", "source_fileObject", "source___fileObject"]
             for label in labels
