@@ -1,3 +1,4 @@
+from asyncio import log
 from datetime import date
 from enum import Enum
 import json
@@ -22,10 +23,8 @@ import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
-from dmm_api.security import (
-    get_exchanged_access_token,
-    require_valid_credentials,
-)
+from dmm_api.resources.security import _exchange_token_for_cdd
+import dmm_api.security as security
 
 from .query_executor import execute_query_csv
 
@@ -1285,7 +1284,7 @@ async def test_postgres_connection():
 async def execute_and_store(
     request: Request,
     file: UploadFile = File(...),
-    credentials: HTTPAuthorizationCredentials = Depends(require_valid_credentials),
+    token: str = Depends(security.oauth2_scheme),
 ) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response."""
     # Strip the API prefix to get the route path
@@ -1322,12 +1321,20 @@ async def execute_and_store(
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
-    exchanged_token = await get_exchanged_access_token(
-        subject_token=credentials.credentials,
-        scope=CDD_EXCHANGE_SCOPE,
+    exchanged_token = await _exchange_token_for_cdd(
+        user_token=token,
     )
+    if not exchanged_token:
+        log.warning(
+            "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
+        )
+        return APResponseSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
+            content={"warning": "Failed to obtain token for external service. Request sent without authentication."},
+        )
+    
 
-    print(service["url"])
 
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
