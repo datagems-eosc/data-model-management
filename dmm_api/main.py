@@ -100,7 +100,7 @@ async def api_home():
                 "url": "/api/v1/authtest/cdd-search/ap",
             },
         },
-    )
+    }
 
 
 if __name__ == "__main__":

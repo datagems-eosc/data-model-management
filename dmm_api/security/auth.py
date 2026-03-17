@@ -55,10 +55,6 @@ OIDC_JWKS_URL = os.getenv(
     f"{OIDC_ISSUER}/protocol/openid-connect/certs",
 )
 
-# Optional authorized-party (`azp`) gate.
-# When set, only tokens issued for this client/application are accepted.
-OIDC_AUTHORIZED_AZP = os.getenv("OIDC_AUTHORIZED_AZP", "swagger-client")
-
 # OIDC token endpoint used for service token exchange.
 OIDC_TOKEN_URL = os.getenv(
     "OIDC_TOKEN_URL",
@@ -184,11 +180,11 @@ async def require_valid_token(
         ) from exc
 
     # Optional client-binding check via `azp` claim.
-    if OIDC_AUTHORIZED_AZP and payload.get("azp") != OIDC_AUTHORIZED_AZP:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Token azp is not authorized",
-        )
+    # if OIDC_AUTHORIZED_AZP and payload.get("azp") != OIDC_AUTHORIZED_AZP:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Token azp is not authorized",
+    #     )
 
     # Dependency output: route handlers can use these claims directly.
     return payload
