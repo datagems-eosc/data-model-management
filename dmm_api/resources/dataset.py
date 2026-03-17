@@ -1,4 +1,3 @@
-from asyncio import log
 from datetime import date
 from enum import Enum
 import json
@@ -6,6 +5,7 @@ import os
 from pathlib import Path
 import shutil
 import duckdb
+import structlog
 from fastapi import (
     APIRouter,
     File,
@@ -18,13 +18,13 @@ from fastapi import (
     Depends,
 )
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials
 import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
 from dmm_api.resources.security import _exchange_token_for_cdd
-import dmm_api.security as security
+import dmm_api.resources.security as security
+
 
 from .query_executor import execute_query_csv
 
@@ -44,6 +44,8 @@ from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_up
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
+
+logger = structlog.get_logger(__name__)
 
 
 class WrappedAPRequest(BaseModel):
@@ -1325,16 +1327,16 @@ async def execute_and_store(
         user_token=token,
     )
     if not exchanged_token:
-        log.warning(
+        logger.warning(
             "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
         )
         return APResponseSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
-            content={"warning": "Failed to obtain token for external service. Request sent without authentication."},
+            content={
+                "warning": "Failed to obtain token for external service. Request sent without authentication."
+            },
         )
-    
-
 
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -1355,11 +1357,27 @@ async def execute_and_store(
 
     # If response is not successful, raise an error
     if response.status_code >= 400:
+        logger.error(
+            f"Error from {service['name']}",
+            status_code=response.status_code,
+            response_text=response.text,
+        )
+
+        # Extract error message and format it with service name and status code
+        if isinstance(response_payload, dict):
+            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
+        else:
+            cdd_error_msg = response.text
+
+        error_message = (
+            f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
+        )
+
         raise HTTPException(
             status_code=response.status_code,
             detail=ErrorEnvelope(
                 code=response.status_code,
-                error=f"{service['name']} returned error: {response.status_code}",
+                error=error_message,
             ).model_dump(),
         )
 

@@ -2,7 +2,6 @@
 
 This module contains:
 - Bearer token validation against OIDC issuer + JWKS
-- Optional `azp` authorization guard
 - Token-exchange helper to obtain downstream service tokens
 
 Most values are configurable via environment variables. Defaults are provided for
@@ -22,6 +21,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
 logger = logging.getLogger(__name__)
+
+OIDC_ISSUER_URL: str = os.getenv(
+    "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
+)
 
 # JSON Web Signature algorithm expected for incoming JWT tokens.
 # We keep this explicit to avoid algorithm confusion attacks.
@@ -64,6 +67,8 @@ OIDC_TOKEN_URL = os.getenv(
 # Service credentials used for token-exchange grant against the IdP.
 OIDC_CLIENT_ID = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
 OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
+
+OIDC_AUDIENCE: str = os.getenv("OIDC_AUDIENCE", "data-model-management-api")
 
 # JWKS cache TTL (seconds). Can be overridden per environment.
 # `300` is only the default example value.
@@ -163,6 +168,7 @@ async def require_valid_token(
             credentials.credentials,
             await _get_jwks(),
             algorithms=[JWT_SIGNING_ALGORITHM],
+            audience=OIDC_AUDIENCE,
             issuer=OIDC_ISSUER,
             options={"verify_aud": False},
         )

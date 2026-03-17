@@ -1,15 +1,14 @@
-from typing import Any, List, Optional, Set
+from typing import Any, List, Optional
 
 import httpx
 import os
 from dmm_api.security.auth import OIDC_CLIENT_SECRET
-import structlog
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from contextvars import ContextVar
-
+import structlog
 
 
 class FailedDependencyMessage(BaseModel):
@@ -17,11 +16,13 @@ class FailedDependencyMessage(BaseModel):
     source: str
     correlationId: Optional[str] = None
     payload: Optional[Any] = None
-    
+
+
 class FailedDependencyResponse(BaseModel):
     code: int
     error: str
     message: FailedDependencyMessage
+
 
 class FailedDependencyException(HTTPException):
     def __init__(
@@ -38,20 +39,20 @@ class FailedDependencyException(HTTPException):
         self.downstream_payload = payload
         super().__init__(status_code=status.HTTP_424_FAILED_DEPENDENCY, detail=detail)
 
+
 logger = structlog.get_logger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 _oidc_config = None
 _jwks_keys = None
 
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
-OIDC_CLIENT_SECRET: str = os.getenv("OIDC_CLIENT_SECRET", "data-model-management-api")
+OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
 OIDC_ISSUER_URL: str = os.getenv(
     "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
 )
+OIDC_CONFIG_URL: str = f"{OIDC_ISSUER_URL}/.well-known/openid-configuration"
+CDD_EXCHANGE_SCOPE: str = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
-@property
-def OIDC_CONFIG_URL(self) -> str:
-    return f"{self.OIDC_ISSUER_URL}/.well-known/openid-configuration"
 
 async def get_oidc_config():
     global _oidc_config
@@ -230,12 +231,13 @@ async def _exchange_token_for_cdd(user_token: str) -> str | None:
 
         data = {
             "grant_type": "urn:ietf:params:oauth:grant-type:token-exchange",
-            "client_id": OIDC_CLIENT_SECRET,
+            "client_id": OIDC_CLIENT_ID,
             "client_secret": OIDC_CLIENT_SECRET,
             "subject_token": user_token,
             "subject_token_type": "urn:ietf:params:oauth:token-type:access_token",
             "requested_token_type": "urn:ietf:params:oauth:token-type:access_token",
-            "scope": "dg-app-api",
+            "scope": CDD_EXCHANGE_SCOPE,
+            "audience": "cross-dataset-discovery-api",
         }
 
         async with httpx.AsyncClient() as client:
@@ -266,4 +268,3 @@ async def _exchange_token_for_cdd(user_token: str) -> str | None:
 def get_correlation_id() -> str | None:
     """Returns the current correlation ID."""
     return correlation_id_var.get()
-
