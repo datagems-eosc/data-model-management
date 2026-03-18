@@ -1,7 +1,7 @@
 import json
-import logging
 import os
 import tempfile
+import structlog
 
 from fastapi import APIRouter, File, UploadFile, Query, HTTPException
 from fastapi.responses import Response
@@ -9,6 +9,7 @@ from dmm_api.tools.PG2Croissant.parser import parse_heavyProfile
 from dmm_api.tools.PG2Croissant.mapper import map_to_croissant_heavyProfile
 
 router = APIRouter()
+logger = structlog.get_logger(__name__)
 
 
 def convertHeavyProfile(pgjson_path: str):
@@ -48,7 +49,7 @@ async def convert(
 
     temp_dir = tempfile.gettempdir()
     pg_json = os.path.join(temp_dir, file.filename)
-    logging.info(f"Saving uploaded file to {pg_json}")
+    logger.info(f"Saving uploaded file to {pg_json}")
 
     try:
         with open(pg_json, "wb") as f:
@@ -64,5 +65,5 @@ async def convert(
             content=json.dumps(response_data), media_type="application/json"
         )
     except Exception as e:
-        logging.error(f"Error processing file: {str(e)}")
+        logger.error(f"Error processing file: {str(e)}")
         raise

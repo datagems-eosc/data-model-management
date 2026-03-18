@@ -1,5 +1,5 @@
 from typing import List
-import logging
+import structlog
 from dmm_api.tools.PG2Croissant.model import (
     Dataset,
     FileObject,
@@ -8,7 +8,7 @@ from dmm_api.tools.PG2Croissant.model import (
     ColumnStatistics,
 )
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def parse_heavyProfile(pgjson: dict) -> List[Dataset]:

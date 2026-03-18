@@ -10,7 +10,7 @@ the DataGEMS dev realm to keep local/dev usage simple.
 
 import os
 import time
-import logging
+import structlog
 from dataclasses import dataclass
 import hashlib
 from typing import Any, Dict, Optional
@@ -20,7 +20,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 OIDC_ISSUER_URL: str = os.getenv(
     "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
