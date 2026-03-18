@@ -1315,6 +1315,8 @@ async def execute_and_store(
     service = EXTERNAL_SERVICES[route_path]
 
     # Parse payload from either file or JSON body
+    payload_data = None
+
     if file:
         # Read and parse the uploaded JSON file
         content = await file.read()
@@ -1329,9 +1331,18 @@ async def execute_and_store(
                 ).model_dump(),
             )
     elif body:
-        # Use JSON body directly
+        # Use JSON body directly (automatic FastAPI parsing)
         payload_data = {"ap": body.ap.model_dump()}
     else:
+        # Fallback: manually try to parse JSON body if automatic parsing didn't work
+        try:
+            body_content = await request.body()
+            if body_content:
+                payload_data = json.loads(body_content)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    if not payload_data or "ap" not in payload_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(

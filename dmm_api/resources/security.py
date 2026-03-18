@@ -2,7 +2,6 @@ from typing import Any, List, Optional
 
 import httpx
 import os
-from dmm_api.security.auth import OIDC_CLIENT_SECRET
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -47,6 +46,7 @@ _jwks_keys = None
 
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
 OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
+OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
 OIDC_ISSUER_URL: str = os.getenv(
     "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
 )
