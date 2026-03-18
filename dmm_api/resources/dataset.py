@@ -1291,10 +1291,16 @@ async def test_postgres_connection():
 )
 async def execute_and_store(
     request: Request,
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(None),
+    body: Optional[WrappedAPRequest] = None,
     token: str = Depends(security.oauth2_scheme),
 ) -> APResponseSuccessEnvelope:
-    """Generic handler: forward AP to the appropriate service, store it, return full response."""
+    """Generic handler: forward AP to the appropriate service, store it, return full response.
+
+    Accepts AP in either format:
+    - Multipart form with file upload: file=@path/to/file.json
+    - JSON body: {"ap": {...}}
+    """
     # Strip the API prefix to get the route path
     route_path = request.url.path.replace("/api/v1", "", 1)
     if route_path not in EXTERNAL_SERVICES:
@@ -1307,16 +1313,29 @@ async def execute_and_store(
         )
     service = EXTERNAL_SERVICES[route_path]
 
-    # Read and parse the uploaded JSON file
-    content = await file.read()
-    try:
-        payload_data = json.loads(content)
-    except json.JSONDecodeError as e:
+    # Parse payload from either file or JSON body
+    if file:
+        # Read and parse the uploaded JSON file
+        content = await file.read()
+        try:
+            payload_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid JSON in uploaded file: {str(e)}",
+                ).model_dump(),
+            )
+    elif body:
+        # Use JSON body directly
+        payload_data = {"ap": body.ap.model_dump()}
+    else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
-                error=f"Invalid JSON in uploaded file: {str(e)}",
+                error="Request must include either a JSON file upload or JSON body with 'ap' field",
             ).model_dump(),
         )
 
