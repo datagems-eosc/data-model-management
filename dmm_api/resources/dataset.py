@@ -10,6 +10,7 @@ import duckdb
 import structlog
 from fastapi import (
     APIRouter,
+    Body,
     File,
     Form,
     HTTPException,
@@ -1292,7 +1293,7 @@ async def test_postgres_connection():
 async def execute_and_store(
     request: Request,
     file: Optional[UploadFile] = File(None),
-    body: Optional[WrappedAPRequest] = None,
+    body: Optional[WrappedAPRequest] = Body(None),
     token: str = Depends(security.oauth2_scheme),
 ) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response.
