@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 
-from dmm_api.resources.authtest import router as authtest_router
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 
@@ -21,7 +20,6 @@ app = FastAPI(
 # TODO: check if we need to change the API path prefix or not
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
-app.include_router(authtest_router, prefix="/api/v1")
 
 
 # Root
