@@ -20,6 +20,8 @@ def map_to_croissant(datasets):
         for key, val in dataset.properties.items():
             if key == "type":
                 dataset_dict["@type"] = val
+            elif key == "id":
+                dataset_dict["@id"] = val
             else:
                 dataset_dict[key] = val
     return dataset_dict
@@ -31,6 +33,8 @@ def map_to_croissant_dataset(datasets):
         for key, val in dataset.properties.items():
             if key == "type":
                 dataset_dict["@type"] = val
+            elif key == "id":
+                dataset_dict["@id"] = val
             else:
                 dataset_dict[key] = val
     return dataset_dict
@@ -41,6 +45,8 @@ def map_fileObjects(fileObject):
     for key, val in fileObject.properties.items():
         if key == "type":
             fileObject_dict["@type"] = val
+        elif key == "id":
+            fileObject_dict["@id"] = val
         else:
             fileObject_dict[key] = val
     return fileObject_dict
@@ -55,6 +61,8 @@ def map_recordSet(recordSet):
     for key, val in recordSet.properties.items():
         if key == "type":
             recordSet_dict["@type"] = val
+        elif key == "id":
+            recordSet_dict["@id"] = val
         else:
             recordSet_dict[key] = val
     recordSet_dict["field"] = fields
@@ -70,6 +78,8 @@ def map_field(field):
     for key, val in field.properties.items():
         if key == "type":
             field_dict["@type"] = val
+        elif key == "id":
+            field_dict["@id"] = val
         else:
             field_dict[key] = val
 
@@ -82,6 +92,8 @@ def map_statistics(statistic):
     for key, val in statistic.properties.items():
         if key == "type":
             statistic_dict["@type"] = val
+        elif key == "id":
+            statistic_dict["@id"] = val
         else:
             statistic_dict[key] = val
     return statistic_dict
