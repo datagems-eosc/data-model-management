@@ -2,7 +2,6 @@ from typing import Any, List, Optional
 
 import httpx
 import os
-from dmm_api.security.auth import OIDC_CLIENT_SECRET
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -47,6 +46,7 @@ _jwks_keys = None
 
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
 OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
+OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
 OIDC_ISSUER_URL: str = os.getenv(
     "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
 )
@@ -147,72 +147,6 @@ async def get_jwks_keys():
                 detail="Could not fetch public keys for token validation.",
             )
     return _jwks_keys
-
-
-async def get_current_user_claims(token: str = Depends(oauth2_scheme)) -> dict:
-    """
-    A FastAPI dependency that validates the JWT and returns its claims.
-    This will be applied to protected endpoints.
-    """
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        keys = await get_jwks_keys()
-        payload = jwt.decode(
-            token,
-            keys,
-            algorithms=["RS256"],
-            audience=OIDC_CLIENT_SECRET,
-            issuer=OIDC_ISSUER_URL,
-        )
-        return payload
-    except JWTError as e:
-        logger.warning("JWT validation failed", error=str(e))
-        raise credentials_exception
-    except Exception as e:
-        logger.error(
-            "An unexpected error occurred during token validation", error=str(e)
-        )
-        raise credentials_exception
-
-
-def require_role(required_roles: List[str]):
-    """
-    A FastAPI dependency that checks if the user has at least one of the required roles.
-    """
-
-    def role_checker(claims: dict = Depends(get_current_user_claims)) -> dict:
-        # this implementation  aims to check not only for user but for dg_user as well for the swagger
-        user_roles = set(claims.get("realm_access", {}).get("roles", []))
-
-        # Check for any intersection between the user's roles and the required roles
-        if not user_roles.intersection(required_roles):
-            log_context = {
-                "required_roles": required_roles,
-                "UserId": claims.get("sub"),
-                "user_roles": list(user_roles),
-            }
-            client_id = claims.get("clientid")
-            if client_id:
-                log_context["ClientId"] = client_id
-
-            logger.warning(
-                "Authorization failed: User missing any of the required roles",
-                **log_context,
-            )
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"User does not have any of the required roles: {', '.join(required_roles)}.",
-            )
-
-        # If the check passes, return the claims for use in the endpoint
-        return claims
-
-    return role_checker
 
 
 async def _exchange_token_for_cdd(user_token: str) -> str | None:

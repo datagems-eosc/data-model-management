@@ -84,21 +84,6 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
-            "authtest": {
-                "description": "Test endpoint requiring a valid bearer token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest",
-            },
-            "authtest_cdd_search": {
-                "description": "Forward payload to CDD search using exchanged token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest/cdd-search",
-            },
-            "authtest_cdd_search_ap": {
-                "description": "Forward payload to CDD search using exchanged token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest/cdd-search/ap",
-            },
         },
     }
 
