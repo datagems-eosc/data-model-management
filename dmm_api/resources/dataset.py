@@ -4,10 +4,13 @@ import json
 import os
 from pathlib import Path
 import shutil
+from dmm_api.resources.converter import convertProfile
+
 import duckdb
 import structlog
 from fastapi import (
     APIRouter,
+    Body,
     File,
     Form,
     HTTPException,
@@ -159,7 +162,7 @@ class DatasetState(str, Enum):
 router = APIRouter()
 
 
-MOMA_URL = os.getenv("MOMA_URL", "http://localhost:8000")
+MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
@@ -475,7 +478,7 @@ async def search_datasets(
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
 @router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
-async def get_dataset(dataset_id: str):
+async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
     try:
         exists, metadata = await get_dataset_metadata(dataset_id)
@@ -488,6 +491,10 @@ async def get_dataset(dataset_id: str):
                     error=f"Dataset with ID {dataset_id} not found in Neo4j",
                 ).model_dump(),
             )
+
+        if format == "croissant":
+            croissant_jsonld = convertProfile(pgjson=metadata)
+            metadata = json.loads(croissant_jsonld)
 
         return DatasetSuccessEnvelope(
             code=status.HTTP_200_OK,
@@ -1285,10 +1292,16 @@ async def test_postgres_connection():
 )
 async def execute_and_store(
     request: Request,
-    file: UploadFile = File(...),
+    file: Optional[UploadFile] = File(None),
+    body: Optional[WrappedAPRequest] = Body(None),
     token: str = Depends(security.oauth2_scheme),
 ) -> APResponseSuccessEnvelope:
-    """Generic handler: forward AP to the appropriate service, store it, return full response."""
+    """Generic handler: forward AP to the appropriate service, store it, return full response.
+
+    Accepts AP in either format:
+    - Multipart form with file upload: file=@path/to/file.json
+    - JSON body: {"ap": {...}}
+    """
     # Strip the API prefix to get the route path
     route_path = request.url.path.replace("/api/v1", "", 1)
     if route_path not in EXTERNAL_SERVICES:
@@ -1301,16 +1314,40 @@ async def execute_and_store(
         )
     service = EXTERNAL_SERVICES[route_path]
 
-    # Read and parse the uploaded JSON file
-    content = await file.read()
-    try:
-        payload_data = json.loads(content)
-    except json.JSONDecodeError as e:
+    # Parse payload from either file or JSON body
+    payload_data = None
+
+    if file:
+        # Read and parse the uploaded JSON file
+        content = await file.read()
+        try:
+            payload_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid JSON in uploaded file: {str(e)}",
+                ).model_dump(),
+            )
+    elif body:
+        # Use JSON body directly (automatic FastAPI parsing)
+        payload_data = {"ap": body.ap.model_dump()}
+    else:
+        # Fallback: manually try to parse JSON body if automatic parsing didn't work
+        try:
+            body_content = await request.body()
+            if body_content:
+                payload_data = json.loads(body_content)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    if not payload_data or "ap" not in payload_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
-                error=f"Invalid JSON in uploaded file: {str(e)}",
+                error="Request must include either a JSON file upload or JSON body with 'ap' field",
             ).model_dump(),
         )
 

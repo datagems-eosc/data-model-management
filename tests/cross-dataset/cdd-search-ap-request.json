@@ -46,8 +46,7 @@
           "description": "Analytical Pattern to retrieve a list of datasets",
           "name": "Retrieve Datasets AP",
           "process": "cross_dataset_discovery",
-          "publishedDate": "2025-06-30",
-          "startTime": "10:00:00"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
@@ -60,9 +59,8 @@
           "description": "Dataset search executed via Cross-Dataset Discovery",
           "k": 2,
           "name": "Cross-Dataset Discovery Operator",
-          "publishedDate": "2025-06-30",
           "query": "Find datasets about the weather in Athens",
-          "startTime": "10:00:00"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
