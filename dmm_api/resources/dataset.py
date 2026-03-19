@@ -1360,27 +1360,27 @@ async def execute_and_store(
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
-    exchanged_token = await _exchange_token_for_cdd(
-        user_token=token,
-    )
-    if not exchanged_token:
-        logger.warning(
-            "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
-        )
-        return APResponseSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
-            content={
-                "warning": "Failed to obtain token for external service. Request sent without authentication."
-            },
-        )
+    # exchanged_token = await _exchange_token_for_cdd(
+    #     user_token=token,
+    # )
+    # if not exchanged_token:
+    #     logger.warning(
+    #         "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
+    #     )
+    #     return APResponseSuccessEnvelope(
+    #         code=status.HTTP_200_OK,
+    #         message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
+    #         content={
+    #             "warning": "Failed to obtain token for external service. Request sent without authentication."
+    #         },
+    #     )
 
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {exchanged_token}"},
+            headers={"Authorization": f"Bearer {token}"},
             json=payload_data,
         )
 
@@ -1392,7 +1392,7 @@ async def execute_and_store(
             "content": response.text,
         }
 
-    # If response is not successful, raise an error
+    # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
         logger.error(
             f"Error from {service['name']}",
@@ -1406,9 +1406,21 @@ async def execute_and_store(
         else:
             cdd_error_msg = response.text
 
+        # Build context-specific error messages based on status code
+        status_messages = {
+            status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
+            status.HTTP_403_FORBIDDEN: "Authorization failed. You lack the required role to perform this action.",
+            status.HTTP_424_FAILED_DEPENDENCY: "The service failed to communicate with a required dependency (OIDC provider, database, etc.).",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "An unexpected error occurred in the service while processing the request.",
+            status.HTTP_503_SERVICE_UNAVAILABLE: "The service is not ready. A core component may have failed during initialization.",
+        }
+
+        context_msg = status_messages.get(response.status_code, "")
         error_message = (
             f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
         )
+        if context_msg:
+            error_message = f"{error_message} — {context_msg}"
 
         raise HTTPException(
             status_code=response.status_code,
