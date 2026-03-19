@@ -1323,27 +1323,27 @@ async def execute_and_store(
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
-    exchanged_token = await _exchange_token_for_cdd(
-        user_token=token,
-    )
-    if not exchanged_token:
-        logger.warning(
-            "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
-        )
-        return APResponseSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
-            content={
-                "warning": "Failed to obtain token for external service. Request sent without authentication."
-            },
-        )
+    # exchanged_token = await _exchange_token_for_cdd(
+    #     user_token=token,
+    # )
+    # if not exchanged_token:
+    #     logger.warning(
+    #         "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
+    #     )
+    #     return APResponseSuccessEnvelope(
+    #         code=status.HTTP_200_OK,
+    #         message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
+    #         content={
+    #             "warning": "Failed to obtain token for external service. Request sent without authentication."
+    #         },
+    #     )
 
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {exchanged_token}"},
+            headers={"Authorization": f"Bearer {token}"},
             json=payload_data,
         )
 
