@@ -84,8 +84,8 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
-          "MoMa2Croissant": {
-                    "description": "Convert MoMa light profile to Croissant format",
+            "MoMa2Croissant": {
+                    "description": "Convert MoMa profile to Croissant format",
                     "methods": ["POST"],
                     "url": "/api/v1/convert",
             },

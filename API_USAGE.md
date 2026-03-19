@@ -1105,7 +1105,7 @@ curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/convert?from=moma&to=cro
 This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
 ```json
 {
-    "message": "MoMa heavy profile converted to Croissant format successfully",
+    "message": "MoMa profile converted to Croissant format successfully",
     "croissant": {
         "@context": {
             "@language": "en",
