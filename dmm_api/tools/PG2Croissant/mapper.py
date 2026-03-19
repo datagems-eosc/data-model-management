@@ -1,7 +1,7 @@
 from dmm_api.constants import CROISSANT_CONTEXT
 
 
-def map_to_croissant_heavyProfile(datasets):
+def map_to_croissant(datasets):
     for dataset in datasets:
         distribution = []
         recordSets = []
@@ -16,28 +16,6 @@ def map_to_croissant_heavyProfile(datasets):
             "@id": dataset.id,
             "distribution": distribution,
             "recordSet": recordSets,
-        }
-        for key, val in dataset.properties.items():
-            if key == "type":
-                dataset_dict["@type"] = val
-            else:
-                dataset_dict[key] = val
-    return dataset_dict
-
-
-def map_to_croissant_lightProfile(datasets):
-    for dataset in datasets:
-        distribution = []
-        for fileObject in dataset.distribution:
-            distribution.append(map_fileObjects(fileObject))
-
-        recordSet = []
-
-        dataset_dict = {
-            "@context": CROISSANT_CONTEXT,
-            "@id": dataset.id,
-            "distribution": distribution,
-            "recordSet": recordSet,
         }
         for key, val in dataset.properties.items():
             if key == "type":
