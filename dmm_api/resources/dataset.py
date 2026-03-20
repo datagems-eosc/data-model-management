@@ -25,7 +25,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
 from dmm_api.resources.security import _exchange_token_for_cdd
-import dmm_api.resources.security as security
+from dmm_api.security import require_system_or_user_access, SystemOrUserToken
 
 
 from .query_executor import execute_query_csv
@@ -1293,9 +1293,15 @@ async def execute_and_store(
     request: Request,
     file: Optional[UploadFile] = File(None),
     body: Optional[WrappedAPRequest] = None,
-    token: str = Depends(security.oauth2_scheme),
+    auth: SystemOrUserToken = Depends(require_system_or_user_access),
 ) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response.
+
+    Accepts requests from both user-initiated and system-level (e.g., Airflow) clients.
+
+    System-level access is granted to tokens with:
+    - Role: 'dg_system' in realm_access.roles
+    - Client ID: 'airflow' (or other configured system clients)
 
     Accepts AP in either format:
     - Multipart form with file upload: file=@path/to/file.json
@@ -1340,16 +1346,20 @@ async def execute_and_store(
         )
 
     # Extract ap and metadata from the uploaded file to store only ap
-    ap = payload_data.get("ap", {})
     try:
-        print(f"[{service['name']}] Storing AP in AP Storage:")
-        print(json.dumps(ap, indent=2))
-        print(f"[{service['name']}] AP stored successfully.")
+        logger.info(
+            f"[{service['name']}] Storing AP in AP Storage",
+            client_id=auth.payload.get("client_id"),
+            subject=auth.payload.get("sub"),
+        )
     except Exception as e:
-        print(f"[{service['name']}] AP Storage failed: {e}")
+        logger.error(
+            f"[{service['name']}] AP Storage failed",
+            error=str(e),
+        )
 
     exchanged_token = await _exchange_token_for_cdd(
-        user_token=token,
+        user_token=auth.raw_token,
     )
     if not exchanged_token:
         logger.warning(

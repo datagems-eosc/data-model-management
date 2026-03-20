@@ -22,6 +22,15 @@ from jose import JWTError, jwt
 
 logger = structlog.get_logger(__name__)
 
+
+@dataclass
+class SystemOrUserToken:
+    """Result of system/user authorization containing both payload and raw token."""
+
+    payload: dict[str, Any]
+    raw_token: str
+
+
 OIDC_ISSUER_URL: str = os.getenv(
     "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
 )
@@ -44,6 +53,16 @@ TOKEN_CACHE_SAFETY_WINDOW_SECONDS = 30
 
 # Fallback expiry for token-exchange responses that omit `expires_in`.
 DEFAULT_EXCHANGE_EXPIRES_IN_SECONDS = 300
+
+# System-level authorization configuration.
+# Tokens with these roles or client IDs are authorized for system-level operations
+# (e.g., Airflow automation, scheduled tasks) in addition to user-initiated requests.
+AUTHORIZED_SYSTEM_ROLES: list[str] = os.getenv(
+    "AUTHORIZED_SYSTEM_ROLES", "dg_system"
+).split(",")
+AUTHORIZED_SYSTEM_CLIENTS: list[str] = os.getenv(
+    "AUTHORIZED_SYSTEM_CLIENTS", "airflow"
+).split(",")
 
 # OIDC issuer URL used to validate who minted the token (`iss` claim).
 # If this does not match, the token is rejected even if the signature is valid.
@@ -194,6 +213,60 @@ async def require_valid_token(
 
     # Dependency output: route handlers can use these claims directly.
     return payload
+
+
+def is_system_authorized(token_payload: dict[str, Any]) -> bool:
+    """Check if token has system-level authorization.
+
+    A token is considered system-authorized if it has either:
+    - A role in AUTHORIZED_SYSTEM_ROLES (e.g., 'dg_system')
+    - A client_id in AUTHORIZED_SYSTEM_CLIENTS (e.g., 'airflow')
+
+    Args:
+        token_payload: Decoded JWT claims dictionary.
+
+    Returns:
+        True if token has system-level authorization, False otherwise.
+    """
+    # Primary check: authorized realm role (e.g., 'dg_system')
+    realm_roles = token_payload.get("realm_access", {}).get("roles", [])
+    if any(role in AUTHORIZED_SYSTEM_ROLES for role in realm_roles):
+        return True
+
+    # Fallback: authorized client ID (e.g., 'airflow')
+    client_id = token_payload.get("client_id")
+    return client_id in AUTHORIZED_SYSTEM_CLIENTS
+
+
+async def require_system_or_user_access(
+    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+) -> SystemOrUserToken:
+    """FastAPI dependency for endpoints that accept both user and system-level tokens.
+
+    Any valid token is accepted. System tokens (dg_system role or airflow client)
+    are identified and logged for audit purposes.
+
+    Returns:
+        SystemOrUserToken containing both decoded payload and raw token.
+
+    Raises:
+        HTTP 401: Missing/invalid token or failed token validation
+        HTTP 503: Infrastructure error (JWKS unavailable)
+    """
+    payload = await require_valid_token(credentials)
+
+    # Log whether this is a user or system request for audit purposes
+    is_system = is_system_authorized(payload)
+    request_type = "system" if is_system else "user"
+    logger.info(
+        "Request authorized",
+        request_type=request_type,
+        client_id=payload.get("client_id"),
+        subject=payload.get("sub"),
+        preferred_username=payload.get("preferred_username"),
+    )
+
+    return SystemOrUserToken(payload=payload, raw_token=credentials.credentials)
 
 
 async def require_valid_credentials(
