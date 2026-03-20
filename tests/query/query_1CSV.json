@@ -1,0 +1,113 @@
+{
+  "ap": {
+    "edges": [
+      {
+        "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "labels": [
+          "input"
+        ],
+        "properties": {
+          "argname": "arg1"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+        "labels": [
+          "output"
+        ],
+        "to": "8756aa7a-2436-48c7-afb0-0f99401392ad"
+      },
+      {
+        "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+        "labels": [
+          "is_accomplished"
+        ],
+        "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf"
+      },
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
+      },
+      {
+        "from": "928a3f45-7eec-474a-ab07-90736feb7ace",
+        "labels": [
+          "distribution"
+        ],
+        "to": "58e10c1c-49fb-498f-a3cd-d7198feaa52e"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern to query a dataset",
+          "name": "Query Dataset AP",
+          "process": "query",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+        "labels": [
+          "SQL_Operator",
+          "Query_Operator"
+        ],
+        "properties": {
+          "description": "Query executed via DuckDB on one CSV",
+          "name": "DuckDB Query Operator",
+          "query": "SELECT area, date, energy_mwh FROM {{arg1}} WHERE crete.energy_mwh > 10000 ORDER BY date",
+          "queryType": "SELECT",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "928a3f45-7eec-474a-ab07-90736feb7ace",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "labels": [
+          "cr:FileObject"
+        ]
+      },
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ]
+      },
+      {
+        "id": "474c2c12-4185-42a0-9e79-38af377bdcad",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to query a dataset",
+          "name": "Dataset Querying Task"
+        }
+      }
+    ]
+  }
+}
