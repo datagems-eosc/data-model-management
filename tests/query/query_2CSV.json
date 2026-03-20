@@ -19,6 +19,16 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
+        "from": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "labels": [
+          "input"
+        ],
+        "properties": {
+          "argname": "arg2"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
         "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
           "output"
@@ -45,6 +55,13 @@
           "distribution"
         ],
         "to": "56da8780-210a-4603-8862-6fd792470ce7"
+      },
+      {
+        "from": "746e2462-d412-4097-ae49-e1d1f835f2fa",
+        "labels": [
+          "distribution"
+        ],
+        "to": "0539ef98-8f68-42ba-b52d-de0943a34f6d"
       }
     ],
     "nodes": [
@@ -69,7 +86,7 @@
         "properties": {
           "description": "Query executed via DuckDB on one CSV",
           "name": "DuckDB Query Operator",
-          "query": "SELECT area, date, energy_mwh FROM {{arg1}} WHERE crete.energy_mwh > 10000 ORDER BY date",
+          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
@@ -87,12 +104,27 @@
         ]
       },
       {
+        "id": "746e2462-d412-4097-ae49-e1d1f835f2fa",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
         "id": "56da8780-210a-4603-8862-6fd792470ce7",
         "labels": [
           "cr:FileObject"
         ],
         "properties": {
           "name": "crete_electricity.csv"
+        }
+      },
+      {
+        "id": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "labels": [
+          "cr:FileObject"
+        ],
+        "properties": {
+          "name": "kyonos_electricity.csv"
         }
       },
       {

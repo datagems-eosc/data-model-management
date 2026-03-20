@@ -25,27 +25,21 @@ import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 
-from dmm_api.resources.security import _exchange_token_for_cdd
 import dmm_api.resources.security as security
-
-
-from .query_executor import execute_query_csv
 
 from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
-    extract_query_from_AP,
     APRequest,
     group_datasets_by_components,
 )
 from ..tools.AP.update_AP import (
-    update_AP_after_query,
     update_dataset_archivedAt,
-    update_output_dataset_id,
 )
-from ..tools.AP.generate_AP import generate_register_AP_after_query, generate_update_AP
+from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
-from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
+
+# from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 logger = structlog.get_logger(__name__)
@@ -1165,57 +1159,57 @@ async def update_dataset(wrapped: WrappedAPRequest):
         )
 
 
-@router.post(
-    "/polyglot/query",
-    response_model=APSuccessEnvelope,
-    response_model_exclude_none=True,
-)
-async def execute_query(wrapped: WrappedAPRequest):
-    """Execute a SQL query on a dataset based on an Analytical Pattern"""
-    try:
-        ap_payload = wrapped.ap
-        query_info = extract_query_from_AP(ap_payload)
-        software = query_info.get("software")
-        query_filled = query_info.get("query_filled")
+# @router.post(
+#     "/polyglot/query",
+#     response_model=APSuccessEnvelope,
+#     response_model_exclude_none=True,
+# )
+# async def execute_query(wrapped: WrappedAPRequest):
+#     """Execute a SQL query on a dataset based on an Analytical Pattern"""
+#     try:
+#         ap_payload = wrapped.ap
+#         query_info = extract_query_from_AP(ap_payload)
+#         software = query_info.get("software")
+#         query_filled = query_info.get("query_filled")
 
-        result = execute_query_csv(query_filled, software)
+#         result = execute_query_csv(query_filled, software)
 
-        ap_payload, dataset_id = update_output_dataset_id(ap_payload)
-        csv_bytes = result.to_csv(index=False).encode("utf-8")
-        upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
+#         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
+#         csv_bytes = result.to_csv(index=False).encode("utf-8")
+#         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
 
-        AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
-        upload_ap_to_results(
-            json.dumps(
-                AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
-                ensure_ascii=False,
-                indent=2,
-            ),
-            dataset_id,
-        )
+#         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+#         upload_ap_to_results(
+#             json.dumps(
+#                 AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
+#                 ensure_ascii=False,
+#                 indent=2,
+#             ),
+#             dataset_id,
+#         )
 
-        register_AP = generate_register_AP_after_query(AP_query_after)
-        await register_dataset(register_AP)
+#         register_AP = generate_register_AP_after_query(AP_query_after)
+#         await register_dataset(register_AP)
 
-        # Fake forward to AP Storage API
-        try:
-            print(f"Dataset {dataset_id} sent to the AP Storage API.")
-        except Exception as e:
-            print(f"AP Storage API not working: {e}")
+#         # Fake forward to AP Storage API
+#         try:
+#             print(f"Dataset {dataset_id} sent to the AP Storage API.")
+#         except Exception as e:
+#             print(f"AP Storage API not working: {e}")
 
-        return APSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message=f"Query executed successfully, results stored at {upload_path}",
-            ap=AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
-        )
+#         return APSuccessEnvelope(
+#             code=status.HTTP_200_OK,
+#             message=f"Query executed successfully, results stored at {upload_path}",
+#             ap=AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
+#         )
 
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to execute query: {str(e)}",
-        )
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+#             detail=f"Failed to execute query: {str(e)}",
+#         )
 
 
 @router.get("/test-postgres-duckdb")
