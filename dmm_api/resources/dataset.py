@@ -10,6 +10,7 @@ import duckdb
 import structlog
 from fastapi import (
     APIRouter,
+    Body,
     File,
     Form,
     HTTPException,
@@ -1292,7 +1293,7 @@ async def test_postgres_connection():
 async def execute_and_store(
     request: Request,
     file: Optional[UploadFile] = File(None),
-    body: Optional[WrappedAPRequest] = None,
+    body: Optional[WrappedAPRequest] = Body(None),
     auth: SystemOrUserToken = Depends(require_system_or_user_access),
 ) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response.
@@ -1320,6 +1321,8 @@ async def execute_and_store(
     service = EXTERNAL_SERVICES[route_path]
 
     # Parse payload from either file or JSON body
+    payload_data = None
+
     if file:
         # Read and parse the uploaded JSON file
         content = await file.read()
@@ -1334,9 +1337,18 @@ async def execute_and_store(
                 ).model_dump(),
             )
     elif body:
-        # Use JSON body directly
+        # Use JSON body directly (automatic FastAPI parsing)
         payload_data = {"ap": body.ap.model_dump()}
     else:
+        # Fallback: manually try to parse JSON body if automatic parsing didn't work
+        try:
+            body_content = await request.body()
+            if body_content:
+                payload_data = json.loads(body_content)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    if not payload_data or "ap" not in payload_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
@@ -1390,7 +1402,7 @@ async def execute_and_store(
             "content": response.text,
         }
 
-    # If response is not successful, raise an error
+    # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
         logger.error(
             f"Error from {service['name']}",
@@ -1404,9 +1416,21 @@ async def execute_and_store(
         else:
             cdd_error_msg = response.text
 
+        # Build context-specific error messages based on status code
+        status_messages = {
+            status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
+            status.HTTP_403_FORBIDDEN: "Authorization failed. You lack the required role to perform this action.",
+            status.HTTP_424_FAILED_DEPENDENCY: "The service failed to communicate with a required dependency (OIDC provider, database, etc.).",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "An unexpected error occurred in the service while processing the request.",
+            status.HTTP_503_SERVICE_UNAVAILABLE: "The service is not ready. A core component may have failed during initialization.",
+        }
+
+        context_msg = status_messages.get(response.status_code, "")
         error_message = (
             f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
         )
+        if context_msg:
+            error_message = f"{error_message} — {context_msg}"
 
         raise HTTPException(
             status_code=response.status_code,

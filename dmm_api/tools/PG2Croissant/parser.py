@@ -11,9 +11,9 @@ from dmm_api.tools.PG2Croissant.model import (
 logger = structlog.get_logger(__name__)
 
 
-def parse_heavyProfile(pgjson: dict) -> List[Dataset]:
-    """Parse heavy profile with optimized indexing"""
-    logger.info("Starting parse_heavyProfile")
+def parse_profile(pgjson: dict) -> List[Dataset]:
+    """Parse profile with optimized indexing"""
+    logger.info("Starting parse_profile")
 
     # Build indexes for O(1) lookups
     node_index = {node.get("id"): node for node in pgjson.get("nodes", [])}
@@ -41,7 +41,7 @@ def parse_heavyProfile(pgjson: dict) -> List[Dataset]:
             )
             datasets.append(dataset)
 
-    logger.info(f"parse_heavyProfile completed: found {len(datasets)} datasets")
+    logger.info(f"parse_profile completed: found {len(datasets)} datasets")
     return datasets
 
 
@@ -55,52 +55,6 @@ def _build_edge_index(edges: list) -> dict:
                 edge_index[from_id] = []
             edge_index[from_id].append(edge)
     return edge_index
-
-
-def parse_lightProfile(pgjson: dict) -> List[Dataset]:
-    """Parse light profile with optimized indexing"""
-    logger.info("Starting parse_lightProfile")
-
-    # Build indexes for O(1) lookups
-    node_index = {node.get("id"): node for node in pgjson.get("nodes", [])}
-    edge_index = _build_edge_index(pgjson.get("edges", []))
-
-    datasets = []
-    for node in pgjson.get("nodes", []):
-        if node.get("properties", {}).get("type") == "sc:Dataset":
-            dataset_id = node.get("id")
-            dataset_properties = node.get("properties", {})
-            logger.debug(f"Processing dataset: {dataset_id}")
-
-            distribution = extract_distributions(
-                dataset_id, pgjson=pgjson, node_index=node_index, edge_index=edge_index
-            )
-            dataset = Dataset(
-                id=dataset_id,
-                distribution=distribution,
-                recordSet=[],
-                properties=dataset_properties,
-            )
-            datasets.append(dataset)
-
-    logger.info(f"parse_lightProfile completed: found {len(datasets)} datasets")
-    return datasets
-
-
-def parse_dataset(pgjson: dict) -> List[Dataset]:
-    datasets = []
-    for node in pgjson.get("nodes", []):
-        if node.get("properties", {}).get("type") == "sc:Dataset":
-            dataset_id = node.get("id")
-            dataset_properties = node.get("properties", {})
-            dataset = Dataset(
-                id=dataset_id,
-                distribution=[],
-                recordSet=[],
-                properties=dataset_properties,
-            )
-            datasets.append(dataset)
-    return datasets
 
 
 def extract_fields(

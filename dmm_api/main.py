@@ -3,7 +3,6 @@ from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 import uvicorn
 
-from dmm_api.resources.authtest import router as authtest_router
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 
@@ -21,7 +20,6 @@ app = FastAPI(
 # TODO: check if we need to change the API path prefix or not
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
-app.include_router(authtest_router, prefix="/api/v1")
 
 
 # Root
@@ -84,25 +82,10 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
-          "MoMa2Croissant": {
-                    "description": "Convert MoMa light profile to Croissant format",
+            "MoMa2Croissant": {
+                    "description": "Convert MoMa profile to Croissant format",
                     "methods": ["POST"],
                     "url": "/api/v1/convert",
-            },
-            "authtest": {
-                "description": "Test endpoint requiring a valid bearer token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest",
-            },
-            "authtest_cdd_search": {
-                "description": "Forward payload to CDD search using exchanged token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest/cdd-search",
-            },
-            "authtest_cdd_search_ap": {
-                "description": "Forward payload to CDD search using exchanged token",
-                "methods": ["POST"],
-                "url": "/api/v1/authtest/cdd-search/ap",
             },
         },
     }
