@@ -5,6 +5,7 @@ import uvicorn
 
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
+from dmm_api.resources.query_executor import router as query_router
 
 app = FastAPI(
     title="Dataset API",
@@ -20,6 +21,7 @@ app = FastAPI(
 # TODO: check if we need to change the API path prefix or not
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
+app.include_router(query_router, prefix="/api/v1")
 
 
 # Root
@@ -83,9 +85,9 @@ async def api_home():
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
             "MoMa2Croissant": {
-                    "description": "Convert MoMa profile to Croissant format",
-                    "methods": ["POST"],
-                    "url": "/api/v1/convert",
+                "description": "Convert MoMa profile to Croissant format",
+                "methods": ["POST"],
+                "url": "/api/v1/convert",
             },
         },
     }

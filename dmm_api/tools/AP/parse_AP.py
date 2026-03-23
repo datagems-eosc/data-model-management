@@ -17,6 +17,7 @@ class Edge(BaseModel):
     source: str | int = Field(..., alias="from")
     target: str | int = Field(..., alias="to")
     labels: List[str] = []
+    properties: Dict[str, Any] = Field(default_factory=dict)
 
 
 class APRequest(BaseModel):
@@ -52,7 +53,12 @@ def json_to_graph(query_data: APRequest) -> nx.DiGraph | nx.MultiDiGraph:
         )
 
     for edge in graph_data["edges"]:
-        G.add_edge(edge["from"], edge["to"], labels=edge.get("labels", []))
+        G.add_edge(
+            edge["from"],
+            edge["to"],
+            labels=edge.get("labels", []),
+            properties=edge.get("properties", {}),
+        )
 
     return G
 
@@ -127,10 +133,11 @@ def extract_query_from_AP(
         )
 
     query_info: Dict[str, Any] = {}
-    raw_query = operator_properties.get("Query")
+    raw_query = operator_properties.get("query")
     query_info["query"] = raw_query
-    software_prop = operator_properties.get("Software", {})
-    query_info["software"] = software_prop.get("name")
+    query_info["software"] = operator_properties.get("name").split(" ")[0]
+
+    print(f"Extracted query info: {query_info}")
 
     if query_info["software"] not in ["DuckDB", "Ontop"]:
         raise HTTPException(
