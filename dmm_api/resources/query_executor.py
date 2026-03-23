@@ -178,15 +178,9 @@ def extract_query_from_AP(
             for u, _, data in G.in_edges(node_id, data=True):
                 if "distribution" in data.get("labels", {}):
                     args_map[argname] = (
-                        u
-                        + "/"
-                        + args_map[argname]
-                        + "/"
-                        + G.nodes[node_id].get("properties", {}).get("name", "")
+                        u + "/" + G.nodes[node_id].get("properties", {}).get("name", "")
                     )
                     break
-
-    print(f"Args map: {args_map}")
 
     # Extract S3 paths BEFORE query rewriting
     s3_paths = re.findall(r"s3://dataset/[^\s,;'\"]+", query_info["query"])
@@ -194,36 +188,6 @@ def extract_query_from_AP(
 
     query_info["query"] = query_rewriting(query_info["query"], args_map)
     print(f"Rewritten query: {query_info['query']}")
-
-    # TODO: change code to work with new AP structure
-    # parameters = operator_properties.get("Parameters", {}) or {}
-    # args_map: Dict[str, Any] = {}
-    # for k, v in parameters.items():
-    #     if k.startswith("arg"):
-    #         args_map[k] = v
-
-    # resolved_args: Dict[str, Any] = {}
-    # for name, value in args_map.items():
-    #     resolved = value
-    #     try:
-    #         if isinstance(value, str) and value in G.nodes:
-    #             props = G.nodes[value].get("properties", {}) or {}
-    #             resolved = props.get("contentUrl") or resolved
-    #     except Exception:
-    #         resolved = value
-    #     resolved_args[name] = resolved
-
-    # filled_query = raw_query or ""
-    # for name, value in resolved_args.items():
-    #     filled_query = re.sub(
-    #         r"\{\{\s*" + re.escape(name) + r"\s*\}\}", str(value), filled_query
-    #     )
-    #     filled_query = re.sub(
-    #         r"\{\s*" + re.escape(name) + r"\s*\}", str(value), filled_query
-    #     )
-
-    # query_info["args"] = args_map
-    # query_info["query_filled"] = filled_query
 
     return query_info
 
@@ -263,7 +227,7 @@ async def execute_query(wrapped: WrappedAPRequest):
         )
 
         register_AP = generate_register_AP_after_query(AP_query_after)
-        await register_dataset(register_AP)
+        await register_dataset(WrappedAPRequest(ap=register_AP))
 
         # Fake forward to AP Storage API
         try:

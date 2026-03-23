@@ -69,7 +69,7 @@
         "properties": {
           "description": "Query executed via DuckDB on one CSV",
           "name": "DuckDB Query Operator",
-          "query": "SELECT area, date, energy_mwh FROM {{arg1}} WHERE crete.energy_mwh > 10000 ORDER BY date",
+          "query": "SELECT area, date, energy_mwh FROM {{arg1}} as crete WHERE crete.energy_mwh > 10000 ORDER BY date",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
