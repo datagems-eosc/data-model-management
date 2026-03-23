@@ -168,11 +168,7 @@ def extract_query_from_AP(
             for u, _, data in G.in_edges(node_id, data=True):
                 if "distribution" in data.get("labels", {}):
                     args_map[argname] = (
-                        u
-                        + "/"
-                        + args_map[argname]
-                        + "/"
-                        + G.nodes[node_id].get("properties", {}).get("name", "")
+                        u + "/" + G.nodes[node_id].get("properties", {}).get("name", "")
                     )
                     break
 
