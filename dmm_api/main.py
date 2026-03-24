@@ -6,6 +6,7 @@ import uvicorn
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 from dmm_api.resources.query_executor import router as query_router
+from dmm_api.resources.security import router as security_router
 
 app = FastAPI(
     title="Dataset API",
@@ -22,6 +23,7 @@ app = FastAPI(
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
 app.include_router(query_router, prefix="/api/v1")
+app.include_router(security_router, prefix="/api/v1")
 
 
 # Root
