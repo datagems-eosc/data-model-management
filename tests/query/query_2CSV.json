@@ -115,6 +115,8 @@
           "cr:FileObject"
         ],
         "properties": {
+          "contentUrl": "s3://dataset/58e10c1c-49fb-498f-a3cd-d7198feaa52e/crete_electricity.csv",
+          "encodingFormat": "text/csv",
           "name": "crete_electricity.csv"
         }
       },
@@ -124,6 +126,8 @@
           "cr:FileObject"
         ],
         "properties": {
+          "contentUrl": "s3://dataset/a28888f4-2d06-4de2-9d11-ed8facd4e090/kyonos_electricity.csv",
+          "encodingFormat": "text/csv",
           "name": "kyonos_electricity.csv"
         }
       },

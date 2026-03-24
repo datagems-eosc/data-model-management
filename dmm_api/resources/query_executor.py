@@ -1,12 +1,14 @@
 # from datetime import datetime
 import os
 import re
+from dmm_api.resources import security
 from dmm_api.tools.AP.parse_AP import json_to_graph
 from dmm_api.tools.AP.parse_AP import APRequest
 import duckdb
 import structlog
 import json
-from fastapi import APIRouter, HTTPException, status
+import httpx
+from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Dict, Any, Optional
 
 from ..tools.AP.generate_AP import generate_register_AP_after_query
@@ -18,6 +20,9 @@ from ..resources.dataset import APSuccessEnvelope, WrappedAPRequest, register_da
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
+
+MOMA_REQUEST_TIMEOUT_SECONDS = 30.0
+MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/api/v1")
 
 
 # We will implement different query execution methods based on the data type
@@ -77,6 +82,63 @@ def execute_query_postgres(query, duckdb_connection):
     return result_df
 
 
+def execute_query_csv_postgres(query, software, args_sources=None):
+    """Execute query with mixed CSV and PostgreSQL sources via DuckDB"""
+    software = software.lower()
+    DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
+
+    if args_sources is None:
+        args_sources = {}
+
+    print(f"Executing mixed query with software: {software}")
+
+    try:
+        if software == "duckdb":
+            # Create DuckDB connection
+            con = duckdb.connect(database=":memory:")
+
+            # If any args are from postgres, attach the database
+            if any(source == "postgres" for source in args_sources.values()):
+                print("Attaching PostgreSQL database...")
+                con.sql("INSTALL postgres;")
+                con.sql("LOAD postgres;")
+
+                db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
+                db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
+                db_user = os.getenv("DS_READER_USER")
+                db_password = os.getenv("DS_READER_PS")
+                db_name = os.getenv("DS_POSTGRES_DB", "ds_era5_land")
+
+                connection_string = (
+                    f"dbname={db_name} user={db_user} password={db_password} "
+                    f"host={db_host} port={db_port}"
+                )
+                con.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
+
+            # Handle CSV paths in query (convert S3 paths to local paths)
+            processed_query = query
+            s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", processed_query)
+            print(f"Found S3 paths in query: {s3_paths}")
+
+            for s3_path in s3_paths:
+                cleaned_path = s3_path.replace("'", "")
+                local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
+                replacement = f"read_csv_auto('{local_folder}')"
+                processed_query = processed_query.replace(s3_path, replacement)
+
+            # Execute the mixed query
+            result_df = con.execute(processed_query).fetchdf()
+            con.close()
+
+            return result_df
+
+        else:
+            raise Exception(f"Unsupported software: {software}")
+
+    except Exception as e:
+        raise Exception(f"Mixed query execution failed: {str(e)}")
+
+
 def query_rewriting(
     query: str, args_map: Dict[str, Any], db_connection: str = "csv"
 ) -> str:
@@ -84,35 +146,22 @@ def query_rewriting(
     for arg_name, arg_value in args_map.items():
         if isinstance(arg_value, str):
             # For PostgreSQL, format as table reference
-            if db_connection == "postgres":
-                table_ref = f"pg_db.public.{arg_value}"
-                rewritten_query = re.sub(
-                    r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
-                    table_ref,
-                    rewritten_query,
-                )
-                rewritten_query = re.sub(
-                    r"\{\s*" + re.escape(arg_name) + r"\s*\}",
-                    table_ref,
-                    rewritten_query,
-                )
-            # For CSV (S3), format as S3 paths
-            else:
-                rewritten_query = re.sub(
-                    r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
-                    f"'s3://dataset/{arg_value}'",
-                    rewritten_query,
-                )
-                rewritten_query = re.sub(
-                    r"\{\s*" + re.escape(arg_name) + r"\s*\}",
-                    f"'s3://dataset/{arg_value}'",
-                    rewritten_query,
-                )
+            rewritten_query = re.sub(
+                r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
+                f"'s3://dataset/{arg_value}'",
+                rewritten_query,
+            )
+            rewritten_query = re.sub(
+                r"\{\s*" + re.escape(arg_name) + r"\s*\}",
+                f"'s3://dataset/{arg_value}'",
+                rewritten_query,
+            )
     return rewritten_query
 
 
-def extract_query_from_AP(
+async def extract_query_from_AP(
     ap_payload: APRequest,
+    token: str,
     expected_ap_process: Optional[str] = None,
     expected_operator_command: Optional[str] = None,
 ) -> Dict[str, Any]:
@@ -178,6 +227,15 @@ def extract_query_from_AP(
             detail="The Analytical Pattern must contain exactly one 'User' node.",
         )
 
+    # Get properties of datasets and database connections from MoMa and add them to the graph, as they are needed to execute the query
+    for node_id in dataset_nodes:
+        dataset_properties = await get_node_properties(node_id, token=token)
+        G.nodes[node_id].update({"properties": dataset_properties})
+
+    for node_id in db_connection_nodes:
+        dbc_properties = await get_node_properties(node_id, token=token)
+        G.nodes[node_id].update({"properties": dbc_properties})
+
     AP_id = AP_nodes[0]
     AP_properties = G.nodes[AP_id].get("properties", {})
     AP_process = AP_properties.get("Process")
@@ -208,14 +266,16 @@ def extract_query_from_AP(
             detail=f"Unsupported software: {query_info['software']}. Supported software are 'DuckDB' and 'Ontop'.",
         )
 
+    args_sources = {}
     args_map = {
         data.get("properties", {}).get("argname"): u
         for u, v, data in G.edges(data=True)
         if "argname" in data.get("properties", {})
     }
-
-    # Initialize db_connection
-    query_info["db_connection"] = "csv"  # default to csv
+    for argname, node_id in args_map.items():
+        args_sources[argname] = (
+            G.nodes[node_id].get("properties", {}).get("encodingFormat", "")
+        )
 
     # Extract database name from DatabaseConnection node
     db_name = None
@@ -229,14 +289,9 @@ def extract_query_from_AP(
     # Apply original CSV logic with distribution label handling
     if query_info["db_connection"] == "csv":
         for argname, node_id in args_map.items():
-            if G.in_edges(node_id, data=True):
-                for u, _, data in G.in_edges(node_id, data=True):
-                    if "distribution" in data.get("labels", {}):
-                        args_map[argname] = (
-                            u
-                            + "/"
-                            + G.nodes[node_id].get("properties", {}).get("name", "")
-                        )
+            args_map[argname] = (
+                f"{G.nodes[node_id].get('properties', {}).get('contentUrl', '')}"
+            )
 
     # For PostgreSQL, extract table names from FileObject properties
     if query_info["db_connection"] == "postgres":
@@ -263,16 +318,40 @@ def execute_query_xml(csv_name, query, software, xml_path):
     return {"message": "XML query execution not implemented yet"}, 501
 
 
+# Get the properties of a node from MoMa given its ID. This is needed to get the contentUrl of the datasets, which is required to execute the query
+async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str, Any]:
+    async with httpx.AsyncClient(
+        timeout=MOMA_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
+        response = await client.post(
+            f"{os.getenv('MOMA_API_URL', 'http://localhost:8000')}/nodes/{node_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+
+    try:
+        response_payload = response.json()
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+    return response_payload.get("properties", {})
+
+
 @router.post(
     "/polyglot/query",
     response_model=APSuccessEnvelope,
     response_model_exclude_none=True,
 )
-async def execute_query(wrapped: WrappedAPRequest):
+async def execute_query(
+    wrapped: WrappedAPRequest,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
         ap_payload = wrapped.ap
-        query_info = extract_query_from_AP(ap_payload)
+        query_info = await extract_query_from_AP(ap_payload, token=token)
         software = query_info.get("software")
         query_filled = query_info.get("query")
 
