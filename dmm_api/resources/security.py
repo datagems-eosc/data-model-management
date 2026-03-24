@@ -48,6 +48,8 @@ logger = structlog.get_logger(__name__)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 _oidc_config = None
 _jwks_keys = None
+_jwks_cache = None
+_jwks_cache_expires_at = 0
 
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
 OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
