@@ -100,7 +100,7 @@
         "properties": {
           "description": "Query executed via DuckDB on Postgres",
           "name": "DuckDB Query Operator",
-          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS crete JOIN {{arg2}} AS kyonos ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
+          "query": "SELECT t1.*, t2.* FROM {{arg1}} t1 JOIN {{arg2}} t2 ON t1.date = t2.date LIMIT 10;",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
