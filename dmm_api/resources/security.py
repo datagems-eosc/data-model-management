@@ -3,7 +3,7 @@ from typing import Any, Optional
 
 import httpx
 import os
-from fastapi import Depends, HTTPException, status, APIRouter, Body
+from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import (
     OAuth2PasswordBearer,
     HTTPAuthorizationCredentials,
@@ -326,7 +326,7 @@ async def require_app_scope(
 
 @router.post("/authtest")
 async def authtest(
-    payload: AuthTestRequest = Body(...),
+    payload: AuthTestRequest,
     token_payload: dict[str, Any] = Depends(require_valid_token),
 ):
     """Validate caller token and echo minimal identity + request payload."""
