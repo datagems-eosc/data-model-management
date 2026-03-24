@@ -171,15 +171,9 @@ def extract_query_from_AP(
                         u + "/" + G.nodes[node_id].get("properties", {}).get("name", "")
                     )
                     break
-
-    print(f"Args map: {args_map}")
-
-    # Extract S3 paths BEFORE query rewriting
-    s3_paths = re.findall(r"s3://dataset/[^\s,;'\"]+", query_info["query"])
-    print(f"Found S3 paths in original query: {s3_paths}")
+    ##TODO: Get the file name from MoMa instead of having it in the AP
 
     query_info["query"] = query_rewriting(query_info["query"], args_map)
-    print(f"Rewritten query: {query_info['query']}")
 
     return query_info
 

@@ -1289,6 +1289,7 @@ async def execute_and_store(
     file: Optional[UploadFile] = File(None),
     body: Optional[WrappedAPRequest] = Body(None),
     token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ) -> APResponseSuccessEnvelope:
     """Generic handler: forward AP to the appropriate service, store it, return full response.
 

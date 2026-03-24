@@ -91,8 +91,6 @@ Primary endpoint URLs (grouped):
 
 - **Authentication test utilities**
     - `https://datagems-dev.scayle.es/dmm/api/v1/authtest` — Validates bearer token and echoes request context.
-    - `https://datagems-dev.scayle.es/dmm/api/v1/authtest/cdd-search` — Forwards payload to CDD search using exchanged credentials.
-
 
 
 ---
