@@ -307,18 +307,22 @@ async def _get_jwks() -> dict[str, Any]:
 async def require_app_scope(
     token_payload: dict[str, Any] = Depends(require_valid_token),
 ) -> dict[str, Any]:
-    """Validate that token has the required app scope.
+    """Validate that token has access to this API via audience claim.
 
-    Checks if OIDC_CLIENT_ID is present in the token's scope claim.
+    Checks if OIDC_CLIENT_ID is present in the token's audience (aud) claim.
+    The aud claim can be a string or a list of strings.
     Returns decoded JWT claims on success, otherwise raises 403 Forbidden.
     """
-    # Extract scopes from token - they are typically space-separated strings
-    scopes = token_payload.get("scope", "").split()
+    # Extract audience from token - can be a string or list
+    aud = token_payload.get("aud", [])
 
-    if OIDC_CLIENT_ID not in scopes:
+    # Normalize to list for consistent handling
+    audiences = aud if isinstance(aud, list) else [aud] if aud else []
+
+    if OIDC_CLIENT_ID not in audiences:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Token missing required scope: {OIDC_CLIENT_ID}",
+            detail=f"Token missing required audience: {OIDC_CLIENT_ID}",
         )
 
     return token_payload
