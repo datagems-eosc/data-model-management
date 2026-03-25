@@ -212,21 +212,55 @@ def execute_query_csv_postgres(query, software, args_sources=None):
         raise Exception(f"Mixed query execution failed: {str(e)}")
 
 
-def query_rewriting(query: str, args_map: Dict[str, Any]) -> str:
+def query_rewriting(
+    query: str, args_map: Dict[str, Any], args_sources: Dict[str, str] = None
+) -> str:
+    """
+    Rewrite query placeholders with actual values.
+
+    For PostgreSQL tables: {{arg1}} -> table_name (without quotes)
+    For CSV files: {{arg1}} -> 's3://dataset/path/file.csv' (with quotes)
+    """
+    if args_sources is None:
+        args_sources = {}
+
     rewritten_query = query
+    logger.debug(
+        f"Starting query rewriting with args_map: {args_map}, args_sources: {args_sources}"
+    )
+
     for arg_name, arg_value in args_map.items():
-        if isinstance(arg_value, str):
-            # For PostgreSQL, format as table reference
+        if isinstance(arg_value, str) and arg_value:
+            source_type = args_sources.get(arg_name, "")
+            logger.debug(
+                f"Rewriting {arg_name}: value={arg_value}, source_type={source_type}"
+            )
+
+            # Replace both {{arg_name}} and {arg_name} patterns
+            if source_type == "text/sql":  # PostgreSQL table reference
+                replacement = arg_value  # No quotes, no s3://dataset/ prefix
+                logger.debug(f"PostgreSQL table: {arg_name} -> {replacement}")
+            elif source_type == "text/csv":  # CSV file path
+                replacement = f"'{arg_value}'"  # With quotes for CSV paths
+                logger.debug(f"CSV file: {arg_name} -> {replacement}")
+            else:
+                replacement = f"'{arg_value}'"  # Default with quotes
+                logger.debug(f"Default (unknown source): {arg_name} -> {replacement}")
+
+            # Replace {{arg_name}} pattern
             rewritten_query = re.sub(
                 r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
-                f"'s3://dataset/{arg_value}'",
+                replacement,
                 rewritten_query,
             )
+            # Replace {arg_name} pattern (alternative syntax)
             rewritten_query = re.sub(
                 r"\{\s*" + re.escape(arg_name) + r"\s*\}",
-                f"'s3://dataset/{arg_value}'",
+                replacement,
                 rewritten_query,
             )
+
+    logger.debug(f"Query after rewriting: {rewritten_query}")
     return rewritten_query
 
 
@@ -380,6 +414,9 @@ async def extract_query_from_AP(
 
     logger.info(f"Argument sources: {args_sources}")
 
+    # Store args_sources in query_info for later use
+    query_info["args_sources"] = args_sources
+
     db_types = {s for s in args_sources.values() if s}  # Remove empty strings
     query_info["db_connection"] = (
         "mixed"
@@ -421,7 +458,7 @@ async def extract_query_from_AP(
                 args_map[argname] = f"s3://dataset/{dataset_id}/{args_map[argname]}"
 
     logger.info("Rewriting query with extracted argument mappings...")
-    query_info["query"] = query_rewriting(query_info["query"], args_map)
+    query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
 
     logger.info(f"Final rewritten query: {query_info['query']}")
     logger.info("Analytical Pattern extraction completed successfully")
