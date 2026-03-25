@@ -128,30 +128,19 @@
         "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
         "labels": [
           "dg:DatabaseConnection"
-        ],
-        "properties": {
-          "name": "ds_era5_land"
-        }
+        ]
       },
       {
         "id": "520d1133-de70-4a0e-9d55-514eda0d68be",
         "labels": [
           "cr:FileObject"
-        ],
-        "properties": {
-          "encodingFormat": "text/sql",
-          "name": "meteo_tmin"
-        }
+        ]
       },
       {
         "id": "8b44a347-83b7-45a0-957f-89679b36b8ff",
         "labels": [
           "cr:FileObject"
-        ],
-        "properties": {
-          "encodingFormat": "text/sql",
-          "name": "meteo_tmean"
-        }
+        ]
       },
       {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",

@@ -349,11 +349,13 @@ async def extract_query_from_AP(
         )
 
     # Get properties of datasets and database connections from MoMa and add them to the graph, as they are needed to execute the query
-    logger.info(f"Fetching {len(dataset_nodes)} dataset properties from MoMa2...")
-    for node_id in dataset_nodes:
-        logger.info(f"  Fetching dataset node: {node_id}")
-        dataset_properties = await get_node_properties(node_id, token=token)
-        G.nodes[node_id].update({"properties": dataset_properties})
+    logger.info(
+        f"Fetching {len(file_object_nodes)} file object properties from MoMa2..."
+    )
+    for node_id in file_object_nodes:
+        logger.info(f"  Fetching file object node: {node_id}")
+        file_object_properties = await get_node_properties(node_id, token=token)
+        G.nodes[node_id].update({"properties": file_object_properties})
 
     logger.info(
         f"Fetching {len(db_connection_nodes)} database connection properties from MoMa2..."
