@@ -446,7 +446,7 @@ async def extract_query_from_AP(
                 G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
             )
             ## If the contentUrl as been generated locally, we miss the dataset_id, so we need to get it from the distribution edge
-            if re.match(r"^s3/[^/]+\.(csv|json)$", args_map[argname]):
+            if re.match(r"^s3:/?[^/]+\.(csv|json)$", args_map[argname]):
                 dataset_id = next(
                     (
                         from_node
