@@ -586,6 +586,13 @@ async def execute_query(
             result = execute_query_csv_postgres(
                 query_filled, software, args_sources=query_info.get("args_sources", {})
             )
+        else:
+            logger.warning(
+                f"Unexpected db_connection type: {db_connection}, defaulting to PostgreSQL"
+            )
+            result = execute_query_postgres(
+                query_info, duckdb.connect(database=":memory:")
+            )
 
         logger.info(f"Query execution successful, result has {len(result)} rows")
         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
