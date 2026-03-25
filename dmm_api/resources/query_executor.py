@@ -457,7 +457,9 @@ async def extract_query_from_AP(
                     ),
                     None,
                 )
-                args_map[argname] = f"s3://dataset/{dataset_id}/{args_map[argname]}"
+                # Strip the s3:/ or s3:// prefix from the filename, then rebuild with dataset_id
+                filename = re.sub(r"^s3:/?/?", "", args_map[argname])
+                args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
 
     logger.info("Rewriting query with extracted argument mappings...")
     query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
