@@ -1,0 +1,166 @@
+{
+  "ap": {
+    "edges": [
+      {
+        "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "d8f86123-456f-4e14-8d62-0a1d95881d76",
+        "labels": [
+          "input"
+        ],
+        "properties": {
+          "argname": "arg1"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "labels": [
+          "distribution"
+        ],
+        "to": "6e68d05b-9d07-4e01-8817-e570c7616acb"
+      },
+      {
+        "from": "8b44a347-83b7-45a0-957f-89679b36b8ff",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "6e68d05b-9d07-4e01-8817-e570c7616acb"
+      },
+      {
+        "from": "8b44a347-83b7-45a0-957f-89679b36b8ff",
+        "labels": [
+          "input"
+        ],
+        "properties": {
+          "argname": "arg2"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+        "labels": [
+          "output"
+        ],
+        "to": "8756aa7a-2436-48c7-afb0-0f99401392ad"
+      },
+      {
+        "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+        "labels": [
+          "is_accomplished"
+        ],
+        "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf"
+      },
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
+      },
+      {
+        "from": "b551f361-3f61-4ccf-a001-7c28d065c30d",
+        "labels": [
+          "distribution"
+        ],
+        "to": "d8f86123-456f-4e14-8d62-0a1d95881d76"
+      },
+      {
+        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "labels": [
+          "distribution"
+        ],
+        "to": "8b44a347-83b7-45a0-957f-89679b36b8ff"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern to query a dataset",
+          "name": "Query Dataset AP",
+          "process": "query",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+        "labels": [
+          "SQL_Operator",
+          "Query_Operator"
+        ],
+        "properties": {
+          "description": "Query executed via DuckDB on Postgres",
+          "name": "DuckDB Query Operator",
+          "query": "SELECT t1.time, t1.latitude, t1.longitude, t1.tmin, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude WHERE t1.time >= '1991-01-01' AND t1.time < '1991-02-01'LIMIT 100;",
+          "queryType": "SELECT",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "b551f361-3f61-4ccf-a001-7c28d065c30d",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "6e68d05b-9d07-4e01-8817-e570c7616acb",
+        "labels": [
+          "dg:DatabaseConnection"
+        ]
+      },
+      {
+        "id": "d8f86123-456f-4e14-8d62-0a1d95881d76",
+        "labels": [
+          "cr:FileObject"
+        ]
+      },
+      {
+        "id": "8b44a347-83b7-45a0-957f-89679b36b8ff",
+        "labels": [
+          "cr:FileObject"
+        ],
+        "properties": {
+          "encodingFormat": "text/sql",
+          "name": "meteo_tmean"
+        }
+      },
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ]
+      },
+      {
+        "id": "474c2c12-4185-42a0-9e79-38af377bdcad",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to query a dataset",
+          "name": "Dataset Querying Task"
+        }
+      }
+    ]
+  }
+}
