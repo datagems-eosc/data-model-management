@@ -78,7 +78,7 @@ def execute_query_postgres(query, duckdb_connection):
         db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
         db_user = os.getenv("DS_READER_USER")
         db_password = os.getenv("DS_READER_PS")
-        db_name = os.getenv("DS_POSTGRES_DB", "ds_era5_land")
+        db_name = query["db_name"]
 
         # Log environment variables for debugging (with sensitive data masked)
         logger.info(
@@ -114,8 +114,8 @@ def execute_query_postgres(query, duckdb_connection):
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
         logger.info("PostgreSQL database attached successfully")
 
-        logger.info(f"Executing query on PostgreSQL: {query}")
-        result_df = duckdb_connection.execute(query).fetchdf()
+        logger.info(f"Executing query on PostgreSQL: {query.get("query")}")
+        result_df = duckdb_connection.execute(query.get("query")).fetchdf()
         logger.info(f"Query executed successfully, got {len(result_df)} rows")
 
         return result_df
@@ -212,9 +212,7 @@ def execute_query_csv_postgres(query, software, args_sources=None):
         raise Exception(f"Mixed query execution failed: {str(e)}")
 
 
-def query_rewriting(
-    query: str, args_map: Dict[str, Any], db_connection: str = "csv"
-) -> str:
+def query_rewriting(query: str, args_map: Dict[str, Any]) -> str:
     rewritten_query = query
     for arg_name, arg_value in args_map.items():
         if isinstance(arg_value, str):
@@ -382,6 +380,14 @@ async def extract_query_from_AP(
 
     logger.info(f"Argument sources: {args_sources}")
 
+    db_types = {s for s in args_sources.values() if s}  # Remove empty strings
+    query_info["db_connection"] = (
+        "mixed"
+        if len(db_types) > 1
+        else next(iter(db_types))
+        if db_types
+        else "unknown"
+    )
     # Extract database name from DatabaseConnection node
     db_name = None
     if db_connection_nodes:
@@ -389,37 +395,33 @@ async def extract_query_from_AP(
         db_name = db_properties.get("name", "ds_era5_land")
         logger.info(f"Extracted database name: {db_name}")
         query_info["db_name"] = db_name
-        query_info["db_connection"] = "postgres"
-    else:
-        query_info["db_connection"] = "csv"
-        logger.info("No database connection node found, using CSV connection")
 
-    # Apply original CSV logic with distribution label handling
-    if query_info["db_connection"] == "csv":
-        logger.info("Processing CSV data sources...")
-        for argname, node_id in args_map.items():
+    for argname, source in args_sources.items():
+        if source == "postgres":
             args_map[argname] = (
-                f"{G.nodes[node_id].get('properties', {}).get('contentUrl', '')}"
+                G.nodes[args_map[argname]].get("properties", {}).get("name", "")
             )
-
-    # For PostgreSQL, extract table names from FileObject properties
-    if query_info["db_connection"] == "postgres":
-        logger.info("Processing PostgreSQL data sources...")
-        for argname, node_id in args_map.items():
-            if node_id in file_object_nodes:
-                # Get the FileObject name (table name)
-                file_object_name = (
-                    G.nodes[node_id].get("properties", {}).get("name", "")
+        elif source == "csv":
+            node_id = args_map[argname]
+            args_map[argname] = (
+                G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
+            )
+            ## If the contentUrl as been generated locally, we miss the dataset_id, so we need to get it from the distribution edge
+            if re.match(r"^s3/[^/]+\.(csv|json)$", args_map[argname]):
+                dataset_id = next(
+                    (
+                        from_node
+                        for from_node, to_node, edge_data in G.in_edges(
+                            node_id, data=True
+                        )
+                        if "distribution" in edge_data.get("labels", [])
+                    ),
+                    None,
                 )
-                args_map[argname] = file_object_name
-                logger.info(f"Mapped PostgreSQL table {argname} -> {file_object_name}")
-
-    ##TODO: Get the file name from MoMa instead of having it in the AP
+                args_map[argname] = f"s3://dataset/{dataset_id}/{args_map[argname]}"
 
     logger.info("Rewriting query with extracted argument mappings...")
-    query_info["query"] = query_rewriting(
-        query_info["query"], args_map, query_info["db_connection"]
-    )
+    query_info["query"] = query_rewriting(query_info["query"], args_map)
 
     logger.info(f"Final rewritten query: {query_info['query']}")
     logger.info("Analytical Pattern extraction completed successfully")
@@ -525,7 +527,7 @@ async def execute_query(
         query_info = await extract_query_from_AP(ap_payload, token=token)
         software = query_info.get("software")
         query_filled = query_info.get("query")
-        db_connection = query_info.get("db_connection", "csv")
+        db_connection = query_info.get("db_connection", "Unknown DB Connection")
 
         logger.info(
             f"Query info - Software: {software}, DB Connection: {db_connection}"
@@ -535,11 +537,18 @@ async def execute_query(
         if db_connection == "postgres":
             logger.info("Attempting to execute PostgreSQL query...")
             result = execute_query_postgres(
-                query_filled, duckdb.connect(database=":memory:")
+                query_info, duckdb.connect(database=":memory:")
             )
-        else:
+        elif db_connection == "csv":
             logger.info(f"Attempting to execute CSV query with software: {software}...")
             result = execute_query_csv(query_filled, software)
+        elif db_connection == "mixed":
+            logger.info(
+                f"Attempting to execute mixed query with software: {software}..."
+            )
+            result = execute_query_csv_postgres(
+                query_filled, software, args_sources=query_info.get("args_sources", {})
+            )
 
         logger.info(f"Query execution successful, result has {len(result)} rows")
         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
