@@ -148,7 +148,7 @@ def execute_query_csv_postgres(query, software, args_sources=None):
             con = duckdb.connect(database=":memory:")
 
             # If any args are from postgres, attach the database
-            if any(source == "postgres" for source in args_sources.values()):
+            if any(source == "text/sql" for source in args_sources.values()):
                 logger.info("Attaching PostgreSQL database for mixed query...")
                 con.sql("INSTALL postgres;")
                 con.sql("LOAD postgres;")
@@ -419,7 +419,14 @@ async def extract_query_from_AP(
     # Store args_sources in query_info for later use
     query_info["args_sources"] = args_sources
 
-    db_types = {s for s in args_sources.values() if s}  # Remove empty strings
+    # Map source types to connection types
+    db_types = set()
+    for source in args_sources.values():
+        if source == "text/sql":
+            db_types.add("postgres")
+        elif source == "text/csv":
+            db_types.add("csv")
+
     query_info["db_connection"] = (
         "mixed"
         if len(db_types) > 1
