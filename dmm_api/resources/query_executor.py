@@ -397,11 +397,11 @@ async def extract_query_from_AP(
         query_info["db_name"] = db_name
 
     for argname, source in args_sources.items():
-        if source == "postgres":
+        if source == "text/sql":
             args_map[argname] = (
                 G.nodes[args_map[argname]].get("properties", {}).get("name", "")
             )
-        elif source == "csv":
+        elif source == "text/csv":
             node_id = args_map[argname]
             args_map[argname] = (
                 G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
@@ -438,7 +438,7 @@ def execute_query_xml(csv_name, query, software, xml_path):
 async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str, Any]:
     """Fetch node properties from MoMa2 API"""
     moma_api_url = os.getenv(
-        "MOMA_API_URL", "https://datagems-dev.scayle.es/moma2/api/v1"
+        "MOMA_API_URL", "https://datagems-dev.scayle.es/moma2/v1/api"
     )
     endpoint = f"{moma_api_url}/nodes/{node_id}"
     try:
@@ -449,9 +449,9 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
             timeout=MOMA_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
         ) as client:
             logger.info(
-                f"Sending POST request to MoMa2 with timeout: {MOMA_REQUEST_TIMEOUT_SECONDS}s"
+                f"Sending GET request to MoMa2 with timeout: {MOMA_REQUEST_TIMEOUT_SECONDS}s"
             )
-            response = await client.post(
+            response = await client.get(
                 endpoint,
                 headers={"Authorization": f"Bearer {token if token else 'NO_TOKEN'}"},
             )
