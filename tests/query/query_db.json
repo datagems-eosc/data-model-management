@@ -9,7 +9,7 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from": "56da8780-210a-4603-8862-6fd792470ce7",
+        "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
         "labels": [
           "input"
         ],
@@ -19,7 +19,28 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+        "labels": [
+          "distribution"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
         "labels": [
           "input"
         ],
@@ -50,18 +71,18 @@
         "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
       },
       {
-        "from": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "distribution"
         ],
-        "to": "56da8780-210a-4603-8862-6fd792470ce7"
+        "to": "11890253-bc36-4a23-8e3a-d81b83177f84"
       },
       {
-        "from": "a28888f4-2d06-4de2-9d11-ed8facd4e090",
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "distribution"
         ],
-        "to": "0539ef98-8f68-42ba-b52d-de0943a34f6d"
+        "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f"
       }
     ],
     "nodes": [
@@ -84,15 +105,15 @@
           "Query_Operator"
         ],
         "properties": {
-          "description": "Query executed via DuckDB on CSV",
+          "description": "Query executed via DuckDB on Postgres",
           "name": "DuckDB Query Operator",
-          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS crete JOIN {{arg2}} AS kyonos ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
+          "query": "SELECT t1.time, t1.latitude, t1.longitude, t1.tmin, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude WHERE t1.time >= '1991-01-01' AND t1.time < '1991-02-01' LIMIT 100;",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
-        "id": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "id": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "sc:Dataset"
         ]
@@ -104,32 +125,22 @@
         ]
       },
       {
-        "id": "a28888f4-2d06-4de2-9d11-ed8facd4e090",
+        "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
         "labels": [
-          "sc:Dataset"
+          "dg:DatabaseConnection"
         ]
       },
       {
-        "id": "56da8780-210a-4603-8862-6fd792470ce7",
+        "id": "11890253-bc36-4a23-8e3a-d81b83177f84",
         "labels": [
           "cr:FileObject"
-        ],
-        "properties": {
-          "contentUrl": "s3://dataset/58e10c1c-49fb-498f-a3cd-d7198feaa52e/crete_electricity.csv",
-          "encodingFormat": "text/csv",
-          "name": "crete_electricity.csv"
-        }
+        ]
       },
       {
-        "id": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
         "labels": [
           "cr:FileObject"
-        ],
-        "properties": {
-          "contentUrl": "s3://dataset/a28888f4-2d06-4de2-9d11-ed8facd4e090/kyonos_electricity.csv",
-          "encodingFormat": "text/csv",
-          "name": "kyonos_electricity.csv"
-        }
+        ]
       },
       {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",

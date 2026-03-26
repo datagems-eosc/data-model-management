@@ -9,12 +9,36 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from": "56da8780-210a-4603-8862-6fd792470ce7",
+        "from": "d8f86123-456f-4e14-8d62-0a1d95881d76",
         "labels": [
           "input"
         ],
         "properties": {
           "argname": "arg1"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "labels": [
+          "distribution"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+        "labels": [
+          "input"
+        ],
+        "properties": {
+          "argname": "arg2"
         },
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
@@ -40,11 +64,18 @@
         "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
       },
       {
-        "from": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "from": "b551f361-3f61-4ccf-a001-7c28d065c30d",
         "labels": [
           "distribution"
         ],
-        "to": "56da8780-210a-4603-8862-6fd792470ce7"
+        "to": "d8f86123-456f-4e14-8d62-0a1d95881d76"
+      },
+      {
+        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "labels": [
+          "distribution"
+        ],
+        "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f"
       }
     ],
     "nodes": [
@@ -67,15 +98,15 @@
           "Query_Operator"
         ],
         "properties": {
-          "description": "Query executed via DuckDB on one CSV",
+          "description": "Query executed via DuckDB on Postgres",
           "name": "DuckDB Query Operator",
-          "query": "SELECT area, date, energy_mwh FROM {{arg1}} as crete WHERE crete.energy_mwh > 10000 ORDER BY date",
+          "query": "SELECT t1.modifiedDate, t1.conceptType, t2.latitude, t2.longitude, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.modifiedDate = t2.time LIMIT 100;",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
-        "id": "58e10c1c-49fb-498f-a3cd-d7198feaa52e",
+        "id": "945567af-06dc-4d62-854e-5bf68d486a54",
         "labels": [
           "sc:Dataset"
         ]
@@ -87,13 +118,28 @@
         ]
       },
       {
-        "id": "56da8780-210a-4603-8862-6fd792470ce7",
+        "id": "b551f361-3f61-4ccf-a001-7c28d065c30d",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+        "labels": [
+          "dg:DatabaseConnection"
+        ]
+      },
+      {
+        "id": "d8f86123-456f-4e14-8d62-0a1d95881d76",
         "labels": [
           "cr:FileObject"
-        ],
-        "properties": {
-          "name": "crete_electricity.csv"
-        }
+        ]
+      },
+      {
+        "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+        "labels": [
+          "cr:FileObject"
+        ]
       },
       {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",

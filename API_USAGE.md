@@ -877,215 +877,201 @@ The API returns:
 }
 ```
 
-## 7) Query a Dataset
+## 7) Query a Dataset (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
 
 To query one or more datasets:
 
 ### POST a query
 ```bash
 curl -X POST -H "Content-Type: application/json" \
---data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+--data @tests/query/query_db.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+-H "Authorization: Bearer $TOKEN" \
 | python -m json.tool
 ```
 
-This query two dataset properties and creates a new dataset from the output. The API returns:
+This query two dataset and creates a new dataset from the output. The API returns:
 ```json
 {
-   "code":200,
-   "message":"Query executed successfully, results stored at /s3/data-model-management/results/2c830b06-a1da-48ca-a982-15062002797c",
-   "ap":{
-      "nodes":[
-         {
-            "id":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "labels":[
-               "Analytical_Pattern"
-            ],
-            "properties":{
-               "Description":"Analytical Pattern to query a dataset",
-               ...
+    "code": 200,
+    "message": "Query executed successfully, results stored at /s3/data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+    "ap": {
+        "nodes": [
+            {
+                "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    ...
+                }
+            },
+            {
+                "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "SQL_Operator",
+                    "Query_Operator"
+                ],
+                "properties": {
+                    "query": "SELECT t1.time, t1.latitude, t1.longitude, t1.tmin, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude WHERE t1.time >= '1991-01-01' AND t1.time < '1991-02-01' LIMIT 100;",
+                    ...
+                }
+            },
+            {
+                "id": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "labels": [
+                    "sc:Dataset"
+                ]
+            },
+            {
+                "id": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {
+                    "sc:archivedAt": "s3://data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1"
+                }
+            },
+            {
+                "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "dg:DatabaseConnection"
+                ]
+            },
+            {
+                "id": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "labels": [
+                    "cr:FileObject"
+                ]
+            },
+            {
+                "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "labels": [
+                    "cr:FileObject"
+                ]
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "description": "Task to query a dataset",
+                    "name": "Dataset Querying Task"
+                }
+            },
+            {
+                "id": "f90042fe-95e2-4774-88ed-7ece926a9888",
+                "labels": [
+                    "cr:FileObject",
+                    "CSV"
+                ],
+                "properties": {
+                    "@type": "cr:FileObject",
+                    "contentUrl": "s3://data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1/output.csv",
+                    ...
+                }
             }
-         },
-         {
-            "id":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "SQL_Operator"
-            ],
-            "properties":{
-               "Description":"Query executed via DuckDB on two datasets",
-               "Name":"DuckDB Query Operator",
-               "Parameters":{
-                  "arg1":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-                  "arg2":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-                  "command":"query",
-                  "queryType":"SELECT"
-               },
-               "PublishedDate":"2025-06-30",
-               "Query":"SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
-               ...
+        ],
+        "edges": [
+            {
+                "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "input"
+                ],
+                "properties": {
+                    "argname": "arg1"
+                }
+            },
+            {
+                "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "contained_in"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "contained_in"
+                ]
+            },
+            {
+                "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "input"
+                ],
+                "properties": {
+                    "argname": "arg2"
+                }
+            },
+            {
+                "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "to": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "labels": [
+                    "output"
+                ]
+            },
+            {
+                "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "labels": [
+                    "is_accomplished"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "labels": [
+                    "request"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "to": "f90042fe-95e2-4774-88ed-7ece926a9888",
+                "labels": [
+                    "distribution"
+                ]
             }
-         },
-         {
-            "id":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace",
-               ...
-            }
-         },
-         {
-            "id":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-               ...
-            }
-         },
-         {
-            "id":"2c830b06-a1da-48ca-a982-15062002797c",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://data-model-management/results/2c830b06-a1da-48ca-a982-15062002797c",
-               "description":"Temporary dataset created after a query",
-               ...
-            }
-         },
-         {
-            "id":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-         },
-         {
-            "id":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-            }
-         },
-         {
-            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "labels":[
-               "User"
-            ],
-            "properties":{
-               "City":"Verona",
-               ...
-            }
-         },
-         {
-            "id":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "labels":[
-               "Task"
-            ],
-            "properties":{
-               "Description":"Task to query a dataset",
-               ...
-            }
-         },
-         {
-            "id":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-            }
-         }
-      ],
-      "edges":[
-         {
-            "from":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "to":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "consist_of"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"2c830b06-a1da-48ca-a982-15062002797c",
-            "labels":[
-               "output"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "intervene"
-            ]
-         },
-         {
-            "from":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "to":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "labels":[
-               "is_accomplished"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "labels":[
-               "request"
-            ]
-         },
-         {
-            "from":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "to":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-            "labels":[
-               "distribution"
-            ]
-         },
-         {
-            "from":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "to":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-            "labels":[
-               "distribution"
-            ]
-         },
-         {
-            "from":"2c830b06-a1da-48ca-a982-15062002797c",
-            "to":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
-            "labels":[
-               "distribution"
-            ]
-         }
-      ]
-   }
+        ]
+    }
 }
-
 ```
 
 This creates a new dataset with the query results and links it to the input datasets and files.
