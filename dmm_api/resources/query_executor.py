@@ -147,7 +147,7 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                 con.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
 
             # Handle CSV paths in query (convert S3 paths to local paths)
-            processed_query = query
+            processed_query = query.get("query", "")
             s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", processed_query)
 
             for s3_path in s3_paths:
