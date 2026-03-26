@@ -102,7 +102,7 @@ def execute_query_postgres(query, duckdb_connection):
         )
 
 
-def execute_query_csv_postgres(query, software, args_sources=None):
+def execute_query_csv_postgres(query, software, args_sources=None, db_name=None):
     """Execute query with mixed CSV and PostgreSQL sources via DuckDB"""
     software = software.lower()
     DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
@@ -383,7 +383,6 @@ async def extract_query_from_AP(
                 args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
 
     query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
-
     return query_info
 
 
@@ -461,11 +460,10 @@ async def execute_query(
             result = execute_query_csv(query_filled, software)
         elif db_connection == "mixed":
             result = execute_query_csv_postgres(
-                query_filled, software, args_sources=query_info.get("args_sources", {})
-            )
-        else:
-            result = execute_query_postgres(
-                query_info, duckdb.connect(database=":memory:")
+                query_info,
+                software,
+                args_sources=query_info.get("args_sources", {}),
+                db_name=query_info.get("db_name"),
             )
         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
         csv_bytes = result.to_csv(index=False).encode("utf-8")
