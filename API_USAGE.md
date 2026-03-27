@@ -913,6 +913,7 @@ curl -X POST -H "Content-Type: application/json" \
 Example payload: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
 
 This query retrieves data from two datasets and creates a new dataset from the output. The API returns:
+
 ```json
 {
     "code": 200,
@@ -1245,9 +1246,7 @@ This converts the input `zoo_2024_pg.json` file (MoMa format) to Croissant forma
     }
 }
 ```
-## 9) Cross-dataset Discovery Search
-
-Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm).
+## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm)).
 
 
 The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token.
