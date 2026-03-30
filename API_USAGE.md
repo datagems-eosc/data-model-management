@@ -17,9 +17,9 @@ cd tests
 - [4) Update a Dataset](#4-update-a-dataset)
 - [5) Get one or all Datasets](#5-get-one-or-all-datasets)
 - [6) Filter the Datasets](#6-filter-the-datasets)
-- [7) Query a Dataset](#7-query-a-dataset)
+- [7) Query a Dataset](#7-query-a-dataset-requires-access-token-setup)
 - [8) Converter](#8-converter)
-- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
+- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search-requires-access-token-setup)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1108,10 +1108,10 @@ This converter supports conversion from MoMa (PG-JSON) to Croissant (JSON-LD).
 
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/convert?from=moma&to=croissant" \
--F "file=@tests/data/zoo/zoo_2024_pg.json" \
+-F "file=@data/zoo/zoo_2024_pg.json" \
 | python3 -m json.tool
 ```
-Example input file: [tests/data/zoo/zoo_2024_pg.json](tests/data/zoo/zoo_2024_pg.json).
+Example input file: [tests/data/zoo/zoo_2024_pg.json](tests/data/zoo/zoo_2024_pg.json) (command path when running from `tests`: `data/zoo/zoo_2024_pg.json`).
 
 This converts the input `zoo_2024_pg.json` file (MoMa format) to Croissant format. The API returns:
 ```json
@@ -1254,9 +1254,9 @@ The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer toke
 ```bash
 curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
 -H "Authorization: Bearer $TOKEN" \
--F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
+-F "file=@cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
 ```
-Example payload file: [tests/cross-dataset/cdd-search-ap-request.json](tests/cross-dataset/cdd-search-ap-request.json).
+Example payload file: [tests/cross-dataset/cdd-search-ap-request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `cross-dataset/cdd-search-ap-request.json`).
 
 This stores the AP in MoMa and forwards the JSON file to the `cross-dataset-discovery/search` endpoint. The API returns:
 ```json
