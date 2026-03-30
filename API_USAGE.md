@@ -9,9 +9,22 @@ You can interact with it using curl commands, going into the `tests` folder:
 cd tests
 ```
 
+## Table of Contents
+
+- [1) Upload a Dataset to s3](#1-upload-a-dataset-to-s3)
+- [2) Register a Dataset](#2-register-a-dataset)
+- [3) Load a Dataset](#3-load-a-dataset)
+- [4) Update a Dataset](#4-update-a-dataset)
+- [5) Get one or all Datasets](#5-get-one-or-all-datasets)
+- [6) Filter the Datasets](#6-filter-the-datasets)
+- [7) Query a Dataset](#7-query-a-dataset)
+- [8) Converter](#8-converter)
+- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
+- [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
+
 ## 1) Upload a Dataset to s3
 
-Before registering a dataset, the files should be already present on s3. This method uploads the actual data file using the data-workflow endpoint:
+Before registering a dataset, the file should already be present on S3. This method uploads the actual data file using the data-workflow endpoint:
 
 ### POST a file to data-workflow
 ```bash
@@ -20,6 +33,8 @@ curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
  -F "file_name=zoo.csv" \
  -F "dataset_id=c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
 ```
+Example data file: [tests/data/zoo/zoo-2024.csv](tests/data/zoo/zoo-2024.csv) (command path when running from `tests`: `data/zoo/zoo-2024.csv`).
+
 The API returns:
 ```json
 {
@@ -35,7 +50,7 @@ The API returns:
 
 The file is initially uploaded to the scratchpad location.
 
-> NOTE: This method is only for internal testing use. It may be removed in the future.
+> NOTE: This method is intended only for internal testing. It may be removed in the future.
 
 
 ## 2) Register a Dataset
@@ -48,6 +63,8 @@ curl -X POST -H "Content-Type: application/json" \
 --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
 | python -m json.tool
 ```
+Example payload: [tests/register/oasa.json](tests/register/oasa.json) (command path when running from `tests`: `register/oasa.json`).
+
 
 This registers a new dataset using the JSON payload. The API returns:
 ```json
@@ -152,9 +169,10 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
 | python -m json.tool
 ```
+Example payload: [tests/load/oasa.json](tests/load/oasa.json) (command path when running from `tests`: `load/oasa.json`).
 
 Optional query parameter:
-- `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
+- `force` (bool, default `false`): set to `true` when source and target paths are already the same.
 ```bash
 curl -X PUT -H "Content-Type: application/json" \
 --data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" \
@@ -261,6 +279,8 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
 | python -m json.tool
 ```
+Example payload: [tests/update/dataset_profile/zoo_light.json](tests/update/dataset_profile/zoo_light.json) (command path when running from `tests`: `update/dataset_profile/zoo_light.json`).
+
 
 This updates the dataset with the light profile. The API returns:
 ```json
@@ -387,6 +407,8 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
 | python -m json.tool
 ```
+Example payload: [tests/update/dataset_profile/zoo_heavy.json](tests/update/dataset_profile/zoo_heavy.json) (command path when running from `tests`: `update/dataset_profile/zoo_heavy.json`).
+
 This updates the dataset with the heavy profile. The API returns:
 ```json
 {
@@ -884,12 +906,14 @@ To query one or more datasets:
 ### POST a query
 ```bash
 curl -X POST -H "Content-Type: application/json" \
---data @tests/query/query_db.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+--data @query/query_db.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
 -H "Authorization: Bearer $TOKEN" \
 | python -m json.tool
 ```
+Example payload: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
 
-This query two dataset and creates a new dataset from the output. The API returns:
+This query retrieves data from two datasets and creates a new dataset from the output. The API returns:
+
 ```json
 {
     "code": 200,
@@ -1080,15 +1104,16 @@ The output dataset is stored in a temporary location in S3 (`s3://data-model-man
 
 ## 8) Converter
 
-This converter support a conversion from MoMa (PG-Json) to Croissant (Json-LD).
+This converter supports conversion from MoMa (PG-JSON) to Croissant (JSON-LD).
 
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/convert?from=moma&to=croissant" \
 -F "file=@tests/data/zoo/zoo_2024_pg.json" \
 | python3 -m json.tool
 ```
+Example input file: [tests/data/zoo/zoo_2024_pg.json](tests/data/zoo/zoo_2024_pg.json).
 
-This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
+This converts the input `zoo_2024_pg.json` file (MoMa format) to Croissant format. The API returns:
 ```json
 {
     "message": "MoMa profile converted to Croissant format successfully",
@@ -1221,7 +1246,7 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
     }
 }
 ```
-## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
+## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm)).
 
 
 The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token.
@@ -1231,8 +1256,9 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset
 -H "Authorization: Bearer $TOKEN" \
 -F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
 ```
+Example payload file: [tests/cross-dataset/cdd-search-ap-request.json](tests/cross-dataset/cdd-search-ap-request.json).
 
-This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns:
+This stores the AP in MoMa and forwards the JSON file to the `cross-dataset-discovery/search` endpoint. The API returns:
 ```json
 {
     "code": 200,
