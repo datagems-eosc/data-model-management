@@ -1159,59 +1159,6 @@ async def update_dataset(wrapped: WrappedAPRequest):
         )
 
 
-# @router.post(
-#     "/polyglot/query",
-#     response_model=APSuccessEnvelope,
-#     response_model_exclude_none=True,
-# )
-# async def execute_query(wrapped: WrappedAPRequest):
-#     """Execute a SQL query on a dataset based on an Analytical Pattern"""
-#     try:
-#         ap_payload = wrapped.ap
-#         query_info = extract_query_from_AP(ap_payload)
-#         software = query_info.get("software")
-#         query_filled = query_info.get("query_filled")
-
-#         result = execute_query_csv(query_filled, software)
-
-#         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
-#         csv_bytes = result.to_csv(index=False).encode("utf-8")
-#         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
-
-#         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
-#         upload_ap_to_results(
-#             json.dumps(
-#                 AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
-#                 ensure_ascii=False,
-#                 indent=2,
-#             ),
-#             dataset_id,
-#         )
-
-#         register_AP = generate_register_AP_after_query(AP_query_after)
-#         await register_dataset(register_AP)
-
-#         # Fake forward to AP Storage API
-#         try:
-#             print(f"Dataset {dataset_id} sent to the AP Storage API.")
-#         except Exception as e:
-#             print(f"AP Storage API not working: {e}")
-
-#         return APSuccessEnvelope(
-#             code=status.HTTP_200_OK,
-#             message=f"Query executed successfully, results stored at {upload_path}",
-#             ap=AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
-#         )
-
-#     except HTTPException:
-#         raise
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Failed to execute query: {str(e)}",
-#         )
-
-
 @router.get("/test-postgres-duckdb")
 async def test_postgres_connection():
     DB_HOST = os.getenv("DATAGEMS_POSTGRES_HOST")

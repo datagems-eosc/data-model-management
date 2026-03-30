@@ -281,11 +281,6 @@ async def extract_query_from_AP(
 
     # Get properties of datasets and database connections from MoMa and add them to the graph, as they are needed to execute the query
 
-    for node_id in file_object_nodes:
-        file_object_properties = await get_node_properties(node_id, token=token)
-        current_properties = G.nodes[node_id].get("properties", {})
-        current_properties.update(file_object_properties)
-        G.nodes[node_id].update({"properties": current_properties})
     for node_id in db_connection_nodes:
         dbc_properties = await get_node_properties(node_id, token=token)
         current_properties = G.nodes[node_id].get("properties", {})
@@ -325,6 +320,13 @@ async def extract_query_from_AP(
         for u, v, data in G.edges(data=True)
         if "argname" in data.get("properties", {})
     }
+
+    for argname in args_map.keys():
+        node_id = args_map[argname]
+        file_object_properties = await get_node_properties(node_id, token=token)
+
+        G.nodes[node_id].update({"properties": file_object_properties})
+        logger.info(f"Arg '{argname}' is updated)")
 
     for argname, node_id in args_map.items():
         args_sources[argname] = (
@@ -366,21 +368,21 @@ async def extract_query_from_AP(
             args_map[argname] = (
                 G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
             )
-            ## If the contentUrl as been generated locally, we miss the dataset_id, so we need to get it from the distribution edge
-            if re.match(r"^s3:/?[^/]+\.(csv|json)$", args_map[argname]):
-                dataset_id = next(
-                    (
-                        from_node
-                        for from_node, to_node, edge_data in G.in_edges(
-                            node_id, data=True
-                        )
-                        if "distribution" in edge_data.get("labels", [])
-                    ),
-                    None,
-                )
-                # Strip the s3:/ or s3:// prefix from the filename, then rebuild with dataset_id
-                filename = re.sub(r"^s3:/?/?", "", args_map[argname])
-                args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
+            # ## If the contentUrl as been generated locally, we miss the dataset_id, so we need to get it from the distribution edge
+            # if re.match(r"^s3:/?[^/]+\.(csv|json)$", args_map[argname]):
+            #     dataset_id = next(
+            #         (
+            #             from_node
+            #             for from_node, to_node, edge_data in G.in_edges(
+            #                 node_id, data=True
+            #             )
+            #             if "distribution" in edge_data.get("labels", [])
+            #         ),
+            #         None,
+            #     )
+            #     # Strip the s3:/ or s3:// prefix from the filename, then rebuild with dataset_id
+            #     filename = re.sub(r"^s3:/?/?", "", args_map[argname])
+            #     args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
 
     query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
     return query_info
@@ -406,6 +408,24 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
                 endpoint,
                 headers={"Authorization": f"Bearer {token if token else 'NO_TOKEN'}"},
             )
+
+        # Check if node was not found
+        if response.status_code == 404:
+            logger.error(
+                f"Node with ID '{node_id}' not found in MoMa2. Response: {response.text}"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"The fileObject/databaseConnection have not been found in MoMa (node ID: '{node_id}'). Please make sure that the dataset is well onboarded.",
+            )
+
+        # Check for other HTTP errors
+        if not response.is_success:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"MoMa2 API error {response.status_code} for node '{node_id}': {response.text}",
+            )
+
         try:
             response_payload = response.json()
         except ValueError:
@@ -427,6 +447,8 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail=f"MoMa2 API request timed out. Node: {node_id}",
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -482,7 +504,7 @@ async def execute_query(
         register_AP = generate_register_AP_after_query(AP_query_after)
         await register_dataset(WrappedAPRequest(ap=register_AP))
 
-        # Fake forward to AP Storage API (to be implemented in the future)
+        # TODO: AP Storage
 
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
