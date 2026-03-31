@@ -175,6 +175,7 @@ EXTERNAL_SERVICES = {
 CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
 
+# TODO: remove this function
 async def get_moma_object(
     node_id: str,
     expected_label: str,
@@ -265,6 +266,7 @@ async def get_moma_object(
 
 async def get_dataset_metadata(
     dataset_id: str,
+    token: str,
     dataset_status: Optional[str] = None,
     client: Optional[httpx.AsyncClient] = None,
 ) -> tuple[bool, dict]:
@@ -273,29 +275,29 @@ async def get_dataset_metadata(
 
     Args:
         dataset_id: The UUID of the dataset to retrieve
+        token: The authorization token for the MoMa API
         dataset_status: Optional status filter (e.g., 'staged', 'loaded', 'ready') for Dataset nodes
         client: Optional httpx client to reuse. If None, creates a new one.
 
     Returns:
         Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
     """
-    url = f"{MOMA_URL}/getDatasets?nodeIds={dataset_id}"
+    url = f"{MOMA_URL}/datasets"
+    params: dict = {"nodeIds": [dataset_id]}
     if dataset_status:
-        url += f"&status={dataset_status}"
+        params["status"] = dataset_status
 
     should_close = client is None
     if client is None:
         client = httpx.AsyncClient()
 
     try:
-        response = await client.get(url, headers=headers)
+        response = await client.get(url, params=params,headers={"Authorization": f"Bearer {token}"})
+        # response = await client.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         metadata = data.get("metadata", {})
-        nodes = metadata.get("nodes", [])
-        edges = metadata.get("edges", [])
-
-        return (len(nodes) > 0, {"nodes": nodes, "edges": edges})
+        return (len(metadata.get("nodes", [])) > 0, metadata)
 
     except httpx.HTTPStatusError as exc:
         raise HTTPException(
@@ -571,7 +573,7 @@ async def register_dataset(
         try:
             # Check if dataset already exists — 409 if so
             # You should add or the token, or the header in the get_dataset_metadata function
-            exists, _ = await get_dataset_metadata(dataset_id, client=client)
+            exists, _ = await get_dataset_metadata(dataset_id, token=token, client=client)
             if exists:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
