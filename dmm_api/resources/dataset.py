@@ -288,7 +288,7 @@ async def get_dataset_metadata(
         client = httpx.AsyncClient()
 
     try:
-        response = await client.get(url)
+        response = await client.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         metadata = data.get("metadata", {})
@@ -570,6 +570,7 @@ async def register_dataset(
     async with httpx.AsyncClient() as client:
         try:
             # Check if dataset already exists — 409 if so
+            # You should add or the token, or the header in the get_dataset_metadata function
             exists, _ = await get_dataset_metadata(dataset_id, client=client)
             if exists:
                 raise HTTPException(
@@ -584,6 +585,7 @@ async def register_dataset(
             response = await client.post(
                 f"{MOMA_URL}/datasets",
                 json={"nodes": filtered_nodes},
+                headers={"Authorization": f"Bearer {token}"}
             )
             response.raise_for_status()
 
