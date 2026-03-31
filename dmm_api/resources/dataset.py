@@ -282,7 +282,7 @@ async def get_dataset_metadata(
     Returns:
         Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
     """
-    url = f"{MOMA_URL}/datasets"
+    url = f"{MOMA_URL}/datasets/"
     params: dict = {"nodeIds": [dataset_id]}
     if dataset_status:
         params["status"] = dataset_status
@@ -588,7 +588,7 @@ async def register_dataset(
 
             # Create the dataset node via POST /datasets
             response = await client.post(
-                f"{MOMA_URL}/datasets",
+                f"{MOMA_URL}/datasets/",
                 json={"nodes": filtered_nodes},
                 headers={"Authorization": f"Bearer {token}"}
             )
