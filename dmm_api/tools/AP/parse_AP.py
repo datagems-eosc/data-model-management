@@ -232,6 +232,7 @@ def extract_from_AP(
             "cr:RecordSet",
             "cr:Field",
             "dg:ColumnStatistics",
+            "dg:DatabaseConnection",
         }
 
     # Find nodes that have any of the target labels
