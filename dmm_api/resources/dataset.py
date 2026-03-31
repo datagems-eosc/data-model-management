@@ -790,12 +790,10 @@ async def load_dataset(
     async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.patch(
-                f"{MOMA_URL}/nodes/{dataset_id}/",
+                f"{MOMA_URL}/nodes/{dataset_id}",
                 json={
-                    "properties": {
                         "archivedAt": new_path,             
                         "status": DatasetState.Loaded.value,
-                    }
                 },
                 headers={"Authorization": f"Bearer {token}"},
             )
