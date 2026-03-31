@@ -130,6 +130,15 @@
         }
       },
       {
+        "id": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "labels": [
+          "cr:FileObject"
+        ],
+        "properties": {
+          "name": "kyonos_electricity.csv"
+        }
+      },
+      {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
         "labels": [
           "User"

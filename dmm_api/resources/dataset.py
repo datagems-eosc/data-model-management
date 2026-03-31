@@ -288,7 +288,7 @@ async def get_dataset_metadata(
         client = httpx.AsyncClient()
 
     try:
-        response = await client.get(url)
+        response = await client.get(url, headers=headers)
         response.raise_for_status()
         data = response.json()
         metadata = data.get("metadata", {})
@@ -513,7 +513,10 @@ async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")
     response_model=APSuccessEnvelope,
     response_model_exclude_none=True,
 )
-async def register_dataset(wrapped: WrappedAPRequest):
+async def register_dataset(
+    wrapped: WrappedAPRequest, 
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)):
     """
     Register a new dataset in Neo4j by:
     1. Extracting the Dataset node from the AP
@@ -567,6 +570,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
     async with httpx.AsyncClient() as client:
         try:
             # Check if dataset already exists — 409 if so
+            # You should add or the token, or the header in the get_dataset_metadata function
             exists, _ = await get_dataset_metadata(dataset_id, client=client)
             if exists:
                 raise HTTPException(
@@ -581,6 +585,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
             response = await client.post(
                 f"{MOMA_URL}/datasets",
                 json={"nodes": filtered_nodes},
+                headers={"Authorization": f"Bearer {token}"}
             )
             response.raise_for_status()
 
