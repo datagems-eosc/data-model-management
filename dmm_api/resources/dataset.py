@@ -286,7 +286,12 @@ async def get_dataset_metadata(
     params: dict = {"nodeIds": [dataset_id]}
     if dataset_status:
         params["status"] = dataset_status
-
+    
+    # Debug logging
+    logger.info(f"Calling MoMa API at: {url}")
+    logger.info(f"With params: {params}")
+    logger.info(f"Token (first 20 chars): {token[:20]}...")
+    
     should_close = client is None
     if client is None:
         client = httpx.AsyncClient(follow_redirects=True)
