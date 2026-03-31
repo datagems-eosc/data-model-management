@@ -156,7 +156,7 @@ class DatasetState(str, Enum):
 router = APIRouter()
 
 
-MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma")
+MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
@@ -516,15 +516,15 @@ async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")
 async def register_dataset(wrapped: WrappedAPRequest):
     """
     Register a new dataset in Neo4j by:
-    1. Extracting Dataset/FileObject/RecordSet nodes from AP
-    2. Checking if they already exist with 'staged' status
-    3. Creating new nodes and edges using addMoMaNodes
+    1. Extracting the Dataset node from the AP
+    2. Checking it does not already exist → 409 if it does
+    3. Creating it via POST /datasets
     """
     ap_payload = wrapped.ap
 
     try:
         # Extract only Dataset nodes
-        filtered_nodes, filtered_edges = extract_from_AP(
+        filtered_nodes, _ = extract_from_AP(
             ap_payload, target_labels={"sc:Dataset"}
         )
 
@@ -566,45 +566,23 @@ async def register_dataset(wrapped: WrappedAPRequest):
 
     async with httpx.AsyncClient() as client:
         try:
-            node_ids = [node["id"] for node in filtered_nodes]
-
-            url = f"{MOMA_URL}/getDatasets"
-            params = {"nodeIds": node_ids}
-
-            response = await client.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
-            metadata = data.get("metadata", {})
-            existing_nodes = metadata.get("nodes", [])
-
-            # Check if any node with the dataset ID already exists
-            existing_dataset = None
-            for existing_node in existing_nodes:
-                if existing_node.get("id") == dataset_id:
-                    existing_dataset = existing_node
-                    break
-
-            if existing_dataset:
-                node_status = existing_dataset.get("properties", {}).get(
-                    "dg:status", "unknown"
-                )
+            # Check if dataset already exists — 409 if so
+            exists, _ = await get_dataset_metadata(dataset_id, client=client)
+            if exists:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=ErrorEnvelope(
                         code=status.HTTP_409_CONFLICT,
-                        error=f"Dataset with ID {dataset_id} already exists in Neo4j with status '{node_status}'",
+                        error=f"Dataset with ID {dataset_id} already exists in Neo4j",
                     ).model_dump(),
                 )
 
-            # Create the dataset node using addMoMaNodes
-            add_nodes_url = f"{MOMA_URL}/addMoMaNodes?validation=False"
-            nodes_payload = {"nodes": filtered_nodes}
-            response = await client.post(add_nodes_url, json=nodes_payload)
+            # Create the dataset node via POST /datasets
+            response = await client.post(
+                f"{MOMA_URL}/datasets",
+                json={"nodes": filtered_nodes},
+            )
             response.raise_for_status()
-
-            result = response.json()
-            if result.get("status") != "success":
-                raise Exception(result.get("message", "Unknown error"))
 
             # Fake forward to AP Storage API
             try:
@@ -644,7 +622,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
                     error=f"Unexpected error: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
-
+        
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put(
@@ -657,7 +635,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
 
     try:
         # Extract only Dataset nodes from AP
-        filtered_nodes, filtered_edges = extract_from_AP(
+        filtered_nodes, _ = extract_from_AP(
             ap_payload, target_labels={"sc:Dataset"}
         )
 
