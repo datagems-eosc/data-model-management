@@ -289,11 +289,14 @@ async def get_dataset_metadata(
 
     should_close = client is None
     if client is None:
-        client = httpx.AsyncClient()
+        client = httpx.AsyncClient(follow_redirects=True)
 
     try:
-        response = await client.get(url, params=params,headers={"Authorization": f"Bearer {token}"})
-        # response = await client.get(url, headers=headers)
+        response = await client.get(
+            url,
+            params=params,
+            headers={"Authorization": f"Bearer {token}"},
+        )
         response.raise_for_status()
         data = response.json()
         metadata = data.get("metadata", {})
