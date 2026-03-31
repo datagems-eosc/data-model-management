@@ -464,7 +464,7 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
 async def execute_query(
     wrapped: WrappedAPRequest,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)
 ):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:

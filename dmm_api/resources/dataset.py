@@ -513,7 +513,10 @@ async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")
     response_model=APSuccessEnvelope,
     response_model_exclude_none=True,
 )
-async def register_dataset(wrapped: WrappedAPRequest):
+async def register_dataset(
+    wrapped: WrappedAPRequest, 
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)):
     """
     Register a new dataset in Neo4j by:
     1. Extracting Dataset/FileObject/RecordSet nodes from AP
@@ -571,7 +574,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
             url = f"{MOMA_URL}/getDatasets"
             params = {"nodeIds": node_ids}
 
-            response = await client.get(url, params=params)
+            response = await client.get(url, params=params, headers={"Authorization": f"Bearer {token if token else 'NO_TOKEN'}"})
             response.raise_for_status()
             data = response.json()
             metadata = data.get("metadata", {})
@@ -599,7 +602,7 @@ async def register_dataset(wrapped: WrappedAPRequest):
             # Create the dataset node using addMoMaNodes
             add_nodes_url = f"{MOMA_URL}/addMoMaNodes?validation=False"
             nodes_payload = {"nodes": filtered_nodes}
-            response = await client.post(add_nodes_url, json=nodes_payload)
+            response = await client.post(add_nodes_url, json=nodes_payload, headers={"Authorization": f"Bearer {token if token else 'NO_TOKEN'}"})
             response.raise_for_status()
 
             result = response.json()
