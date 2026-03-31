@@ -57,7 +57,7 @@
         "to": "56da8780-210a-4603-8862-6fd792470ce7"
       },
       {
-        "from": "746e2462-d412-4097-ae49-e1d1f835f2fa",
+        "from": "a28888f4-2d06-4de2-9d11-ed8facd4e090",
         "labels": [
           "distribution"
         ],
@@ -84,9 +84,9 @@
           "Query_Operator"
         ],
         "properties": {
-          "description": "Query executed via DuckDB on one CSV",
+          "description": "Query executed via DuckDB on CSV",
           "name": "DuckDB Query Operator",
-          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
+          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS crete JOIN {{arg2}} AS kyonos ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
@@ -104,7 +104,7 @@
         ]
       },
       {
-        "id": "746e2462-d412-4097-ae49-e1d1f835f2fa",
+        "id": "a28888f4-2d06-4de2-9d11-ed8facd4e090",
         "labels": [
           "sc:Dataset"
         ]
@@ -115,7 +115,18 @@
           "cr:FileObject"
         ],
         "properties": {
-          "name": "crete_electricity.csv"
+          "contentUrl": "s3://dataset/58e10c1c-49fb-498f-a3cd-d7198feaa52e/crete_electricity.csv",
+          "encodingFormat": "text/csv"
+        }
+      },
+      {
+        "id": "0539ef98-8f68-42ba-b52d-de0943a34f6d",
+        "labels": [
+          "cr:FileObject"
+        ],
+        "properties": {
+          "contentUrl": "s3://dataset/a28888f4-2d06-4de2-9d11-ed8facd4e090/kyonos_electricity.csv",
+          "encodingFormat": "text/csv"
         }
       },
       {

@@ -9,7 +9,7 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
+        "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
         "labels": [
           "input"
         ],
@@ -19,7 +19,28 @@
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
+        "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+        "labels": [
+          "distribution"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+        "labels": [
+          "contained_in"
+        ],
+        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
+      },
+      {
+        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
         "labels": [
           "input"
         ],
@@ -50,25 +71,18 @@
         "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
       },
       {
-        "from": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
-        "labels": [
-          "contained_in"
-        ],
-        "to": "91c383d9-bfdb-4d1e-bd9f-4164a30dc834"
-      },
-      {
-        "from": "928a3f45-7eec-474a-ab07-90736feb7ace",
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "distribution"
         ],
-        "to": "aca33450-d1b4-4721-af00-7f1a73d5e34f"
+        "to": "11890253-bc36-4a23-8e3a-d81b83177f84"
       },
       {
-        "from": "36f74548-0f4f-47c7-bfdf-6502e9fc0768",
+        "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "distribution"
         ],
-        "to": "c5a06fbd-887f-4562-8121-55dfe5a658c7"
+        "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f"
       }
     ],
     "nodes": [
@@ -81,34 +95,25 @@
           "description": "Analytical Pattern to query a dataset",
           "name": "Query Dataset AP",
           "process": "query",
-          "publishedDate": "2025-06-30",
-          "startTime": "10:00:00"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
         "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
-          "SQL_Operator"
+          "SQL_Operator",
+          "Query_Operator"
         ],
         "properties": {
-          "command": "query",
-          "description": "Query executed via DuckDB on two datasets",
+          "description": "Query executed via DuckDB on Postgres",
           "name": "DuckDB Query Operator",
-          "publishedDate": "2025-06-30",
-          "query": "SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
+          "query": "SELECT t1.time, t1.latitude, t1.longitude, t1.tmin, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude WHERE t1.time >= '1991-01-01' AND t1.time < '1991-02-01' LIMIT 100;",
           "queryType": "SELECT",
-          "startTime": "10:00:00",
-          "type": "SQL Query"
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
-        "id": "928a3f45-7eec-474a-ab07-90736feb7ace",
-        "labels": [
-          "sc:Dataset"
-        ]
-      },
-      {
-        "id": "36f74548-0f4f-47c7-bfdf-6502e9fc0768",
+        "id": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
         "labels": [
           "sc:Dataset"
         ]
@@ -120,24 +125,21 @@
         ]
       },
       {
-        "id": "91c383d9-bfdb-4d1e-bd9f-4164a30dc834",
+        "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
         "labels": [
-          "dg:DatabaseConnection",
-          "RelationalDatabase"
+          "dg:DatabaseConnection"
         ]
       },
       {
-        "id": "aca33450-d1b4-4721-af00-7f1a73d5e34f",
+        "id": "11890253-bc36-4a23-8e3a-d81b83177f84",
         "labels": [
-          "cr:FileObject",
-          "RelationalDatabase"
+          "cr:FileObject"
         ]
       },
       {
-        "id": "c5a06fbd-887f-4562-8121-55dfe5a658c7",
+        "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
         "labels": [
-          "cr:FileObject",
-          "RelationalDatabase"
+          "cr:FileObject"
         ]
       },
       {

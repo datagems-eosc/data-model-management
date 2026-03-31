@@ -9,9 +9,22 @@ You can interact with it using curl commands, going into the `tests` folder:
 cd tests
 ```
 
+## Table of Contents
+
+- [1) Upload a Dataset to s3](#1-upload-a-dataset-to-s3)
+- [2) Register a Dataset](#2-register-a-dataset)
+- [3) Load a Dataset](#3-load-a-dataset)
+- [4) Update a Dataset](#4-update-a-dataset)
+- [5) Get one or all Datasets](#5-get-one-or-all-datasets)
+- [6) Filter the Datasets](#6-filter-the-datasets)
+- [7) Query a Dataset](#7-query-a-dataset-requires-access-token-setup)
+- [8) Converter](#8-converter)
+- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search-requires-access-token-setup)
+- [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
+
 ## 1) Upload a Dataset to s3
 
-Before registering a dataset, the files should be already present on s3. This method uploads the actual data file using the data-workflow endpoint:
+Before registering a dataset, the file should already be present on S3. This method uploads the actual data file using the data-workflow endpoint:
 
 ### POST a file to data-workflow
 ```bash
@@ -20,6 +33,8 @@ curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/data-workflow" \
  -F "file_name=zoo.csv" \
  -F "dataset_id=c893daaf-680f-4947-88e5-03fd61900795" | python -m json.tool
 ```
+Example data file: [tests/data/zoo/zoo-2024.csv](tests/data/zoo/zoo-2024.csv) (command path when running from `tests`: `data/zoo/zoo-2024.csv`).
+
 The API returns:
 ```json
 {
@@ -35,7 +50,7 @@ The API returns:
 
 The file is initially uploaded to the scratchpad location.
 
-> NOTE: This method is only for internal testing use. It may be removed in the future.
+> NOTE: This method is intended only for internal testing. It may be removed in the future.
 
 
 ## 2) Register a Dataset
@@ -48,6 +63,8 @@ curl -X POST -H "Content-Type: application/json" \
 --data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
 | python -m json.tool
 ```
+Example payload: [tests/register/oasa.json](tests/register/oasa.json) (command path when running from `tests`: `register/oasa.json`).
+
 
 This registers a new dataset using the JSON payload. The API returns:
 ```json
@@ -152,9 +169,10 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
 | python -m json.tool
 ```
+Example payload: [tests/load/oasa.json](tests/load/oasa.json) (command path when running from `tests`: `load/oasa.json`).
 
 Optional query parameter:
-- `force` (bool, default `false`): if `true`, to use when source and target paths are already the same.
+- `force` (bool, default `false`): set to `true` when source and target paths are already the same.
 ```bash
 curl -X PUT -H "Content-Type: application/json" \
 --data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" \
@@ -261,6 +279,8 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
 | python -m json.tool
 ```
+Example payload: [tests/update/dataset_profile/zoo_light.json](tests/update/dataset_profile/zoo_light.json) (command path when running from `tests`: `update/dataset_profile/zoo_light.json`).
+
 
 This updates the dataset with the light profile. The API returns:
 ```json
@@ -387,6 +407,8 @@ curl -X PUT -H "Content-Type: application/json" \
 --data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
 | python -m json.tool
 ```
+Example payload: [tests/update/dataset_profile/zoo_heavy.json](tests/update/dataset_profile/zoo_heavy.json) (command path when running from `tests`: `update/dataset_profile/zoo_heavy.json`).
+
 This updates the dataset with the heavy profile. The API returns:
 ```json
 {
@@ -877,215 +899,203 @@ The API returns:
 }
 ```
 
-## 7) Query a Dataset
+## 7) Query a Dataset (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
 
 To query one or more datasets:
 
 ### POST a query
 ```bash
 curl -X POST -H "Content-Type: application/json" \
---data @query/query_before.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+--data @query/query_db.json https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query \
+-H "Authorization: Bearer $TOKEN" \
 | python -m json.tool
 ```
+Example payload: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
 
-This query two dataset properties and creates a new dataset from the output. The API returns:
+This query retrieves data from two datasets and creates a new dataset from the output. The API returns:
+
 ```json
 {
-   "code":200,
-   "message":"Query executed successfully, results stored at /s3/data-model-management/results/2c830b06-a1da-48ca-a982-15062002797c",
-   "ap":{
-      "nodes":[
-         {
-            "id":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "labels":[
-               "Analytical_Pattern"
-            ],
-            "properties":{
-               "Description":"Analytical Pattern to query a dataset",
-               ...
+    "code": 200,
+    "message": "Query executed successfully, results stored at /s3/data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+    "ap": {
+        "nodes": [
+            {
+                "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    ...
+                }
+            },
+            {
+                "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "SQL_Operator",
+                    "Query_Operator"
+                ],
+                "properties": {
+                    "query": "SELECT t1.time, t1.latitude, t1.longitude, t1.tmin, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude WHERE t1.time >= '1991-01-01' AND t1.time < '1991-02-01' LIMIT 100;",
+                    ...
+                }
+            },
+            {
+                "id": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "labels": [
+                    "sc:Dataset"
+                ]
+            },
+            {
+                "id": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {
+                    "sc:archivedAt": "s3://data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1"
+                }
+            },
+            {
+                "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "dg:DatabaseConnection"
+                ]
+            },
+            {
+                "id": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "labels": [
+                    "cr:FileObject"
+                ]
+            },
+            {
+                "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "labels": [
+                    "cr:FileObject"
+                ]
+            },
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ]
+            },
+            {
+                "id": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "description": "Task to query a dataset",
+                    "name": "Dataset Querying Task"
+                }
+            },
+            {
+                "id": "f90042fe-95e2-4774-88ed-7ece926a9888",
+                "labels": [
+                    "cr:FileObject",
+                    "CSV"
+                ],
+                "properties": {
+                    "@type": "cr:FileObject",
+                    "contentUrl": "s3://data-model-management/results/888f7ce1-6405-4c73-9b3a-fb11b8eb40a1/output.csv",
+                    ...
+                }
             }
-         },
-         {
-            "id":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "SQL_Operator"
-            ],
-            "properties":{
-               "Description":"Query executed via DuckDB on two datasets",
-               "Name":"DuckDB Query Operator",
-               "Parameters":{
-                  "arg1":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-                  "arg2":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-                  "command":"query",
-                  "queryType":"SELECT"
-               },
-               "PublishedDate":"2025-06-30",
-               "Query":"SELECT crete.date AS date, crete.energy_mwh AS crete_mwh, kyonos.energy_mwh AS kyonos_mwh FROM {{arg1}} AS kyonos JOIN {{arg2}} AS crete ON crete.date = kyonos.date WHERE crete.energy_mwh > 10000 ORDER BY crete.date",
-               ...
+        ],
+        "edges": [
+            {
+                "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "consist_of"
+                ]
+            },
+            {
+                "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "input"
+                ],
+                "properties": {
+                    "argname": "arg1"
+                }
+            },
+            {
+                "from": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "contained_in"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
+                "labels": [
+                    "contained_in"
+                ]
+            },
+            {
+                "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "labels": [
+                    "input"
+                ],
+                "properties": {
+                    "argname": "arg2"
+                }
+            },
+            {
+                "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                "to": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "labels": [
+                    "output"
+                ]
+            },
+            {
+                "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                "labels": [
+                    "is_accomplished"
+                ]
+            },
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "to": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                "labels": [
+                    "request"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "11890253-bc36-4a23-8e3a-d81b83177f84",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "7c4d20a0-33e8-471e-8a3f-a7a54aa09f68",
+                "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
+                "labels": [
+                    "distribution"
+                ]
+            },
+            {
+                "from": "888f7ce1-6405-4c73-9b3a-fb11b8eb40a1",
+                "to": "f90042fe-95e2-4774-88ed-7ece926a9888",
+                "labels": [
+                    "distribution"
+                ]
             }
-         },
-         {
-            "id":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://dataset/928a3f45-7eec-474a-ab07-90736feb7ace",
-               ...
-            }
-         },
-         {
-            "id":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://dataset/36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-               ...
-            }
-         },
-         {
-            "id":"2c830b06-a1da-48ca-a982-15062002797c",
-            "labels":[
-               "sc:Dataset"
-            ],
-            "properties":{
-               "type":"sc:Dataset",
-               "archivedAt":"s3://data-model-management/results/2c830b06-a1da-48ca-a982-15062002797c",
-               "description":"Temporary dataset created after a query",
-               ...
-            }
-         },
-         {
-            "id":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-         },
-         {
-            "id":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-            }
-         },
-         {
-            "id":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "labels":[
-               "User"
-            ],
-            "properties":{
-               "City":"Verona",
-               ...
-            }
-         },
-         {
-            "id":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "labels":[
-               "Task"
-            ],
-            "properties":{
-               "Description":"Task to query a dataset",
-               ...
-            }
-         },
-         {
-            "id":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
-            "labels":[
-               "cr:FileObject",
-               "CSV"
-            ],
-            "properties":{
-               "type":"cr:FileObject",
-               ...
-            }
-         }
-      ],
-      "edges":[
-         {
-            "from":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "to":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "consist_of"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "labels":[
-               "input"
-            ]
-         },
-         {
-            "from":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "to":"2c830b06-a1da-48ca-a982-15062002797c",
-            "labels":[
-               "output"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"437e473a-bc17-46ce-8b36-a8b48cb2ef75",
-            "labels":[
-               "intervene"
-            ]
-         },
-         {
-            "from":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "to":"a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
-            "labels":[
-               "is_accomplished"
-            ]
-         },
-         {
-            "from":"38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-            "to":"474c2c12-4185-42a0-9e79-38af377bdcad",
-            "labels":[
-               "request"
-            ]
-         },
-         {
-            "from":"928a3f45-7eec-474a-ab07-90736feb7ace",
-            "to":"aca33450-d1b4-4721-af00-7f1a73d5e34f",
-            "labels":[
-               "distribution"
-            ]
-         },
-         {
-            "from":"36f74548-0f4f-47c7-bfdf-6502e9fc0768",
-            "to":"c5a06fbd-887f-4562-8121-55dfe5a658c7",
-            "labels":[
-               "distribution"
-            ]
-         },
-         {
-            "from":"2c830b06-a1da-48ca-a982-15062002797c",
-            "to":"9a25e4fe-4ab7-467b-ac58-577a70f12c67",
-            "labels":[
-               "distribution"
-            ]
-         }
-      ]
-   }
+        ]
+    }
 }
-
 ```
 
 This creates a new dataset with the query results and links it to the input datasets and files.
@@ -1094,15 +1104,16 @@ The output dataset is stored in a temporary location in S3 (`s3://data-model-man
 
 ## 8) Converter
 
-This converter support a conversion from MoMa (PG-Json) to Croissant (Json-LD).
+This converter supports conversion from MoMa (PG-JSON) to Croissant (JSON-LD).
 
 ```bash
 curl -X POST "https://datagems-dev.scayle.es/dmm/api/v1/convert?from=moma&to=croissant" \
--F "file=@tests/data/zoo/zoo_2024_pg.json" \
+-F "file=@data/zoo/zoo_2024_pg.json" \
 | python3 -m json.tool
 ```
+Example input file: [tests/data/zoo/zoo_2024_pg.json](tests/data/zoo/zoo_2024_pg.json) (command path when running from `tests`: `data/zoo/zoo_2024_pg.json`).
 
-This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. The API returns:
+This converts the input `zoo_2024_pg.json` file (MoMa format) to Croissant format. The API returns:
 ```json
 {
     "message": "MoMa profile converted to Croissant format successfully",
@@ -1235,7 +1246,7 @@ This convert the input zoo_2024_pg.json file (MoMa format) to Croissant format. 
     }
 }
 ```
-## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
+## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm)).
 
 
 The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token.
@@ -1243,10 +1254,11 @@ The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer toke
 ```bash
 curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset-discovery/search" \
 -H "Authorization: Bearer $TOKEN" \
--F "file=@tests/cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
+-F "file=@cross-dataset/cdd-search-ap-request.json" | python3 -m json.tool
 ```
+Example payload file: [tests/cross-dataset/cdd-search-ap-request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `cross-dataset/cdd-search-ap-request.json`).
 
-This will store the AP into MoMa and forward the json file to cross-dataset-discovery/search endpoint. The API returns:
+This stores the AP in MoMa and forwards the JSON file to the `cross-dataset-discovery/search` endpoint. The API returns:
 ```json
 {
     "code": 200,
