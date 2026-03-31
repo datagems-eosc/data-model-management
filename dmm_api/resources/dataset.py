@@ -473,10 +473,15 @@ async def search_datasets(
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
 @router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
-async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")):
+async def get_dataset(
+    dataset_id: str, 
+    format: str = Query(None, alias="format"),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
     try:
-        exists, metadata = await get_dataset_metadata(dataset_id)
+        exists, metadata = await get_dataset_metadata(dataset_id, token=token)
 
         if not exists:
             raise HTTPException(
@@ -628,7 +633,12 @@ async def register_dataset(
 @router.put(
     "/dataset/load", response_model=APSuccessEnvelope, response_model_exclude_none=True
 )
-async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
+async def load_dataset(
+    wrapped: WrappedAPRequest,
+    force: bool = Query(False),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     """Move dataset files from scratchpad to permanent storage and update Neo4j"""
     DATASET_DIR = os.getenv("DATASET_DIR")
     ap_payload = wrapped.ap
@@ -660,8 +670,8 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
         dataset_props = dataset_node.get("properties", {})
-        dataset_path = dataset_props.get("sc:archivedAt")
-        dataset_status = dataset_props.get("dg:status")
+        dataset_path = dataset_props.get("archivedAt")  
+        dataset_status = dataset_props.get("status")    
 
         if not dataset_path:
             raise ValueError("Dataset 'archivedAt' property is missing")
@@ -687,7 +697,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         )
 
         exists, _ = await get_dataset_metadata(
-            dataset_id, dataset_status=effective_status
+            dataset_id, token=token, dataset_status=effective_status
         )
 
         if not exists:
@@ -776,59 +786,63 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
             ).model_dump(),
         )
 
-    # Update the dataset metadata in Neo4j
-    try:
-        update_ap = generate_update_AP(ap_payload, new_path)
-        await update_dataset(WrappedAPRequest(ap=update_ap))
-
-    except HTTPException as exc:
-        # Rollback: Move file back to original location
-        rollback_error = None
+    # Update the dataset metadata in Neo4j via PATCH /nodes/{id}
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
-            if target_path.exists():
-                shutil.move(str(target_path), str(source_path))
+            response = await client.patch(
+                f"{MOMA_URL}/nodes/{dataset_id}/",
+                json={
+                    "properties": {
+                        "archivedAt": new_path,             
+                        "status": DatasetState.Loaded.value,
+                    }
+                },
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            response.raise_for_status()
+
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            # Rollback: Move file back to original location
+            rollback_error = None
+            try:
+                if target_path.exists():
+                    shutil.move(str(target_path), str(source_path))
+            except Exception as rollback_exc:
+                rollback_error = rollback_exc
+
+            error_msg = f"Error from MoMa API (Status: {e.response.status_code})"
+            if rollback_error:
+                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                ).model_dump(),
+            )
         except Exception as e:
-            rollback_error = e
+            # Rollback: Move file back to original location
+            rollback_error = None
+            try:
+                if target_path.exists():
+                    shutil.move(str(target_path), str(source_path))
+            except Exception as rollback_exc:
+                rollback_error = rollback_exc
 
-        # Extract error details
-        error_detail = exc.detail
-        if isinstance(error_detail, dict):
-            error_msg = error_detail.get("error", str(error_detail))
-            error_code = error_detail.get("code", exc.status_code)
-        else:
-            error_msg = str(error_detail)
-            error_code = exc.status_code
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            if rollback_error:
+                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
 
-        if rollback_error:
-            error_msg = f"{error_msg} [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
-
-        raise HTTPException(
-            status_code=error_code,
-            detail=ErrorEnvelope(
-                code=error_code,
-                error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
-            ).model_dump(),
-        )
-    except Exception as e:
-        # Rollback: Move file back to original location
-        rollback_error = None
-        try:
-            if target_path.exists():
-                shutil.move(str(target_path), str(source_path))
-        except Exception as rollback_exc:
-            rollback_error = rollback_exc
-
-        error_msg = f"{type(e).__name__}: {str(e)}"
-        if rollback_error:
-            error_msg = f"{error_msg} [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
-
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
-            ).model_dump(),
-        )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                ).model_dump(),
+            )
 
     # Upload dataset to catalogue
     try:
@@ -837,7 +851,7 @@ async def load_dataset(wrapped: WrappedAPRequest, force: bool = Query(False)):
         # Reconstruct dataset for catalogue
         dataset_for_catalogue = {
             "@id": dataset_id,
-            "sc:archivedAt": new_path,
+            "archivedAt": new_path,
             **dataset_props,
         }
 
