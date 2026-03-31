@@ -69,23 +69,23 @@
           "country": "CH",
           "datePublished": "2024-12-09",
           "description": "Zoo animal species data",
-          "dg:doi": "10.1234/zoo-dataset",
-          "dg:fieldOfScience": [
+          "doi": "10.1234/zoo-dataset",
+          "fieldOfScience": [
             "BIOLOGICAL SCIENCES"
           ],
-          "dg:headline": "Zoo animal species data from Zurich Zoo.",
-          "dg:keywords": [
+          "headline": "Zoo animal species data from Zurich Zoo.",
+          "keywords": [
             "zoo",
             "animals",
             "species"
           ],
-          "dg:status": "staged",
+          "status": "staged",
           "inLanguage": [
             "de"
           ],
           "license": "Public Domain",
           "name": "zoo_tierarten_2024",
-          "sc:archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
+          "archivedAt": "s3://scratchpad/c893daaf-680f-4947-88e5-03fd61900795",
           "type": "sc:Dataset",
           "url": "",
           "version": ""
