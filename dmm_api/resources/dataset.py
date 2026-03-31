@@ -531,7 +531,7 @@ async def get_dataset(dataset_id: str, format: str = Query(None, alias="format")
 @router.post(
     "/dataset/register",
     response_model=APSuccessEnvelope,
-    response_model_exclude_none=True,
+    response_model_exclude_none=True
 )
 async def register_dataset(
     wrapped: WrappedAPRequest, 
@@ -543,19 +543,19 @@ async def register_dataset(
     2. Checking it does not already exist → 409 if it does
     3. Creating it via POST /datasets
     """
+    logger.info("=== STARTING DATASET REGISTRATION ===")
     ap_payload = wrapped.ap
-
-    # Debug
-    print(f"Token received: {token[:20] if token else 'EMPTY'}...")
-    print(f"Token payload: {token_payload}")
 
     try:
         # Extract only Dataset nodes
-        filtered_nodes, _ = extract_from_AP(
+        logger.info("Extracting Dataset nodes from AP")
+        filtered_nodes, filtered_edges = extract_from_AP(
             ap_payload, target_labels={"sc:Dataset"}
         )
+        logger.info(f"Extracted {len(filtered_nodes)} nodes, {len(filtered_edges)} edges")
 
         if not filtered_nodes:
+            logger.error("No Dataset node found in AP")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=ErrorEnvelope(
@@ -565,6 +565,7 @@ async def register_dataset(
             )
 
         if len(filtered_nodes) != 1:
+            logger.error(f"Expected 1 Dataset node, got {len(filtered_nodes)}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=ErrorEnvelope(
@@ -575,14 +576,16 @@ async def register_dataset(
 
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
+        logger.info(f"Dataset ID: {dataset_id}")
 
-        # TODO: Validate that the file referenced in dataset's 'sc:archivedAt' property actually exists
-        # at the specified S3 path before registering the dataset. This should check that the path
-        # is valid and the file is accessible to prevent registering datasets with missing files.
+    # TODO: Validate that the file referenced in dataset's 'sc:archivedAt' property actually exists
+    # at the specified S3 path before registering the dataset. This should check that the path
+    # is valid and the file is accessible to prevent registering datasets with missing files.
 
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"Dataset extraction error: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
@@ -593,10 +596,13 @@ async def register_dataset(
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
-            # Check if dataset already exists — 409 if so
-            # You should add or the token, or the header in the get_dataset_metadata function
-            exists, _ = await get_dataset_metadata(dataset_id, token=token, client=client)
+            # Check if dataset already exists
+            logger.info(f"Checking if dataset {dataset_id} exists")
+            exists, metadata = await get_dataset_metadata(dataset_id, token=token, client=client)
+            logger.info(f"Dataset exists: {exists}")
+            
             if exists:
+                logger.warning(f"Dataset {dataset_id} already exists")
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
                     detail=ErrorEnvelope(
@@ -606,28 +612,51 @@ async def register_dataset(
                 )
 
             # Create the dataset node via POST /datasets
+            logger.info(f"Preparing to create dataset {dataset_id} via POST to MoMa")
+            post_url = f"{MOMA_URL}/datasets/"
+            post_data = {"nodes": filtered_nodes, "edges": filtered_edges}
+            logger.info(f"POST URL: {post_url}")
+            logger.info(f"POST data keys: {post_data.keys()}")
+            logger.info(f"Number of nodes to create: {len(post_data['nodes'])}")
+            
             response = await client.post(
-                f"{MOMA_URL}/datasets/",
-                json={"nodes": filtered_nodes},
+                post_url,
+                json=post_data,
                 headers={"Authorization": f"Bearer {token}"}
             )
+            
+            logger.info(f"POST response status: {response.status_code}")
+            logger.info(f"POST response headers: {dict(response.headers)}")
+            
+            # Try to parse response
+            try:
+                response_data = response.json()
+                logger.info(f"POST response parsed successfully. Keys: {response_data.keys() if isinstance(response_data, dict) else 'not a dict'}")
+            except Exception as e:
+                logger.error(f"Failed to parse POST response as JSON: {e}")
+                logger.error(f"Response text: {response.text[:500]}")
+                response_data = None
+            
             response.raise_for_status()
+            logger.info(f"Dataset {dataset_id} created successfully in MoMa")
 
             # Fake forward to AP Storage API
-            try:
-                print(f"Dataset {dataset_id} sent to the AP Storage API.")
-            except Exception as e:
-                print(f"AP Storage API not working: {e}")
-
-            return APSuccessEnvelope(
+            logger.info(f"Dataset {dataset_id} would be sent to AP Storage API")
+            
+            result = APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
                 message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
                 ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
+            logger.info("=== REGISTRATION COMPLETED SUCCESSFULLY ===")
+            return result
 
         except HTTPException:
+            logger.error("HTTPException caught, re-raising")
             raise
         except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error from MoMa: {e.response.status_code}")
+            logger.error(f"Response body: {e.response.text}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
@@ -635,15 +664,8 @@ async def register_dataset(
                     error=f"Error from MoMa API (Status: {e.response.status_code})",
                 ).model_dump(),
             )
-        except httpx.RequestError:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    error="Failed to connect to MoMa API",
-                ).model_dump(),
-            )
         except Exception as e:
+            logger.error(f"Unexpected error in register endpoint: {type(e).__name__}: {str(e)}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
