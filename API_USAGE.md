@@ -901,7 +901,15 @@ The API returns:
 
 ## 7) Query a Dataset (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
 
-To query one or more datasets:
+The polyglot/query endpoint allows you to execute SQL queries across different data sources (supported: PostgreSQL tables, CSV files). 
+
+In the following example, the SQL query could reference a CSV file and a PostgreSQL table. It also support querying two CSV files (even if they are not from the same dataset), or two PostgreSQL tables. 
+```sql
+SELECT t1.a, t2.b FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.c = t2.d
+```
+The FileObjects are given as inputs of the SQL_Operator in the AP, and we use placeholders like `{{arg1}}`, `{{arg2}}` as properties of the input edge to reference the fileObjects (CSV file, table) you want to query.
+
+The output is filled in the AP by adding a path to the generated CSV file in S3, represented as a `FileObject` node (e.g., `s3://data-model-management/results/{result_id}/output.csv`)
 
 ### POST a query
 ```bash
@@ -911,6 +919,7 @@ curl -X POST -H "Content-Type: application/json" \
 | python -m json.tool
 ```
 Example payload: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
+
 
 This query retrieves data from two datasets and creates a new dataset from the output. The API returns:
 
