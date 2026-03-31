@@ -705,7 +705,7 @@ async def load_dataset(
             if effective_status:
                 msg += f" with status '{effective_status}'."
             msg += (
-                " Please register the dataset first using /dataset/register endpoint."
+                "Please register the dataset first using /dataset/register endpoint."
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -798,6 +798,13 @@ async def load_dataset(
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
+
+            # # Update the ap_payload's dataset node with new values
+            # for node in filtered_nodes:
+            #     if node.get("id") == dataset_id:
+            #         node["properties"]["archivedAt"] = new_path
+            #         node["properties"]["status"] = DatasetState.Loaded.value
+            #         break
 
         except HTTPException:
             raise
