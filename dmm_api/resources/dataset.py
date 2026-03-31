@@ -286,28 +286,36 @@ async def get_dataset_metadata(
     params: dict = {"nodeIds": [dataset_id]}
     if dataset_status:
         params["status"] = dataset_status
-    
-    # Debug logging
-    logger.info(f"Calling MoMa API at: {url}")
-    logger.info(f"With params: {params}")
-    logger.info(f"Token (first 20 chars): {token[:20]}...")
-    
+
     should_close = client is None
     if client is None:
         client = httpx.AsyncClient(follow_redirects=True)
 
     try:
+        logger.info(f"Calling MoMa API at: {url}")
+        logger.info(f"With params: {params}")
+        logger.info(f"Token (first 20 chars): {token[:20]}...")
+        
         response = await client.get(
             url,
             params=params,
             headers={"Authorization": f"Bearer {token}"},
         )
+        
+        # Log the response details
+        logger.info(f"MoMa response status: {response.status_code}")
+        logger.info(f"MoMa response headers: {dict(response.headers)}")
+        
+        if response.status_code != 200:
+            logger.error(f"MoMa error response body: {response.text}")
+        
         response.raise_for_status()
         data = response.json()
         metadata = data.get("metadata", {})
         return (len(metadata.get("nodes", [])) > 0, metadata)
 
     except httpx.HTTPStatusError as exc:
+        logger.error(f"HTTP error from MoMa: {exc.response.status_code} - {exc.response.text}")
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail=ErrorEnvelope(
@@ -315,7 +323,8 @@ async def get_dataset_metadata(
                 error=f"Error from MoMa API: {exc.response.status_code}",
             ).model_dump(),
         )
-    except httpx.RequestError:
+    except httpx.RequestError as exc:
+        logger.error(f"Request error to MoMa: {exc}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail=ErrorEnvelope(
@@ -534,6 +543,10 @@ async def register_dataset(
     3. Creating it via POST /datasets
     """
     ap_payload = wrapped.ap
+
+    # Debug
+    print(f"Token received: {token[:20] if token else 'EMPTY'}...")
+    print(f"Token payload: {token_payload}")
 
     try:
         # Extract only Dataset nodes
