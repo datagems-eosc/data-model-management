@@ -311,8 +311,9 @@ async def get_dataset_metadata(
         
         response.raise_for_status()
         data = response.json()
-        metadata = data.get("metadata", {})
-        return (len(metadata.get("nodes", [])) > 0, metadata)
+        nodes = data.get("nodes", [])
+        edges = data.get("edges", [])
+        return (len(nodes) > 0, {"nodes": nodes, "edges": edges})
 
     except httpx.HTTPStatusError as exc:
         logger.error(f"HTTP error from MoMa: {exc.response.status_code} - {exc.response.text}")
