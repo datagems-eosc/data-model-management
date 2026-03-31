@@ -631,6 +631,250 @@ async def register_dataset(
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put(
+    "/dataset/load", response_model=APSuccessEnvelope, response_model_exclude_none=True
+)
+async def load_dataset(
+    wrapped: WrappedAPRequest,
+    force: bool = Query(False),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
+    """Move dataset files from scratchpad to permanent storage and update Neo4j"""
+    DATASET_DIR = os.getenv("DATASET_DIR")
+    ap_payload = wrapped.ap
+
+    try:
+        # Extract only Dataset nodes from AP
+        filtered_nodes, _ = extract_from_AP(
+            ap_payload, target_labels={"sc:Dataset"}
+        )
+
+        if not filtered_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset node found in AP",
+                ).model_dump(),
+            )
+
+        if len(filtered_nodes) != 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Expected exactly 1 Dataset node, found {len(filtered_nodes)}",
+                ).model_dump(),
+            )
+
+        dataset_node = filtered_nodes[0]
+        dataset_id = dataset_node.get("id")
+        dataset_props = dataset_node.get("properties", {})
+        dataset_path = dataset_props.get("archivedAt")  
+        dataset_status = dataset_props.get("status")    
+
+        if not dataset_path:
+            raise ValueError("Dataset 'archivedAt' property is missing")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during dataset extraction: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged') before moving files
+    try:
+        # Use enum-backed default if not provided
+        effective_status = (
+            str(dataset_status).lower()
+            if dataset_status
+            else DatasetState.Staged.value.lower()
+        )
+
+        exists, _ = await get_dataset_metadata(
+            dataset_id, token=token, dataset_status=effective_status
+        )
+
+        if not exists:
+            msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
+            if effective_status:
+                msg += f" with status '{effective_status}'."
+            msg += (
+                " Please register the dataset first using /dataset/register endpoint."
+            )
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_404_NOT_FOUND,
+                    error=msg,
+                ).model_dump(),
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Failed to verify dataset existence in Neo4j: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Validate and move the dataset files
+    try:
+        if not dataset_path.startswith("s3://"):
+            raise ValueError(
+                f"Invalid S3 URI. Found '{dataset_path}'. Must start with s3://"
+            )
+
+        path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
+        source_path = Path("/s3") / path_without_s3_prefix
+        target_path = Path(DATASET_DIR) / dataset_id
+
+        if not source_path.exists():
+            raise FileNotFoundError(
+                f"Source dataset not found at expected location: {source_path}"
+            )
+
+        if target_path.exists():
+            # If force is True and source and target resolve to the same path, skip the move
+            if force and source_path.resolve() == target_path.resolve():
+                pass
+            else:
+                raise FileExistsError(
+                    f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
+                )
+        else:
+            shutil.move(str(source_path), str(target_path))
+        new_path = f"s3://dataset/{dataset_id}"
+
+    except FileNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorEnvelope(
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"{str(e)}",
+            ).model_dump(),
+        )
+    except FileExistsError as e:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=ErrorEnvelope(
+                code=status.HTTP_409_CONFLICT,
+                error=f"{str(e)}",
+            ).model_dump(),
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error=f"Invalid input format: {str(e)}",
+            ).model_dump(),
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    # Update the dataset metadata in Neo4j via PATCH /nodes/{id}
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        try:
+            response = await client.patch(
+                f"{MOMA_URL}/nodes/{dataset_id}",
+                json={
+                    "archivedAt": new_path,             
+                    "status": DatasetState.Loaded.value,
+                },
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            response.raise_for_status()
+
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            # Rollback: Move file back to original location
+            rollback_error = None
+            try:
+                if target_path.exists():
+                    shutil.move(str(target_path), str(source_path))
+            except Exception as rollback_exc:
+                rollback_error = rollback_exc
+
+            error_msg = f"Error from MoMa API (Status: {e.response.status_code})"
+            if rollback_error:
+                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                ).model_dump(),
+            )
+        except Exception as e:
+            # Rollback: Move file back to original location
+            rollback_error = None
+            try:
+                if target_path.exists():
+                    shutil.move(str(target_path), str(source_path))
+            except Exception as rollback_exc:
+                rollback_error = rollback_exc
+
+            error_msg = f"{type(e).__name__}: {str(e)}"
+            if rollback_error:
+                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                ).model_dump(),
+            )
+
+    # Upload dataset to catalogue
+    try:
+        ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
+
+        # Reconstruct dataset for catalogue
+        dataset_for_catalogue = {
+            "id": dataset_id,
+            "archivedAt": new_path,
+            **dataset_props,
+        }
+
+        json_dataset = json.dumps(dataset_for_catalogue, indent=2)
+        upload_dataset_to_catalogue(json_dataset, dataset_id)
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Dataset updated in Neo4j but failed to upload to catalogue: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    return APSuccessEnvelope(
+        code=status.HTTP_200_OK,
+        message=f"Dataset moved from {dataset_path} to {new_path}",
+        ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+    )
+
+
+@router.put(
     "/dataset/update",
     response_model=APSuccessEnvelope,
     response_model_exclude_none=True,
