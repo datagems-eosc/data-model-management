@@ -156,7 +156,7 @@ class DatasetState(str, Enum):
 router = APIRouter()
 
 
-MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2")
+MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/v1/api")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
@@ -425,7 +425,7 @@ async def search_datasets(
     if mimeTypes:
         params["mimeTypes"] = [m.value for m in mimeTypes]
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.get(url, params=params)
             response.raise_for_status()
@@ -569,7 +569,7 @@ async def register_dataset(
             ).model_dump(),
         )
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             # Check if dataset already exists — 409 if so
             # You should add or the token, or the header in the get_dataset_metadata function
@@ -928,7 +928,7 @@ async def update_dataset(wrapped: WrappedAPRequest):
     existing_nodes_map = {}  # node_id -> moma_node_data
     existing_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(follow_redirects=True) as client:
         # Step 1: Fetch complete dataset subgraphs using dataset IDs
         try:
             url = f"{MOMA_URL}/getDatasets"
