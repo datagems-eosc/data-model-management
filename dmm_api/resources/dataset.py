@@ -631,260 +631,23 @@ async def register_dataset(
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put(
-    "/dataset/load", response_model=APSuccessEnvelope, response_model_exclude_none=True
-)
-async def load_dataset(
-    wrapped: WrappedAPRequest,
-    force: bool = Query(False),
-    token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope),
-):
-    """Move dataset files from scratchpad to permanent storage and update Neo4j"""
-    DATASET_DIR = os.getenv("DATASET_DIR")
-    ap_payload = wrapped.ap
-
-    try:
-        # Extract only Dataset nodes from AP
-        filtered_nodes, _ = extract_from_AP(
-            ap_payload, target_labels={"sc:Dataset"}
-        )
-
-        if not filtered_nodes:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_400_BAD_REQUEST,
-                    error="No Dataset node found in AP",
-                ).model_dump(),
-            )
-
-        if len(filtered_nodes) != 1:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_400_BAD_REQUEST,
-                    error=f"Expected exactly 1 Dataset node, found {len(filtered_nodes)}",
-                ).model_dump(),
-            )
-
-        dataset_node = filtered_nodes[0]
-        dataset_id = dataset_node.get("id")
-        dataset_props = dataset_node.get("properties", {})
-        dataset_path = dataset_props.get("archivedAt")  
-        dataset_status = dataset_props.get("status")    
-
-        if not dataset_path:
-            raise ValueError("Dataset 'archivedAt' property is missing")
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during dataset extraction: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
-        )
-
-    # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged') before moving files
-    try:
-        # Use enum-backed default if not provided
-        effective_status = (
-            str(dataset_status).lower()
-            if dataset_status
-            else DatasetState.Staged.value.lower()
-        )
-
-        exists, _ = await get_dataset_metadata(
-            dataset_id, token=token, dataset_status=effective_status
-        )
-
-        if not exists:
-            msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
-            if effective_status:
-                msg += f" with status '{effective_status}'."
-            msg += (
-                " Please register the dataset first using /dataset/register endpoint."
-            )
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_404_NOT_FOUND,
-                    error=msg,
-                ).model_dump(),
-            )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Failed to verify dataset existence in Neo4j: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
-        )
-
-    # Validate and move the dataset files
-    try:
-        if not dataset_path.startswith("s3://"):
-            raise ValueError(
-                f"Invalid S3 URI. Found '{dataset_path}'. Must start with s3://"
-            )
-
-        path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
-        source_path = Path("/s3") / path_without_s3_prefix
-        target_path = Path(DATASET_DIR) / dataset_id
-
-        if not source_path.exists():
-            raise FileNotFoundError(
-                f"Source dataset not found at expected location: {source_path}"
-            )
-
-        if target_path.exists():
-            # If force is True and source and target resolve to the same path, skip the move
-            if force and source_path.resolve() == target_path.resolve():
-                pass
-            else:
-                raise FileExistsError(
-                    f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
-                )
-        else:
-            shutil.move(str(source_path), str(target_path))
-        new_path = f"s3://dataset/{dataset_id}"
-
-    except FileNotFoundError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=ErrorEnvelope(
-                code=status.HTTP_404_NOT_FOUND,
-                error=f"{str(e)}",
-            ).model_dump(),
-        )
-    except FileExistsError as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=ErrorEnvelope(
-                code=status.HTTP_409_CONFLICT,
-                error=f"{str(e)}",
-            ).model_dump(),
-        )
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ErrorEnvelope(
-                code=status.HTTP_400_BAD_REQUEST,
-                error=f"Invalid input format: {str(e)}",
-            ).model_dump(),
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
-        )
-
-    # Update the dataset metadata in Neo4j via PATCH /nodes/{id}
-    async with httpx.AsyncClient(follow_redirects=True) as client:
-        try:
-            response = await client.patch(
-                f"{MOMA_URL}/nodes/{dataset_id}",
-                json={
-                        "archivedAt": new_path,             
-                        "status": DatasetState.Loaded.value,
-                },
-                headers={"Authorization": f"Bearer {token}"},
-            )
-            response.raise_for_status()
-
-        except HTTPException:
-            raise
-        except httpx.HTTPStatusError as e:
-            # Rollback: Move file back to original location
-            rollback_error = None
-            try:
-                if target_path.exists():
-                    shutil.move(str(target_path), str(source_path))
-            except Exception as rollback_exc:
-                rollback_error = rollback_exc
-
-            error_msg = f"Error from MoMa API (Status: {e.response.status_code})"
-            if rollback_error:
-                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
-
-            raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
-                ).model_dump(),
-            )
-        except Exception as e:
-            # Rollback: Move file back to original location
-            rollback_error = None
-            try:
-                if target_path.exists():
-                    shutil.move(str(target_path), str(source_path))
-            except Exception as rollback_exc:
-                rollback_error = rollback_exc
-
-            error_msg = f"{type(e).__name__}: {str(e)}"
-            if rollback_error:
-                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
-
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
-                ).model_dump(),
-            )
-
-    # Upload dataset to catalogue
-    try:
-        ap_payload = update_dataset_archivedAt(ap_payload, dataset_id, new_path)
-
-        # Reconstruct dataset for catalogue
-        dataset_for_catalogue = {
-            "@id": dataset_id,
-            "archivedAt": new_path,
-            **dataset_props,
-        }
-
-        json_dataset = json.dumps(dataset_for_catalogue, indent=2)
-        upload_dataset_to_catalogue(json_dataset, dataset_id)
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Dataset updated in Neo4j but failed to upload to catalogue: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
-        )
-
-    return APSuccessEnvelope(
-        code=status.HTTP_200_OK,
-        message=f"Dataset moved from {dataset_path} to {new_path}",
-        ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
-    )
-
-
-@router.put(
     "/dataset/update",
     response_model=APSuccessEnvelope,
     response_model_exclude_none=True,
 )
-async def update_dataset(wrapped: WrappedAPRequest):
+async def update_dataset(
+    wrapped: WrappedAPRequest,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     """
     Update datasets in Neo4j by:
-    1. Extracting Dataset node IDs from AP
-    2. Fetching complete dataset subgraphs from MoMa
-    3. Creating new nodes/edges or updating existing ones
+    1. Extracting all nodes/edges from AP
+    2. Verifying the root Dataset node(s) already exist → 404 if not
+    3. Fetching current state for each dataset using GET /datasets/{id}
+    4. Updating nodes via PATCH /nodes/{id}
+    5. Creating new nodes via POST /nodes/
+    6. Creating edges via POST /edges/
     """
     ap_payload = wrapped.ap
     try:
@@ -899,7 +662,6 @@ async def update_dataset(wrapped: WrappedAPRequest):
                 ).model_dump(),
             )
 
-        # Extract Dataset node IDs
         dataset_ids = [
             node["id"]
             for node in filtered_nodes
@@ -926,48 +688,382 @@ async def update_dataset(wrapped: WrappedAPRequest):
             ).model_dump(),
         )
 
-    # Prepare tracking structures
-    nodes_to_create = []
-    nodes_to_update = []
-    edges_to_create = []
-    existing_nodes_map = {}  # node_id -> moma_node_data
-    existing_edges: set[tuple[str, str, tuple[str, ...]]] = set()
-
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        # Step 1: Fetch complete dataset subgraphs using dataset IDs
+        # Step 1: Fetch current state for each dataset using GET /datasets/{id}
+        current_nodes = {}
+        current_edges = set()
+        
         try:
-            url = f"{MOMA_URL}/getDatasets"
-            params = {"nodeIds": dataset_ids}
-
-            response = await client.get(url, params=params)
-            response.raise_for_status()
-            data = response.json()
-            metadata = data.get("metadata", {})
-            datasets = group_datasets_by_components(
-                metadata.get("nodes", []), metadata.get("edges", [])
-            )
-
-            for dataset in datasets:
-                # Collect all nodes from this dataset
-                for node in dataset.get("nodes", []):
+            for dataset_id in dataset_ids:
+                # Use the working single-dataset endpoint
+                exists, metadata = await get_dataset_metadata(dataset_id, token=token, client=client)
+                
+                if not exists:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=ErrorEnvelope(
+                            code=status.HTTP_404_NOT_FOUND,
+                            error=(
+                                f"Dataset with ID {dataset_id} not found in Neo4j. "
+                                "Please register the dataset first using /dataset/register."
+                            ),
+                        ).model_dump(),
+                    )
+                
+                # Store current nodes and edges
+                for node in metadata.get("nodes", []):
                     node_id = node.get("id")
                     if node_id:
-                        existing_nodes_map[node_id] = node
-
-                # Collect all edges from this dataset
-                for edge in dataset.get("edges", []):
+                        current_nodes[node_id] = node
+                
+                for edge in metadata.get("edges", []):
                     edge_from = edge.get("from")
                     edge_to = edge.get("to")
-                    edge_labels = edge.get("labels", []) or []
+                    edge_labels = tuple(edge.get("labels", []) or [])
                     if edge_from and edge_to:
-                        existing_edges.add((edge_from, edge_to, tuple(edge_labels)))
+                        current_edges.add((edge_from, edge_to, edge_labels))
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Failed to fetch current state: {type(e).__name__}: {str(e)}",
+                ).model_dump(),
+            )
+
+        # Step 2: Calculate what needs to be added/updated
+        nodes_to_create = []
+        nodes_to_update = []
+        edges_to_create = []
+        
+        has_record_set = any(
+            "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
+        )
+        
+        # Process nodes
+        for node in filtered_nodes:
+            node_id = node["id"]
+            is_dataset = "sc:Dataset" in node.get("labels", [])
+            node_props = node.get("properties", {}).copy()
+            
+            # If RecordSet is present, force status to 'ready' on Dataset nodes
+            if has_record_set and is_dataset:
+                node_props["status"] = DatasetState.Ready.value
+            
+            if node_id not in current_nodes:
+                nodes_to_create.append(node)
+            else:
+                # Check if properties changed
+                current_props = current_nodes[node_id].get("properties", {})
+                changed_props = {}
+                
+                for key, value in node_props.items():
+                    if current_props.get(key) != value:
+                        changed_props[key] = value
+                
+                if changed_props:
+                    nodes_to_update.append({"id": node_id, "properties": changed_props})
+        
+        # Process edges
+        for edge in filtered_edges:
+            edge_from = edge["from"]
+            edge_to = edge["to"]
+            edge_labels = tuple(edge.get("labels", []) or [])
+            edge_key = (edge_from, edge_to, edge_labels)
+            
+            if edge_key not in current_edges:
+                edges_to_create.append(edge)
+        
+        # Step 3: Create new nodes (if any)
+        if nodes_to_create:
+            try:
+                response = await client.post(
+                    f"{MOMA_URL}/nodes/",
+                    json={"nodes": nodes_to_create},
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                response.raise_for_status()
+                logger.info(f"Created {len(nodes_to_create)} node(s)")
+            except Exception as e:
+                logger.error(f"Failed to create nodes: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to create nodes: {str(e)}",
+                    ).model_dump(),
+                )
+        
+        # Step 4: Update existing nodes (if any)
+        if nodes_to_update:
+            try:
+                for node in nodes_to_update:
+                    response = await client.patch(
+                        f"{MOMA_URL}/nodes/{node['id']}",
+                        json=node["properties"],
+                        headers={"Authorization": f"Bearer {token}"},
+                    )
+                    response.raise_for_status()
+                logger.info(f"Updated {len(nodes_to_update)} node(s)")
+            except Exception as e:
+                logger.error(f"Failed to update nodes: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to update nodes: {str(e)}",
+                    ).model_dump(),
+                )
+        
+        # Step 5: Create new edges (if any)
+        if edges_to_create:
+            try:
+                response = await client.post(
+                    f"{MOMA_URL}/edges/",
+                    json={"edges": edges_to_create},
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                response.raise_for_status()
+                logger.info(f"Created {len(edges_to_create)} edge(s)")
+            except Exception as e:
+                logger.error(f"Failed to create edges: {e}")
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_502_BAD_GATEWAY,
+                        error=f"Failed to create edges: {str(e)}",
+                    ).model_dump(),
+                )
+        
+        # Step 6: Build summary
+        summary_parts = []
+        if nodes_to_create:
+            summary_parts.append(f"{len(nodes_to_create)} node(s) created")
+        if nodes_to_update:
+            summary_parts.append(f"{len(nodes_to_update)} node(s) updated")
+        if edges_to_create:
+            summary_parts.append(f"{len(edges_to_create)} edge(s) added")
+        if has_record_set:
+            summary_parts.append("dataset status set to 'ready'")
+        
+        if not summary_parts:
+            summary_parts.append("No changes detected")
+        
+        message = f"Dataset update completed: {', '.join(summary_parts)}"
+        
+        # Build AP response
+        ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
+        
+        metadata = {
+            "summary": {
+                "nodes_created": len(nodes_to_create),
+                "nodes_updated": len(nodes_to_update),
+                "edges_added": len(edges_to_create),
+                "record_set_detected": has_record_set,
+                "datasets_processed": dataset_ids,
+            }
+        }
+        
+        return APSuccessEnvelope(
+            code=status.HTTP_200_OK,
+            message=message,
+            ap=ap_data,
+            metadata=metadata,
+        )
+
+
+@router.put(
+    "/dataset/update",
+    response_model=APSuccessEnvelope,
+    response_model_exclude_none=True,
+)
+async def update_dataset(
+    wrapped: WrappedAPRequest,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
+    """
+    Update datasets in Neo4j by:
+    1. Extracting all nodes/edges from AP
+    2. Verifying the root Dataset node(s) already exist → 404 if not
+    3. Fetching current state from MoMa using search endpoint
+    4. Sending everything to MoMa via POST /datasets/
+    5. Returning report of what was added/updated
+    """
+    ap_payload = wrapped.ap
+    try:
+        filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
+
+        if not filtered_nodes:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset/FileObject/RecordSet nodes found in AP",
+                ).model_dump(),
+            )
+
+        dataset_ids = [
+            node["id"]
+            for node in filtered_nodes
+            if "sc:Dataset" in node.get("labels", [])
+        ]
+
+        if not dataset_ids:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="No Dataset nodes found in AP",
+                ).model_dump(),
+            )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Failed to parse AP: {type(e).__name__}: {str(e)}",
+            ).model_dump(),
+        )
+
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        # Step 1: Fetch current state for all datasets at once using search
+        current_nodes = {}
+        current_edges = set()
+        
+        try:
+            # Use the search endpoint with multiple dataset IDs
+            url = f"{MOMA_URL}/datasets/"
+            params = {"nodeIds": dataset_ids}
+            
+            response = await client.get(
+                url,
+                params=params,
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            response.raise_for_status()
+            
+            data = response.json()
+            
+            all_nodes = data.get("nodes", [])
+            all_edges = data.get("edges", [])
+            
+            # Check if all requested datasets exist
+            found_dataset_ids = set()
+            for node in all_nodes:
+                if "sc:Dataset" in node.get("labels", []):
+                    node_id = node.get("id")
+                    if node_id:
+                        found_dataset_ids.add(node_id)
+                        current_nodes[node_id] = node
+            
+            # Verify all datasets exist
+            missing_datasets = set(dataset_ids) - found_dataset_ids
+            if missing_datasets:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error=(
+                            f"Datasets with IDs {', '.join(missing_datasets)} not found in Neo4j. "
+                            "Please register them first using /dataset/register."
+                        ),
+                    ).model_dump(),
+                )
+            
+            # Store all current nodes by ID for comparison
+            for node in all_nodes:
+                node_id = node.get("id")
+                if node_id:
+                    current_nodes[node_id] = node
+            
+            # Store all current edges for comparison
+            for edge in all_edges:
+                edge_from = edge.get("from")
+                edge_to = edge.get("to")
+                edge_labels = tuple(edge.get("labels", []) or [])
+                if edge_from and edge_to:
+                    current_edges.add((edge_from, edge_to, edge_labels))
+
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Failed to fetch current state: HTTP {e.response.status_code}",
+                ).model_dump(),
+            )
+        except httpx.RequestError as e:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error=f"Failed to connect to MoMa API: {str(e)}",
+                ).model_dump(),
+            )
+
+        # Step 2: Calculate what will be added/updated
+        nodes_to_add = []
+        nodes_to_update = []
+        edges_to_add = []
+        
+        # Check which nodes are new or need updating
+        for node in filtered_nodes:
+            node_id = node["id"]
+            if node_id not in current_nodes:
+                nodes_to_add.append(node)
+            else:
+                # Check if properties changed
+                current_node = current_nodes[node_id]
+                current_props = current_node.get("properties", {})
+                new_props = node.get("properties", {})
+                
+                if current_props != new_props:
+                    nodes_to_update.append(node)
+        
+        # Check which edges are new
+        for edge in filtered_edges:
+            edge_from = edge["from"]
+            edge_to = edge["to"]
+            edge_labels = tuple(edge.get("labels", []) or [])
+            edge_key = (edge_from, edge_to, edge_labels)
+            
+            if edge_key not in current_edges:
+                edges_to_add.append(edge)
+        
+        has_record_set = any(
+            "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
+        )
+        
+        # Step 3: Inject 'ready' status into Dataset nodes when a RecordSet is present
+        if has_record_set:
+            for node in filtered_nodes:
+                if "sc:Dataset" in node.get("labels", []):
+                    node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
+        
+        # Step 4: Send everything to MoMa
+        try:
+            response = await client.post(
+                f"{MOMA_URL}/datasets/",
+                json={"nodes": filtered_nodes, "edges": filtered_edges},
+                headers={"Authorization": f"Bearer {token}"},
+            )
+            response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to fetch datasets: HTTP {e.response.status_code}",
+                    error=f"Failed to upsert dataset: HTTP {e.response.status_code}",
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -983,169 +1079,49 @@ async def update_dataset(wrapped: WrappedAPRequest):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Failed to fetch datasets: {type(e).__name__}: {str(e)}",
+                    error=f"Unexpected error during upsert: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
-
-        # Step 2: Categorize nodes based on existence and changes
-        has_record_set = any(
-            "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
-        )
-
-        for node in filtered_nodes:
-            node_id = node["id"]
-            is_dataset = "sc:Dataset" in node.get("labels", [])
-
-            if node_id in existing_nodes_map:
-                # Node exists - check if update is needed
-                moma_node = existing_nodes_map[node_id]
-                has_changes, updated_props = compare_node_properties(node, moma_node)
-
-                # If RecordSet is present, force status to 'ready' on Dataset nodes
-                if has_record_set and is_dataset:
-                    updated_props["dg:status"] = DatasetState.Ready.value
-                    has_changes = True
-
-                if has_changes:
-                    nodes_to_update.append(
-                        {
-                            "id": node_id,
-                            "properties": updated_props,
-                        }
-                    )
-            else:
-                # Node doesn't exist - prepare for creation
-                node_to_create = node.copy()
-                if has_record_set and is_dataset:
-                    node_to_create.setdefault("properties", {})["dg:status"] = (
-                        DatasetState.Ready.value
-                    )
-                nodes_to_create.append(node_to_create)
-
-        # Step 3: Create new nodes if any
-        if nodes_to_create:
-            try:
-                add_nodes_url = f"{MOMA_URL}/addMoMaNodes?validation=False"
-                payload = {"nodes": nodes_to_create}
-                response = await client.post(add_nodes_url, json=payload)
-                response.raise_for_status()
-
-                result = response.json()
-                if result.get("status") != "success":
-                    raise Exception(result.get("status", "Unknown error"))
-
-            except httpx.HTTPStatusError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_502_BAD_GATEWAY,
-                        error=f"Failed to create nodes: HTTP {e.response.status_code}",
-                    ).model_dump(),
-                )
-            except Exception as e:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        error=f"Failed to create nodes: {type(e).__name__}: {str(e)}",
-                    ).model_dump(),
-                )
-
-        # Step 4: Update existing nodes if any have changes
-        if nodes_to_update:
-            try:
-                update_nodes_url = f"{MOMA_URL}/updateNodes"
-                payload = {"nodes": nodes_to_update}
-                response = await client.post(update_nodes_url, json=payload)
-                response.raise_for_status()
-
-            except httpx.HTTPStatusError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_502_BAD_GATEWAY,
-                        error=f"Failed to update nodes: HTTP {e.response.status_code}",
-                    ).model_dump(),
-                )
-            except Exception as e:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        error=f"Failed to update nodes: {type(e).__name__}: {str(e)}",
-                    ).model_dump(),
-                )
-
-        # Step 5: Determine which edges need to be created
-        for edge in filtered_edges:
-            edge_from = edge["from"]
-            edge_to = edge["to"]
-            edge_labels = edge.get("labels", []) or []
-            edge_key = (edge_from, edge_to, tuple(edge_labels))
-
-            # Only create edge if it doesn't already exist
-            if edge_key not in existing_edges:
-                edges_to_create.append(edge)
-
-        # Step 6: Create edges if any
-        if edges_to_create:
-            try:
-                add_edges_url = f"{MOMA_URL}/addMoMaEdjes"
-                payload = {"edges": edges_to_create}
-                response = await client.post(add_edges_url, json=payload)
-                response.raise_for_status()
-
-                result = response.json()
-                if result.get("status") != "success":
-                    raise Exception(result.get("status", "Unknown error"))
-
-            except httpx.HTTPStatusError as e:
-                raise HTTPException(
-                    status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_502_BAD_GATEWAY,
-                        error=f"Failed to create edges: HTTP {e.response.status_code}",
-                    ).model_dump(),
-                )
-            except Exception as e:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        error=f"Failed to create edges: {type(e).__name__}: {str(e)}",
-                    ).model_dump(),
-                )
-
-        # Build summary message
+        
+        # Step 5: Build detailed summary of what changed
         summary_parts = []
-        if nodes_to_create:
-            summary_parts.append(f"{len(nodes_to_create)} node(s) created")
+        if nodes_to_add:
+            summary_parts.append(f"{len(nodes_to_add)} node(s) added")
         if nodes_to_update:
             summary_parts.append(f"{len(nodes_to_update)} node(s) updated")
-        if edges_to_create:
-            summary_parts.append(f"{len(edges_to_create)} edge(s) created")
+        if edges_to_add:
+            summary_parts.append(f"{len(edges_to_add)} edge(s) added")
         if has_record_set:
             summary_parts.append("dataset status set to 'ready'")
-
+        
         if not summary_parts:
             summary_parts.append("No changes detected")
-
-        message = ", ".join(summary_parts)
-
-        # Build AP response, injecting dg:status into Dataset nodes if RecordSet is present
+        
+        message = f"Dataset update completed: {', '.join(summary_parts)}"
+        
+        # Build AP response
         ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
         if has_record_set:
             for node in ap_data["nodes"]:
                 if "sc:Dataset" in node.get("labels", []):
-                    node.setdefault("properties", {})["dg:status"] = (
-                        DatasetState.Ready.value
-                    )
-
+                    node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
+        
+        # Include detailed change info in metadata
+        metadata = {
+            "summary": {
+                "nodes_added": len(nodes_to_add),
+                "nodes_updated": len(nodes_to_update),
+                "edges_added": len(edges_to_add),
+                "record_set_detected": has_record_set,
+                "datasets_processed": list(found_dataset_ids) if 'found_dataset_ids' in locals() else dataset_ids,
+            }
+        }
+        
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
-            message=f"Dataset update completed: {message}",
-            # ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+            message=message,
             ap=ap_data,
+            metadata=metadata,
         )
 
 
