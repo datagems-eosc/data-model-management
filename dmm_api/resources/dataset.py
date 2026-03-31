@@ -117,23 +117,23 @@ class MimeType(str, Enum):
 class DatasetProperty(str, Enum):
     type = "type"
     name = "name"
-    archivedAt = "sc:archivedAt"
+    archivedAt = "archivedAt"
     description = "description"
     conformsTo = "conformsTo"
     citeAs = "citeAs"
     license = "license"
     url = "url"
-    doi = "dg:doi"
+    doi = "doi"
     version = "version"
-    headline = "dg:headline"
-    keywords = "dg:keywords"
-    fieldOfScience = "dg:fieldOfScience"
+    headline = "headline"
+    keywords = "keywords"
+    fieldOfScience = "fieldOfScience"
     inLanguage = "inLanguage"
     country = "country"
     datePublished = "datePublished"
-    access = "dg:access"
-    uploadedBy = "dg:uploadedBy"
-    status = "dg:status"
+    access = "access"
+    uploadedBy = "uploadedBy"
+    status = "status"
     distribution = "distribution"  # Special value
     recordSet = "recordSet"  # Special value
 
@@ -344,7 +344,7 @@ async def data_workflow(
     return DatasetSuccessEnvelope(
         code=status.HTTP_201_CREATED,
         message=f"Dataset {file_name} uploaded successfully with ID {dataset_id} at {s3path}",
-        dataset={"id": dataset_id, "name": file_name, "sc:archivedAt": s3path},
+        dataset={"id": dataset_id, "name": file_name, "archivedAt": s3path},
     )
 
 
@@ -558,7 +558,7 @@ async def register_dataset(
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
 
-    # TODO: Validate that the file referenced in dataset's 'sc:archivedAt' property actually exists
+    # TODO: Validate that the file referenced in dataset's 'archivedAt' property actually exists
     # at the specified S3 path before registering the dataset. This should check that the path
     # is valid and the file is accessible to prevent registering datasets with missing files.
 
