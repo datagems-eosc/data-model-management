@@ -934,7 +934,7 @@ async def update_dataset(
             if not node.get("properties"):
                 try:
                     response = await client.get(
-                        f"{MOMA_URL}/nodes/{node_id}/",
+                        f"{MOMA_URL}/nodes/{node_id}",
                         headers={"Authorization": f"Bearer {token}"},
                     )
                     if response.status_code == 200:
