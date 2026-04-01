@@ -81,6 +81,7 @@
       {
         "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
         "labels": [
+          "Data",
           "CSV",
           "cr:FileObject"
         ],
@@ -97,6 +98,7 @@
       {
         "id": "f5234567-890a-bcde-f012-3456789abcde",
         "labels": [
+          "Data",
           "CSV",
           "cr:FileObject"
         ],

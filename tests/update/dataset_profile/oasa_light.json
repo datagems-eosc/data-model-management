@@ -74,6 +74,7 @@
       {
         "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
         "labels": [
+          "Data",
           "CSV",
           "cr:FileObject"
         ],
