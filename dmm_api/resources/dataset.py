@@ -559,7 +559,7 @@ async def register_dataset(
             response.raise_for_status()
 
             # Fake forward to AP Storage API
-            logger.info(f"Dataset {dataset_id} would be sent to AP Storage API")
+            logger.info(f"AP be sent to AP Storage API")
             
             result = APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
@@ -998,11 +998,16 @@ async def update_dataset(
             response.raise_for_status()
 
         except httpx.HTTPStatusError as e:
+            logger.error(
+                "Failed to upsert dataset",
+                status_code=e.response.status_code,
+                response_body=e.response.text,
+            )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to upsert dataset: HTTP {e.response.status_code}",
+                    error=f"Failed to upsert dataset: HTTP {e.response.status_code}: {e.response.text}",
                 ).model_dump(),
             )
         except httpx.RequestError as e:
