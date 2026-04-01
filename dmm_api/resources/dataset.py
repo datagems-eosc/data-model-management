@@ -915,9 +915,10 @@ async def update_dataset(
             response.raise_for_status()
             
             data = response.json()
-            
-            all_nodes = data.get("nodes", [])
-            all_edges = data.get("edges", [])
+
+            datasets = data.get("datasets", [])
+            all_nodes = [node for dataset in datasets for node in dataset.get("nodes", [])]
+            all_edges = [edge for dataset in datasets for edge in dataset.get("edges", [])]
             
             # Check if all requested datasets exist
             found_dataset_ids = set()
