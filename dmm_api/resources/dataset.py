@@ -419,7 +419,7 @@ async def get_dataset(
     async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
             response = await client.get(
-                f"{MOMA_URL}/datasets/{dataset_id}/",
+                f"{MOMA_URL}/datasets/{dataset_id}",
                 headers={"Authorization": f"Bearer {token}"},
             )
 
