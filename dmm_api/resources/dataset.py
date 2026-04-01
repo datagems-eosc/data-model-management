@@ -854,8 +854,9 @@ async def update_dataset(
     Update datasets in Neo4j by:
     1. Extracting all nodes/edges from AP
     2. Fetching current state for ALL nodes referenced in the payload
-    3. Merging existing properties with new ones
-    4. Sending all merged nodes + edges to MoMa via POST /datasets/
+    3. Removing nodes that exist and have no property changes (to avoid unnecessary updates)
+    4. Merging properties for nodes that do have changes
+    5. Sending only changed/new nodes + all edges to MoMa
     """
     ap_payload = wrapped.ap
     try:
@@ -900,12 +901,11 @@ async def update_dataset(
         )
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        # Step 1: Fetch current state for ALL nodes in the payload
+        # Step 1: Fetch current state for all datasets
         current_nodes = {}
         current_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
         try:
-            # Fetch each dataset and all its connected nodes
             for dataset_id in dataset_ids:
                 exists, metadata = await get_dataset_metadata(dataset_id, token=token, client=client)
 
@@ -921,13 +921,11 @@ async def update_dataset(
                         ).model_dump(),
                     )
 
-                # Store ALL nodes from this dataset's subgraph
                 for node in metadata.get("nodes", []):
                     node_id = node.get("id")
                     if node_id:
                         current_nodes[node_id] = node
 
-                # Store all edges
                 for edge in metadata.get("edges", []):
                     edge_from = edge.get("from")
                     edge_to = edge.get("to")
@@ -935,23 +933,19 @@ async def update_dataset(
                     if edge_from and edge_to:
                         current_edges.add((edge_from, edge_to, edge_labels))
 
-            # Step 2: For any node not found in current_nodes, try to fetch it individually
-            # This handles nodes that exist but aren't in the dataset subgraph (like User nodes)
+            # Step 2: Fetch any nodes referenced in the AP but not in the dataset subgraph
+            # (e.g. FileObjects referenced in heavy profile edges but with no properties)
             missing_node_ids = set(all_node_ids) - set(current_nodes.keys())
-            
             for node_id in missing_node_ids:
                 try:
-                    # Try to get the node directly
                     response = await client.get(
                         f"{MOMA_URL}/nodes/{node_id}",
-                        headers={"Authorization": f"Bearer {token}"}
+                        headers={"Authorization": f"Bearer {token}"},
                     )
                     if response.status_code == 200:
-                        node_data = response.json()
-                        current_nodes[node_id] = node_data
-                    # If 404, node doesn't exist - that's fine, it will be created
+                        current_nodes[node_id] = response.json()
                 except Exception:
-                    # Ignore errors, node will be created
+                    # Node doesn't exist in MoMa — will be created
                     pass
 
         except HTTPException:
@@ -965,65 +959,98 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 3: Merge properties for all nodes
-        merged_nodes = []
-        nodes_to_add = []
-        nodes_to_update = []
+        # Step 3: Determine which edges are new (compute BEFORE node loop)
+        edges_to_send = []
+        for edge in filtered_edges:
+            edge_from = edge["from"]
+            edge_to = edge["to"]
+            edge_labels = tuple(sorted(edge.get("labels", []) or []))
+            if (edge_from, edge_to, edge_labels) not in current_edges:
+                edges_to_send.append(edge)
+
+        # Build set of node IDs referenced by new edges for quick lookup
+        nodes_referenced_in_new_edges = {
+            e["from"] for e in edges_to_send
+        } | {
+            e["to"] for e in edges_to_send
+        }
+
+        # Step 4: Determine which nodes to send
+        nodes_to_send = []
+        nodes_created = []
+        nodes_updated = []
 
         for node in filtered_nodes:
             node_id = node["id"]
             new_props = node.get("properties", {})
 
             if node_id in current_nodes:
-                # Existing node — merge properties
                 existing_node = current_nodes[node_id]
                 existing_props = existing_node.get("properties", {})
-                
-                # IMPORTANT: Only merge if new_props is not empty, otherwise keep existing
-                if new_props:
-                    merged_props = {**existing_props, **new_props}
-                else:
-                    merged_props = existing_props
-                
-                merged_node = {
-                    "id": node_id,
-                    "labels": node.get("labels", existing_node.get("labels", [])),
-                    "properties": merged_props,
-                }
-                merged_nodes.append(merged_node)
+                merged_props = {**existing_props, **new_props}
 
-                # Track if properties actually changed
-                if new_props and existing_props != merged_props:
-                    nodes_to_update.append(node_id)
+                if merged_props != existing_props:
+                    # Properties changed — send with merged props
+                    nodes_to_send.append({
+                        "id": node_id,
+                        "labels": node.get("labels", existing_node.get("labels", [])),
+                        "properties": merged_props,
+                    })
+                    nodes_updated.append(node_id)
+                elif node_id in nodes_referenced_in_new_edges:
+                    # No property changes but referenced in a new edge — must include
+                    # with existing properties so MoMa can validate the edge endpoint
+                    nodes_to_send.append({
+                        "id": node_id,
+                        "labels": existing_node.get("labels", []),
+                        "properties": existing_props,
+                    })
+                # else: exists, no changes, not in new edges — skip entirely
             else:
-                # New node — add as-is
-                merged_nodes.append(node)
-                nodes_to_add.append(node_id)
+                # New node — must have properties
+                if not new_props:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=ErrorEnvelope(
+                            code=status.HTTP_400_BAD_REQUEST,
+                            error=f"New node {node_id} has no properties. New nodes must include all required properties.",
+                        ).model_dump(),
+                    )
+                nodes_to_send.append(node)
+                nodes_created.append(node_id)
 
-        # Step 4: Determine which edges are new
-        edges_to_add = []
-        for edge in filtered_edges:
-            edge_from = edge["from"]
-            edge_to = edge["to"]
-            edge_labels = tuple(sorted(edge.get("labels", []) or []))
-            if (edge_from, edge_to, edge_labels) not in current_edges:
-                edges_to_add.append(edge)
+        # Step 5: Nothing to do
+        if not nodes_to_send and not edges_to_send:
+            return APSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message="No changes detected - dataset already up to date",
+                ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+                metadata={
+                    "summary": {
+                        "nodes_created": 0,
+                        "nodes_updated": 0,
+                        "edges_added": 0,
+                        "record_set_detected": False,
+                        "datasets_processed": dataset_ids,
+                    }
+                },
+            )
 
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
 
-        # Step 5: Inject 'ready' status if RecordSet present
+        # Step 6: Inject 'ready' status if RecordSet present
         if has_record_set:
-            for node in merged_nodes:
+            for node in nodes_to_send:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
 
-        # Step 6: Send all merged nodes + edges to MoMa
+        # Step 7: Send to MoMa
         try:
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
-                json={"nodes": merged_nodes, "edges": filtered_edges},
+                json={"nodes": nodes_to_send, "edges": edges_to_send},
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
@@ -1058,22 +1085,18 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 7: Build summary
+        # Step 8: Build summary
         summary_parts = []
-        if nodes_to_add:
-            summary_parts.append(f"{len(nodes_to_add)} node(s) added")
-        if nodes_to_update:
-            summary_parts.append(f"{len(nodes_to_update)} node(s) updated")
-        if edges_to_add:
-            summary_parts.append(f"{len(edges_to_add)} edge(s) added")
+        if nodes_created:
+            summary_parts.append(f"{len(nodes_created)} node(s) created")
+        if nodes_updated:
+            summary_parts.append(f"{len(nodes_updated)} node(s) updated")
+        if edges_to_send:
+            summary_parts.append(f"{len(edges_to_send)} edge(s) added")
         if has_record_set:
             summary_parts.append("dataset status set to 'ready'")
-        if not summary_parts:
-            summary_parts.append("No changes detected")
 
         message = f"Dataset update completed: {', '.join(summary_parts)}"
-
-        # Build AP response
         ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
 
         return APSuccessEnvelope(
@@ -1082,9 +1105,9 @@ async def update_dataset(
             ap=ap_data,
             metadata={
                 "summary": {
-                    "nodes_added": len(nodes_to_add),
-                    "nodes_updated": len(nodes_to_update),
-                    "edges_added": len(edges_to_add),
+                    "nodes_created": len(nodes_created),
+                    "nodes_updated": len(nodes_updated),
+                    "edges_added": len(edges_to_send),
                     "record_set_detected": has_record_set,
                     "datasets_processed": dataset_ids,
                 }
