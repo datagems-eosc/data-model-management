@@ -27,6 +27,7 @@ from typing import Dict, Any, List, Optional
 
 import dmm_api.resources.security as security
 
+# TODO: remove unused imports and functions 
 from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
@@ -272,6 +273,8 @@ async def dataset_home():
 
 @router.get("/dataset/search", response_model=DatasetsSuccessEnvelope)
 async def search_datasets(
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
     nodeIds: Optional[List[str]] = Query(
         None, description="Filter datasets by their UUIDs."
     ),
@@ -285,10 +288,10 @@ async def search_datasets(
         None, description="List of Dataset properties to sort results."
     ),
     publishedDateFrom: Optional[date] = Query(
-        None, description="Minimum published date (YYYY-MM-DD).", format="YYYY-MM-DD"
+        None, description="Minimum published date (YYYY-MM-DD).", alias="publishedFrom", format="YYYY-MM-DD",
     ),
     publishedDateTo: Optional[date] = Query(
-        None, description="Maximum published date (YYYY-MM-DD).", format="YYYY-MM-DD"
+        None, description="Maximum published date (YYYY-MM-DD).", alias="publishedTo", format="YYYY-MM-DD",
     ),
     direction: int = Query(
         1,
@@ -298,7 +301,8 @@ async def search_datasets(
     ),
     dataset_status: Optional[str] = Query(
         None,
-        description="Optional dataset status to filter on. If not provided, returns all statuses.",
+        description="Optional dataset status to filter on.",
+        alias="status"
     ),
     offset: Optional[int] = Query(
         None, description="Number of results to skip for pagination.", ge=0
@@ -308,70 +312,91 @@ async def search_datasets(
     ),
     mimeTypes: Optional[List[MimeType]] = Query(
         None,
-        description="Filter datasets by file MIME types (from FileObject encodingFormat).",
+        description="Filter datasets by file MIME types.",
     ),
 ):
-    url = f"{MOMA_URL}/getDatasets"
-    params = {}
+    """
+    Search datasets using MoMa API.
+    """
+    url = f"{MOMA_URL}/datasets/"
+
+    # Build params as list of tuples to correctly handle repeated keys (e.g. nodeIds)
+    params: list[tuple[str, Any]] = []
+
     if nodeIds:
-        params["nodeIds"] = nodeIds
+        params += [("nodeIds", nid) for nid in nodeIds]
+
     if properties:
-        params["properties"] = [p.value for p in properties]
+        params += [("properties", p.value) for p in properties]
+
     if types:
-        params["types"] = [t.value for t in types]
+        params += [("types", t.value) for t in types]
+
     if orderBy:
-        params["orderBy"] = [o.value for o in orderBy]
+        params += [("orderBy", o.value) for o in orderBy]
+
     if publishedDateFrom:
-        params["publishedDateFrom"] = publishedDateFrom.strftime("%Y-%m-%d")
+        params.append(("publishedFrom", publishedDateFrom.strftime("%Y-%m-%d")))
+
     if publishedDateTo:
-        params["publishedDateTo"] = publishedDateTo.strftime("%Y-%m-%d")
-    params["direction"] = direction
+        params.append(("publishedTo", publishedDateTo.strftime("%Y-%m-%d")))
+
     if dataset_status is not None:
-        params["status"] = dataset_status
+        params.append(("status", dataset_status))
+
+    # Convert offset/count to page/pageSize for MoMa (max pageSize is 100)
+    page_size = min(count, 100) if count is not None else 25
+    params.append(("pageSize", page_size))
+
     if offset is not None:
-        params["offset"] = offset
-    if count is not None:
-        params["count"] = count
+        params.append(("page", (offset // page_size) + 1))
+    else:
+        params.append(("page", 1))
+
+    # Direction: MoMa expects 'asc' or 'desc'
+    params.append(("direction", "asc" if direction >= 0 else "desc"))
+
     if mimeTypes:
-        params["mimeTypes"] = [m.value for m in mimeTypes]
+        params += [("mimeTypes", m.value) for m in mimeTypes]
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
         try:
-            response = await client.get(url, params=params)
+            response = await client.get(
+                url,
+                params=params,
+                headers={"Authorization": f"Bearer {token}"}
+            )
             response.raise_for_status()
 
             data = response.json()
-            metadata = data.get("metadata")
-            if isinstance(metadata, dict):
-                all_nodes = metadata.get("nodes", [])
-                all_edges = metadata.get("edges", [])
-            else:
-                all_nodes = []
-                all_edges = []
 
-            response_offset = data.get("offset")
-            response_count = data.get("count")
-            response_total = data.get("total")
+            # MoMa list endpoint returns pre-grouped datasets with pagination metadata
+            datasets = data.get("datasets", [])
+            response_page = data.get("page", 1)
+            response_page_size = data.get("pageSize", page_size)
+            response_total = data.get("total", len(datasets))
+            response_offset = (response_page - 1) * response_page_size
 
-            datasets = group_datasets_by_components(all_nodes, all_edges)
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message="Datasets retrieved successfully",
                 datasets=datasets,
                 offset=response_offset,
-                count=response_count,
+                count=len(datasets),
                 total=response_total,
             )
 
         except httpx.HTTPStatusError as e:
+            logger.error(f"MoMa API error: {e.response.status_code} - {e.response.text}")
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Error from MoMa API: {e}",
+                    error=f"Error from MoMa API: {e.response.status_code}",
                 ).model_dump(),
             )
-        except httpx.RequestError:
+        except httpx.RequestError as e:
+            logger.error(f"Connection error: {e}")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=ErrorEnvelope(
@@ -385,44 +410,67 @@ async def search_datasets(
 # TODO: implement filtering by dataset state
 @router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
 async def get_dataset(
-    dataset_id: str, 
+    dataset_id: str,
     format: str = Query(None, alias="format"),
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
     """Return dataset with a specific ID from Neo4j via MoMa API"""
-    try:
-        exists, metadata = await get_dataset_metadata(dataset_id, token=token)
-
-        if not exists:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_404_NOT_FOUND,
-                    error=f"Dataset with ID {dataset_id} not found in Neo4j",
-                ).model_dump(),
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        try:
+            response = await client.get(
+                f"{MOMA_URL}/datasets/{dataset_id}/",
+                headers={"Authorization": f"Bearer {token}"},
             )
 
-        if format == "croissant":
-            croissant_jsonld = convertProfile(pgjson=metadata)
-            metadata = json.loads(croissant_jsonld)
+            if response.status_code == status.HTTP_404_NOT_FOUND:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error=f"Dataset with ID {dataset_id} not found in Neo4j",
+                    ).model_dump(),
+                )
 
-        return DatasetSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
-            dataset=metadata,
-        )
+            response.raise_for_status()
+            metadata = response.json()
 
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=ErrorEnvelope(
-                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error="Unexpected Internal Server error",
-            ).model_dump(),
-        )
+            if format == "croissant":
+                croissant_jsonld = convertProfile(pgjson=metadata)
+                metadata = json.loads(croissant_jsonld)
+
+            return DatasetSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Dataset with ID {dataset_id} retrieved successfully from Neo4j",
+                dataset=metadata,
+            )
+
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Error from MoMa API: {e.response.status_code}",
+                ).model_dump(),
+            )
+        except httpx.RequestError:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
+                ).model_dump(),
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error="Unexpected Internal Server error",
+                ).model_dump(),
+            )
 
 
 @router.post(
@@ -904,7 +952,7 @@ async def update_dataset(
             for edge in all_edges:
                 edge_from = edge.get("from")
                 edge_to = edge.get("to")
-                edge_labels = tuple(edge.get("labels", []) or [])
+                edge_labels = tuple(sorted(edge.get("labels", []) or []))
                 if edge_from and edge_to:
                     current_edges.add((edge_from, edge_to, edge_labels))
 
@@ -950,7 +998,7 @@ async def update_dataset(
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
-            edge_labels = tuple(edge.get("labels", []) or [])
+            edge_labels = tuple(sorted(edge.get("labels", []) or []))
             edge_key = (edge_from, edge_to, edge_labels)
             
             if edge_key not in current_edges:
