@@ -855,8 +855,10 @@ async def update_dataset(
     1. Extracting all nodes/edges from AP
     2. Verifying the root Dataset node(s) already exist → 404 if not
     3. Fetching current state from MoMa using GET /datasets/{id} per dataset
-    4. Sending everything to MoMa via POST /datasets/
-    5. Returning report of what was added/updated
+    4. Merging existing properties with new ones (new values override existing)
+    5. Sending all merged nodes + all edges to MoMa via POST /datasets/
+       MoMa requires ALL edge endpoint nodes to be present in the payload with non-empty properties.
+    6. Returning report of what was added/updated
     """
     ap_payload = wrapped.ap
     try:
@@ -898,7 +900,7 @@ async def update_dataset(
         )
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        # Step 1: Verify all datasets exist and fetch their current state
+        # Step 1: Fetch current state for all datasets
         current_nodes = {}
         current_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
@@ -924,7 +926,7 @@ async def update_dataset(
                     if node_id:
                         current_nodes[node_id] = node
 
-                # Store all edges from this dataset's subgraph
+                # Store all edges
                 for edge in metadata.get("edges", []):
                     edge_from = edge.get("from")
                     edge_to = edge.get("to")
@@ -935,41 +937,47 @@ async def update_dataset(
 
         except HTTPException:
             raise
-        except httpx.HTTPStatusError as e:
+        except Exception as e:
             raise HTTPException(
-                status_code=status.HTTP_502_BAD_GATEWAY,
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
-                    code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to fetch current state: HTTP {e.response.status_code}",
-                ).model_dump(),
-            )
-        except httpx.RequestError as e:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail=ErrorEnvelope(
-                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    error=f"Failed to connect to MoMa API: {str(e)}",
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Failed to fetch current state: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
 
-        # Step 2: Calculate what will be added/updated
+        # Step 2: Merge properties and categorize nodes
+        merged_nodes = []
         nodes_to_add = []
         nodes_to_update = []
         edges_to_add = []
 
-        # Check which nodes are new or need updating
         for node in filtered_nodes:
             node_id = node["id"]
-            if node_id not in current_nodes:
-                nodes_to_add.append(node)
-            else:
-                # Check if properties changed
-                current_props = current_nodes[node_id].get("properties", {})
-                new_props = node.get("properties", {})
-                if current_props != new_props:
-                    nodes_to_update.append(node)
+            new_props = node.get("properties", {})
 
-        # Check which edges are new
+            if node_id in current_nodes:
+                # Existing node — merge properties, new values override existing
+                existing_node = current_nodes[node_id]
+                existing_props = existing_node.get("properties", {})
+                merged_props = {**existing_props, **new_props}
+
+                merged_node = {
+                    "id": node_id,
+                    "labels": node.get("labels", existing_node.get("labels", [])),
+                    "properties": merged_props,
+                }
+                merged_nodes.append(merged_node)
+
+                # Track if properties actually changed
+                if existing_props != merged_props:
+                    nodes_to_update.append(node_id)
+            else:
+                # New node — add as-is
+                merged_nodes.append(node)
+                nodes_to_add.append(node_id)
+
+        # Step 3: Determine which edges are new
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
@@ -982,17 +990,17 @@ async def update_dataset(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
 
-        # Step 3: Inject 'ready' status into Dataset nodes when a RecordSet is present
+        # Step 4: Inject 'ready' status into Dataset nodes when a RecordSet is present
         if has_record_set:
-            for node in filtered_nodes:
+            for node in merged_nodes:
                 if "sc:Dataset" in node.get("labels", []):
-                    node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
+                    node.setdefault("properties", {})["status"] = DatasetState.Ready.value
 
-        # Step 4: Send everything to MoMa — it handles create/update internally
+        # Step 5: Send all merged nodes + all edges to MoMa
         try:
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
-                json={"nodes": filtered_nodes, "edges": filtered_edges},
+                json={"nodes": merged_nodes, "edges": filtered_edges},
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
@@ -1027,7 +1035,7 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 5: Build detailed summary of what changed
+        # Step 6: Build summary
         summary_parts = []
         if nodes_to_add:
             summary_parts.append(f"{len(nodes_to_add)} node(s) added")
@@ -1044,10 +1052,6 @@ async def update_dataset(
 
         # Build AP response
         ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
-        if has_record_set:
-            for node in ap_data["nodes"]:
-                if "sc:Dataset" in node.get("labels", []):
-                    node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
 
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
