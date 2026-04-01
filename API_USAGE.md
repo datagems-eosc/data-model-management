@@ -9,7 +9,7 @@ You can interact with it using curl commands, going into the `tests` folder:
 cd tests
 ```
 
-> Prerequisite: all steps below require a valid access token. Complete [0) Access Token Setup](#0-access-token-setup-required-for-all-steps) before running any command.
+> Prerequisite: all steps below require a valid access token. Complete [0) Access Token Setup](#auth-test-bearer-token-required) before running any command.
 
 ## Table of Contents
 
