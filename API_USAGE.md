@@ -9,6 +9,8 @@ You can interact with it using curl commands, going into the `tests` folder:
 cd tests
 ```
 
+> Prerequisite: all steps below require a valid access token. Complete [0) Access Token Setup](#0-access-token-setup-required-for-all-steps) before running any command.
+
 ## Table of Contents
 
 - [1) Upload a Dataset to s3](#1-upload-a-dataset-to-s3)
@@ -17,9 +19,9 @@ cd tests
 - [4) Update a Dataset](#4-update-a-dataset)
 - [5) Get one or all Datasets](#5-get-one-or-all-datasets)
 - [6) Filter the Datasets](#6-filter-the-datasets)
-- [7) Query a Dataset](#7-query-a-dataset-requires-access-token-setup)
+- [7) Query a Dataset](#7-query-a-dataset)
 - [8) Converter](#8-converter)
-- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search-requires-access-token-setup)
+- [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -946,8 +948,11 @@ Parameters:
 - status (str, optional): Filter datasets based on their status.
 
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt"\
-| python -m json.tool
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/search?properties=archivedAt' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
 ```
 
 The API returns:
@@ -968,27 +973,17 @@ The API returns:
                     }
                 }
             ],
-            "edges": []
+            "edges": null
         },
-        {
-            "nodes": [
-                {
-                    "id": "c893daaf-680f-4947-88e5-03fd61900795",
-                    "labels": [
-                        "sc:Dataset"
-                    ],
-                    "properties": {
-                        "archivedAt": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795"
-                    }
-                }
-            ],
-            "edges": []
-        }
-    ]
+        ...
+    ],
+    "offset": 0,
+    "count": 5,
+    "total": 5
 }
 ```
 
-## 7) Query a Dataset (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm))
+## 7) Query a Dataset
 
 The polyglot/query endpoint allows you to execute SQL queries across different data sources (supported: PostgreSQL tables, CSV files). 
 
@@ -1344,7 +1339,7 @@ This converts the input `zoo_2024_pg.json` file (MoMa format) to Croissant forma
     }
 }
 ```
-## 9) Cross-dataset Discovery Search (Requires: [Access Token Setup](#0-get-an-access-token-keycloak-dev-realm)).
+## 9) Cross-dataset Discovery Search
 
 
 The `POST /cross-dataset-discovery/search` endpoint requires a valid bearer token.
