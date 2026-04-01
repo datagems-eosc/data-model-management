@@ -59,11 +59,14 @@ To register a new dataset in the system:
 
 ### POST a dataset registration AP
 ```bash
-curl -X POST -H "Content-Type: application/json" \
---data @register/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
-| python -m json.tool
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data @register/zoo.json \
+  https://datagems-dev.scayle.es/dmm/api/v1/dataset/register \
+  | python -m json.tool
 ```
-Example payload: [tests/register/oasa.json](tests/register/oasa.json) (command path when running from `tests`: `register/oasa.json`).
+Example payload: [tests/register/zoo.json](tests/register/zoo.json) (command path when running from `tests`: `register/zoo.json`).
 
 
 This registers a new dataset using the JSON payload. The API returns:
@@ -79,7 +82,7 @@ This registers a new dataset using the JSON payload. The API returns:
                     "Analytical_Pattern"
                 ],
                 "properties": {
-                    "Description": "Analytical Pattern to register a dataset",
+                    "description": "Analytical Pattern to register a dataset",
                     ...
                 }
             },
@@ -89,7 +92,7 @@ This registers a new dataset using the JSON payload. The API returns:
                     "DataModelManagement_Operator"
                 ],
                 "properties": {
-                    "Description": "An operator to register a dataset into DataGEMS",
+                    "command": "create",
                     ...
                 }
             },
@@ -114,7 +117,7 @@ This registers a new dataset using the JSON payload. The API returns:
                     "Task"
                 ],
                 "properties": {
-                    "Description": "Task to register a dataset",
+                    "description": "Task to register a dataset",
                     ...
                 }
             }
@@ -150,8 +153,7 @@ This registers a new dataset using the JSON payload. The API returns:
             }
         ]
     }
-}
-```
+}```
 
 The response includes the dataset ID and the analytical pattern graph structure showing the registration process.
 
@@ -165,18 +167,24 @@ To move a dataset from the scratchpad to the permanent storage location:
 
 ### PUT a dataset load request
 ```bash
-curl -X PUT -H "Content-Type: application/json" \
---data @load/oasa.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
-| python -m json.tool
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data @load/zoo.json \
+  https://datagems-dev.scayle.es/dmm/api/v1/dataset/load \
+  | python3 -m json.tool
 ```
-Example payload: [tests/load/oasa.json](tests/load/oasa.json) (command path when running from `tests`: `load/oasa.json`).
+Example payload: [tests/load/zoo.json](tests/load/zoo.json) (command path when running from `tests`: `load/zoo.json`).
 
 Optional query parameter:
 - `force` (bool, default `false`): set to `true` when source and target paths are already the same.
 ```bash
-curl -X PUT -H "Content-Type: application/json" \
---data @load/oasa.json "https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true" \
-| python -m json.tool
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data @load/zoo.json \
+  https://datagems-dev.scayle.es/dmm/api/v1/dataset/load?force=true \
+  | python3 -m json.tool
 ```
 
 This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API returns:
@@ -192,7 +200,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                     "Analytical_Pattern"
                 ],
                 "properties": {
-                    "Description": "Analytical Pattern to load a dataset",
+                    "description": "Analytical Pattern to load a dataset",
                     ...
                 }
             },
@@ -202,7 +210,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                     "DataModelManagement_Operator"
                 ],
                 "properties": {
-                    "Description": "An operator to load a dataset into s3/dataset",
+                    "command": "update",
                     ...
                 }
             },
@@ -228,7 +236,7 @@ This moves the dataset from `s3://scratchpad/` to `s3://dataset/`. The API retur
                     "Task"
                 ],
                 "properties": {
-                    "Description": "Task to change storage location of a dataset",
+                    "description": "Task to change storage location of a dataset",
                     ...
                 }
             }
@@ -275,9 +283,12 @@ To update an existing dataset with additional metadata or file information:
 
 ### PUT a dataset update
 ```bash
-curl -X PUT -H "Content-Type: application/json" \
---data @update/dataset_profile/zoo_light.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
-| python -m json.tool
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data @update/dataset_profile/zoo_light.json \
+  https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+  | python3 -m json.tool
 ```
 Example payload: [tests/update/dataset_profile/zoo_light.json](tests/update/dataset_profile/zoo_light.json) (command path when running from `tests`: `update/dataset_profile/zoo_light.json`).
 
@@ -286,7 +297,7 @@ This updates the dataset with the light profile. The API returns:
 ```json
 {
     "code": 200,
-    "message": "Dataset update completed: 2 node(s) created, 2 edge(s) created",
+    "message": "Dataset update completed: 2 node(s) created, 2 edge(s) added",
     "ap": {
         "nodes": [
             {
@@ -295,7 +306,7 @@ This updates the dataset with the light profile. The API returns:
                     "Analytical_Pattern"
                 ],
                 "properties": {
-                    "Description": "Analytical Pattern to update a dataset",
+                    "description": "Analytical Pattern to update a dataset",
                     ...
                 }
             },
@@ -305,7 +316,7 @@ This updates the dataset with the light profile. The API returns:
                     "DataModelManagement_Operator"
                 ],
                 "properties": {
-                    "Description": "An operator to update a dataset into DataGEMS",
+                    "command": "update",
                     ...
                 }
             },
@@ -318,22 +329,22 @@ This updates the dataset with the light profile. The API returns:
             {
                 "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                 "labels": [
+                    "Data",
                     "CSV",
                     "cr:FileObject"
                 ],
                 "properties": {
-                    "contentSize": "2407043 B",
                     ...
                 }
             },
             {
                 "id": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
+                    "Data",
                     "CSV",
                     "cr:FileObject"
                 ],
                 "properties": {
-                    "contentSize": "1500000 B",
                     ...
                 }
             },
@@ -349,8 +360,8 @@ This updates the dataset with the light profile. The API returns:
                     "Task"
                 ],
                 "properties": {
-                    "Description": "Task to update a dataset",
-                    "Name": "Dataset Updating Task"
+                    "description": "Task to update a dataset",
+                    ...
                 }
             }
         ],
@@ -398,14 +409,28 @@ This updates the dataset with the light profile. The API returns:
                 ]
             }
         ]
+    },
+    "metadata": {
+        "summary": {
+            "nodes_created": 2,
+            "nodes_updated": 0,
+            "edges_added": 2,
+            "record_set_detected": false,
+            "datasets_processed": [
+                "c893daaf-680f-4947-88e5-03fd61900795"
+            ]
+        }
     }
 }
 ```
 
 ```bash
-curl -X PUT -H "Content-Type: application/json" \
---data @update/dataset_profile/zoo_heavy.json https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
-| python -m json.tool
+curl -X PUT \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data @update/dataset_profile/zoo_heavy.json \
+  https://datagems-dev.scayle.es/dmm/api/v1/dataset/update \
+  | python3 -m json.tool
 ```
 Example payload: [tests/update/dataset_profile/zoo_heavy.json](tests/update/dataset_profile/zoo_heavy.json) (command path when running from `tests`: `update/dataset_profile/zoo_heavy.json`).
 
@@ -413,7 +438,7 @@ This updates the dataset with the heavy profile. The API returns:
 ```json
 {
     "code": 200,
-    "message": "Dataset update completed: 3 node(s) created, 4 edge(s) created",
+    "message": "Dataset update completed: 3 node(s) created, 4 edge(s) added, dataset status set to 'ready'",
     "ap": {
         "nodes": [
             {
@@ -422,7 +447,7 @@ This updates the dataset with the heavy profile. The API returns:
                     "Analytical_Pattern"
                 ],
                 "properties": {
-                    "Description": "Analytical Pattern to update a dataset",
+                    "description": "Analytical Pattern to update a dataset",
                     ...
                 }
             },
@@ -432,7 +457,7 @@ This updates the dataset with the heavy profile. The API returns:
                     "DataModelManagement_Operator"
                 ],
                 "properties": {
-                    "Description": "An operator to update a dataset into DataGEMS",
+                    "command": "update",
                     ...
                 }
             },
@@ -445,24 +470,18 @@ This updates the dataset with the heavy profile. The API returns:
             {
                 "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                 "labels": [
+                    "Data",
                     "CSV",
                     "cr:FileObject"
-                ],
-                "properties": {
-                    "contentSize": "2407043 B",
-                    ...
-                }
+                ]
             },
             {
                 "id": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
+                    "Data",
                     "CSV",
                     "cr:FileObject"
-                ],
-                "properties": {
-                    "contentSize": "1500000 B",
-                    ...
-                }
+                ]
             },
             {
                 "id": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
@@ -470,27 +489,26 @@ This updates the dataset with the heavy profile. The API returns:
                     "cr:RecordSet"
                 ],
                 "properties": {
-                    "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
                     ...
                 }
             },
             {
                 "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
                 "labels": [
-                    "cr:Field"
+                    "cr:Field",
+                    "Column"
                 ],
                 "properties": {
-                    "dataType": "sc:Text",
                     ...
                 }
             },
             {
                 "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
                 "labels": [
+                    "Statistics",
                     "dg:ColumnStatistics"
                 ],
                 "properties": {
-                    "histogram": null,
                     ...
                 }
             },
@@ -506,7 +524,7 @@ This updates the dataset with the heavy profile. The API returns:
                     "Task"
                 ],
                 "properties": {
-                    "Description": "Task to update a dataset",
+                    "description": "Task to update a dataset",
                     ...
                 }
             }
@@ -516,7 +534,7 @@ This updates the dataset with the heavy profile. The API returns:
                 "from": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
                 "to": "24a62ae9-41a9-472d-9a8a-438f35937980",
                 "labels": [
-                    "consistOf"
+                    "consist_of"
                 ]
             },
             {
@@ -530,7 +548,7 @@ This updates the dataset with the heavy profile. The API returns:
                 "from": "efb6e907-52ba-47c0-b1ca-fdbffd8616d6",
                 "to": "a8bbe300-c7f2-429c-83fd-ecafda705c90",
                 "labels": [
-                    "isAchieved"
+                    "is_accomplished"
                 ]
             },
             {
@@ -570,19 +588,30 @@ This updates the dataset with the heavy profile. The API returns:
             },
             {
                 "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
-                "to": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
                     "source/fileObject"
                 ]
             },
             {
-                "from": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
-                "to": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "to": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
                 "labels": [
                     "statistics"
                 ]
             }
         ]
+    },
+    "metadata": {
+        "summary": {
+            "nodes_created": 3,
+            "nodes_updated": 0,
+            "edges_added": 4,
+            "record_set_detected": true,
+            "datasets_processed": [
+                "c893daaf-680f-4947-88e5-03fd61900795"
+            ]
+        }
     }
 }
 ```
@@ -594,18 +623,27 @@ Retrieve one or all ready datasets.
 
 ### GET one or all datasets
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/search" \
-| python -m json.tool
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/search' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
 
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795" \
-| python -m json.tool
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
 ```
 
 Optional query parameter:
 - `format` (str, default `None`): if `croissant`, the output will be given in Croissant format.
 ```bash
-curl -X GET -H "Content-Type: application/json" "https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795?format=croissant" \
-| python -m json.tool
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795?format=croissant' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  | python3 -m json.tool
 ```
 
 
@@ -623,18 +661,17 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "country": "PT",
                         ...
                     }
                 },
                 {
                     "id": "38d53b0e-c88f-4509-aeea-f9cfa189eab2",
                     "labels": [
-                        "CSV",
-                        "cr:FileObject"
+                        "Data",
+                        "cr:FileObject",
+                        "CSV"
                     ],
                     "properties": {
-                        "contentUrl": "s3://dataset/056ff7ea-ac5a-4496-abc5-ad254ddf58fa/weather_data_fr.csv",
                         ...
                     }
                 }
@@ -658,39 +695,6 @@ The API returns:
                         "sc:Dataset"
                     ],
                     "properties": {
-                        "country": "CH",
-                        ...
-                    }
-                },
-                {
-                    "id": "f5234567-890a-bcde-f012-3456789abcde",
-                    "labels": [
-                        "CSV",
-                        "cr:FileObject"
-                    ],
-                    "properties": {
-                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
-                        ...
-                    }
-                },
-                {
-                    "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
-                    "labels": [
-                        "CSV",
-                        "cr:FileObject"
-                    ],
-                    "properties": {
-                        "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
-                        ...
-                    }
-                },
-                {
-                    "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
-                    "labels": [
-                        "cr:Field"
-                    ],
-                    "properties": {
-                        "dataType": "sc:Text",
                         ...
                     }
                 },
@@ -700,12 +704,61 @@ The API returns:
                         "cr:RecordSet"
                     ],
                     "properties": {
-                        "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
                         ...
+                    }
+                },
+                {
+                    "id": "f5234567-890a-bcde-f012-3456789abcde",
+                    "labels": [
+                        "Data",
+                        "cr:FileObject",
+                        "CSV"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                    "labels": [
+                        "Data",
+                        "cr:FileObject",
+                        "CSV"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                    "labels": [
+                        "Column",
+                        "cr:Field"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                    "labels": [
+                        "Statistics",
+                        "dg:ColumnStatistics"
+                    ],
+                    "properties": {
+                       ...
                     }
                 }
             ],
             "edges": [
+                {
+                    "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                    "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                    "labels": [
+                        "recordSet"
+                    ],
+                    "properties": {}
+                },
                 {
                     "from": "c893daaf-680f-4947-88e5-03fd61900795",
                     "to": "f5234567-890a-bcde-f012-3456789abcde",
@@ -731,16 +784,28 @@ The API returns:
                     "properties": {}
                 },
                 {
-                    "from": "c893daaf-680f-4947-88e5-03fd61900795",
-                    "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
+                    "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                    "to": "f5234567-890a-bcde-f012-3456789abcde",
                     "labels": [
-                        "recordSet"
+                        "source/fileObject"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                    "to": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                    "labels": [
+                        "statistics"
                     ],
                     "properties": {}
                 }
             ]
-        }
-    ]
+        },
+        ...
+    ],
+    "offset": 0,
+    "count": 5,
+    "total": 5
 }
 
 {
@@ -754,39 +819,38 @@ The API returns:
                     "sc:Dataset"
                 ],
                 "properties": {
-                    "country": "CH",
-                    ...
-                }
-            },
-            {
-                "id": "f5234567-890a-bcde-f012-3456789abcde",
-                "labels": [
-                    "CSV",
-                    "cr:FileObject"
-                ],
-                "properties": {
-                    "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-metadata.csv",
                     ...
                 }
             },
             {
                 "id": "883b5c9b-408a-4dd8-8619-e34e664b9920",
                 "labels": [
-                    "CSV",
-                    "cr:FileObject"
+                    "Data",
+                    "cr:FileObject",
+                    "CSV"
                 ],
                 "properties": {
-                    "contentUrl": "s3://dataset/c893daaf-680f-4947-88e5-03fd61900795/zoo-2024.csv",
+                    ...
+                }
+            },
+            {
+                "id": "f5234567-890a-bcde-f012-3456789abcde",
+                "labels": [
+                    "Data",
+                    "cr:FileObject",
+                    "CSV"
+                ],
+                "properties": {
                     ...
                 }
             },
             {
                 "id": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
                 "labels": [
+                    "Column",
                     "cr:Field"
                 ],
                 "properties": {
-                    "dataType": "sc:Text",
                     ...
                 }
             },
@@ -796,12 +860,29 @@ The API returns:
                     "cr:RecordSet"
                 ],
                 "properties": {
-                    "cr:examples": "{\"\\u00ef\\u00bb\\u00bfKategorie\": [\"Amphibien\", ...]}",
                     ...
+                }
+            },
+            {
+                "id": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                "labels": [
+                    "Statistics",
+                    "dg:ColumnStatistics"
+                ],
+                "properties": {
+                   ...
                 }
             }
         ],
         "edges": [
+            {
+                "from": "c893daaf-680f-4947-88e5-03fd61900795",
+                "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "labels": [
+                    "distribution"
+                ],
+                "properties": {}
+            },
             {
                 "from": "c893daaf-680f-4947-88e5-03fd61900795",
                 "to": "f5234567-890a-bcde-f012-3456789abcde",
@@ -811,10 +892,10 @@ The API returns:
                 "properties": {}
             },
             {
-                "from": "c893daaf-680f-4947-88e5-03fd61900795",
-                "to": "883b5c9b-408a-4dd8-8619-e34e664b9920",
+                "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "to": "f5234567-890a-bcde-f012-3456789abcde",
                 "labels": [
-                    "distribution"
+                    "source/fileObject"
                 ],
                 "properties": {}
             },
@@ -831,6 +912,14 @@ The API returns:
                 "to": "eb87b0f3-fb8a-4a24-8234-3da28b7398a0",
                 "labels": [
                     "recordSet"
+                ],
+                "properties": {}
+            },
+            {
+                "from": "c5f7c053-4aa5-4c3f-9d7f-9a2d58a3b6e1",
+                "to": "6bc80891-81bf-4890-9e47-44f6ee72a6c1",
+                "labels": [
+                    "statistics"
                 ],
                 "properties": {}
             }
