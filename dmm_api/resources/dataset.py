@@ -853,12 +853,9 @@ async def update_dataset(
     """
     Update datasets in Neo4j by:
     1. Extracting all nodes/edges from AP
-    2. Verifying the root Dataset node(s) already exist → 404 if not
-    3. Fetching current state from MoMa using GET /datasets/{id} per dataset
-    4. Merging existing properties with new ones (new values override existing)
-    5. Sending all merged nodes + all edges to MoMa via POST /datasets/
-       MoMa requires ALL edge endpoint nodes to be present in the payload with non-empty properties.
-    6. Returning report of what was added/updated
+    2. Fetching current state for ALL nodes referenced in the payload
+    3. Merging existing properties with new ones
+    4. Sending all merged nodes + edges to MoMa via POST /datasets/
     """
     ap_payload = wrapped.ap
     try:
@@ -888,6 +885,9 @@ async def update_dataset(
                 ).model_dump(),
             )
 
+        # Get ALL node IDs from the payload
+        all_node_ids = [node["id"] for node in filtered_nodes]
+
     except HTTPException:
         raise
     except Exception as e:
@@ -900,11 +900,12 @@ async def update_dataset(
         )
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        # Step 1: Fetch current state for all datasets
+        # Step 1: Fetch current state for ALL nodes in the payload
         current_nodes = {}
         current_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
         try:
+            # Fetch each dataset and all its connected nodes
             for dataset_id in dataset_ids:
                 exists, metadata = await get_dataset_metadata(dataset_id, token=token, client=client)
 
@@ -920,7 +921,7 @@ async def update_dataset(
                         ).model_dump(),
                     )
 
-                # Store all nodes from this dataset's subgraph
+                # Store ALL nodes from this dataset's subgraph
                 for node in metadata.get("nodes", []):
                     node_id = node.get("id")
                     if node_id:
@@ -930,10 +931,28 @@ async def update_dataset(
                 for edge in metadata.get("edges", []):
                     edge_from = edge.get("from")
                     edge_to = edge.get("to")
-                    # Sort labels to avoid false differences due to ordering
                     edge_labels = tuple(sorted(edge.get("labels", []) or []))
                     if edge_from and edge_to:
                         current_edges.add((edge_from, edge_to, edge_labels))
+
+            # Step 2: For any node not found in current_nodes, try to fetch it individually
+            # This handles nodes that exist but aren't in the dataset subgraph (like User nodes)
+            missing_node_ids = set(all_node_ids) - set(current_nodes.keys())
+            
+            for node_id in missing_node_ids:
+                try:
+                    # Try to get the node directly
+                    response = await client.get(
+                        f"{MOMA_URL}/nodes/{node_id}",
+                        headers={"Authorization": f"Bearer {token}"}
+                    )
+                    if response.status_code == 200:
+                        node_data = response.json()
+                        current_nodes[node_id] = node_data
+                    # If 404, node doesn't exist - that's fine, it will be created
+                except Exception:
+                    # Ignore errors, node will be created
+                    pass
 
         except HTTPException:
             raise
@@ -946,22 +965,26 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 2: Merge properties and categorize nodes
+        # Step 3: Merge properties for all nodes
         merged_nodes = []
         nodes_to_add = []
         nodes_to_update = []
-        edges_to_add = []
 
         for node in filtered_nodes:
             node_id = node["id"]
             new_props = node.get("properties", {})
 
             if node_id in current_nodes:
-                # Existing node — merge properties, new values override existing
+                # Existing node — merge properties
                 existing_node = current_nodes[node_id]
                 existing_props = existing_node.get("properties", {})
-                merged_props = {**existing_props, **new_props}
-
+                
+                # IMPORTANT: Only merge if new_props is not empty, otherwise keep existing
+                if new_props:
+                    merged_props = {**existing_props, **new_props}
+                else:
+                    merged_props = existing_props
+                
                 merged_node = {
                     "id": node_id,
                     "labels": node.get("labels", existing_node.get("labels", [])),
@@ -970,18 +993,18 @@ async def update_dataset(
                 merged_nodes.append(merged_node)
 
                 # Track if properties actually changed
-                if existing_props != merged_props:
+                if new_props and existing_props != merged_props:
                     nodes_to_update.append(node_id)
             else:
                 # New node — add as-is
                 merged_nodes.append(node)
                 nodes_to_add.append(node_id)
 
-        # Step 3: Determine which edges are new
+        # Step 4: Determine which edges are new
+        edges_to_add = []
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
-            # Sort labels to avoid false differences due to ordering
             edge_labels = tuple(sorted(edge.get("labels", []) or []))
             if (edge_from, edge_to, edge_labels) not in current_edges:
                 edges_to_add.append(edge)
@@ -990,13 +1013,13 @@ async def update_dataset(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
 
-        # Step 4: Inject 'ready' status into Dataset nodes when a RecordSet is present
+        # Step 5: Inject 'ready' status if RecordSet present
         if has_record_set:
             for node in merged_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
 
-        # Step 5: Send all merged nodes + all edges to MoMa
+        # Step 6: Send all merged nodes + edges to MoMa
         try:
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
@@ -1035,7 +1058,7 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 6: Build summary
+        # Step 7: Build summary
         summary_parts = []
         if nodes_to_add:
             summary_parts.append(f"{len(nodes_to_add)} node(s) added")
@@ -1067,7 +1090,7 @@ async def update_dataset(
                 }
             },
         )
-
+    
 
 @router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
 @router.post(
