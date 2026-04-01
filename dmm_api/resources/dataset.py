@@ -854,8 +854,7 @@ async def update_dataset(
     Update datasets in Neo4j by:
     1. Extracting all nodes/edges from AP
     2. Verifying the root Dataset node(s) already exist → 404 if not
-    3. Enriching any nodes sent without properties by fetching them from MoMa
-       (MoMa requires all edge endpoint nodes to have non-empty properties)
+    3. Ensuring all nodes have a properties field (required by MoMa, can be empty)
     4. Sending everything to MoMa via POST /datasets/ (MoMa handles upsert internally)
     """
     ap_payload = wrapped.ap
@@ -924,48 +923,11 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        # Step 2: Enrich nodes sent without properties by fetching them from MoMa
-        # MoMa requires all edge endpoint nodes to have non-empty properties.
-        # The heavy profile pattern sends existing nodes with no properties to avoid
-        # duplication — we fetch their current properties from MoMa to satisfy this constraint.
-        enriched_nodes = []
+        # Step 2: Ensure every node has a properties field (required by MoMa)
+        # MoMa requires the "properties" field to exist, but it can be empty {}
         for node in filtered_nodes:
-            node_id = node["id"]
-            if not node.get("properties"):
-                try:
-                    response = await client.get(
-                        f"{MOMA_URL}/nodes/{node_id}",
-                        headers={"Authorization": f"Bearer {token}"},
-                    )
-                    if response.status_code == 200:
-                        # Use properties from MoMa, keep labels from AP
-                        moma_node = response.json()
-                        enriched_nodes.append({
-                            "id": node_id,
-                            "labels": node.get("labels", moma_node.get("labels", [])),
-                            "properties": moma_node.get("properties", {}),
-                        })
-                    else:
-                        # Node doesn't exist yet — new node without properties is invalid
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=ErrorEnvelope(
-                                code=status.HTTP_400_BAD_REQUEST,
-                                error=f"Node {node_id} has no properties and does not exist in Neo4j. New nodes must include all required properties.",
-                            ).model_dump(),
-                        )
-                except HTTPException:
-                    raise
-                except Exception as e:
-                    raise HTTPException(
-                        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                        detail=ErrorEnvelope(
-                            code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            error=f"Failed to fetch node {node_id} from MoMa: {type(e).__name__}: {str(e)}",
-                        ).model_dump(),
-                    )
-            else:
-                enriched_nodes.append(node)
+            if "properties" not in node:
+                node["properties"] = {}
 
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
@@ -973,7 +935,7 @@ async def update_dataset(
 
         # Inject 'ready' status into Dataset nodes when a RecordSet is present
         if has_record_set:
-            for node in enriched_nodes:
+            for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
 
@@ -981,7 +943,7 @@ async def update_dataset(
         try:
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
-                json={"nodes": enriched_nodes, "edges": filtered_edges},
+                json={"nodes": filtered_nodes, "edges": filtered_edges},
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
@@ -1021,7 +983,7 @@ async def update_dataset(
             message="Dataset update completed",
             ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
         )
-       
+    
 
 @router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
 @router.post(
