@@ -854,7 +854,7 @@ async def update_dataset(
     Update datasets in Neo4j by:
     1. Extracting all nodes/edges from AP
     2. Verifying the root Dataset node(s) already exist → 404 if not
-    3. Fetching current state from MoMa using search endpoint
+    3. Fetching current state from MoMa using GET /datasets/{id} per dataset
     4. Sending everything to MoMa via POST /datasets/
     5. Returning report of what was added/updated
     """
@@ -898,64 +898,40 @@ async def update_dataset(
         )
 
     async with httpx.AsyncClient(follow_redirects=True) as client:
-        # Step 1: Fetch current state for all datasets at once using search
+        # Step 1: Verify all datasets exist and fetch their current state
         current_nodes = {}
-        current_edges = set()
-        
-        try:
-            # Use the search endpoint with multiple dataset IDs
-            url = f"{MOMA_URL}/datasets/"
-            params = {"nodeIds": dataset_ids}
-            
-            response = await client.get(
-                url,
-                params=params,
-                headers={"Authorization": f"Bearer {token}"}
-            )
-            response.raise_for_status()
-            
-            data = response.json()
+        current_edges: set[tuple[str, str, tuple[str, ...]]] = set()
 
-            datasets = data.get("datasets", [])
-            all_nodes = [node for dataset in datasets for node in dataset.get("nodes", [])]
-            all_edges = [edge for dataset in datasets for edge in dataset.get("edges", [])]
-            
-            # Check if all requested datasets exist
-            found_dataset_ids = set()
-            for node in all_nodes:
-                if "sc:Dataset" in node.get("labels", []):
+        try:
+            for dataset_id in dataset_ids:
+                exists, metadata = await get_dataset_metadata(dataset_id, token=token, client=client)
+
+                if not exists:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=ErrorEnvelope(
+                            code=status.HTTP_404_NOT_FOUND,
+                            error=(
+                                f"Dataset with ID {dataset_id} not found in Neo4j. "
+                                "Please register it first using /dataset/register."
+                            ),
+                        ).model_dump(),
+                    )
+
+                # Store all nodes from this dataset's subgraph
+                for node in metadata.get("nodes", []):
                     node_id = node.get("id")
                     if node_id:
-                        found_dataset_ids.add(node_id)
                         current_nodes[node_id] = node
-            
-            # Verify all datasets exist
-            missing_datasets = set(dataset_ids) - found_dataset_ids
-            if missing_datasets:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=ErrorEnvelope(
-                        code=status.HTTP_404_NOT_FOUND,
-                        error=(
-                            f"Datasets with IDs {', '.join(missing_datasets)} not found in Neo4j. "
-                            "Please register them first using /dataset/register."
-                        ),
-                    ).model_dump(),
-                )
-            
-            # Store all current nodes by ID for comparison
-            for node in all_nodes:
-                node_id = node.get("id")
-                if node_id:
-                    current_nodes[node_id] = node
-            
-            # Store all current edges for comparison
-            for edge in all_edges:
-                edge_from = edge.get("from")
-                edge_to = edge.get("to")
-                edge_labels = tuple(sorted(edge.get("labels", []) or []))
-                if edge_from and edge_to:
-                    current_edges.add((edge_from, edge_to, edge_labels))
+
+                # Store all edges from this dataset's subgraph
+                for edge in metadata.get("edges", []):
+                    edge_from = edge.get("from")
+                    edge_to = edge.get("to")
+                    # Sort labels to avoid false differences due to ordering
+                    edge_labels = tuple(sorted(edge.get("labels", []) or []))
+                    if edge_from and edge_to:
+                        current_edges.add((edge_from, edge_to, edge_labels))
 
         except HTTPException:
             raise
@@ -980,7 +956,7 @@ async def update_dataset(
         nodes_to_add = []
         nodes_to_update = []
         edges_to_add = []
-        
+
         # Check which nodes are new or need updating
         for node in filtered_nodes:
             node_id = node["id"]
@@ -988,34 +964,31 @@ async def update_dataset(
                 nodes_to_add.append(node)
             else:
                 # Check if properties changed
-                current_node = current_nodes[node_id]
-                current_props = current_node.get("properties", {})
+                current_props = current_nodes[node_id].get("properties", {})
                 new_props = node.get("properties", {})
-                
                 if current_props != new_props:
                     nodes_to_update.append(node)
-        
+
         # Check which edges are new
         for edge in filtered_edges:
             edge_from = edge["from"]
             edge_to = edge["to"]
+            # Sort labels to avoid false differences due to ordering
             edge_labels = tuple(sorted(edge.get("labels", []) or []))
-            edge_key = (edge_from, edge_to, edge_labels)
-            
-            if edge_key not in current_edges:
+            if (edge_from, edge_to, edge_labels) not in current_edges:
                 edges_to_add.append(edge)
-        
+
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
-        
+
         # Step 3: Inject 'ready' status into Dataset nodes when a RecordSet is present
         if has_record_set:
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
-        
-        # Step 4: Send everything to MoMa
+
+        # Step 4: Send everything to MoMa — it handles create/update internally
         try:
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
@@ -1048,7 +1021,7 @@ async def update_dataset(
                     error=f"Unexpected error during upsert: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
-        
+
         # Step 5: Build detailed summary of what changed
         summary_parts = []
         if nodes_to_add:
@@ -1059,35 +1032,31 @@ async def update_dataset(
             summary_parts.append(f"{len(edges_to_add)} edge(s) added")
         if has_record_set:
             summary_parts.append("dataset status set to 'ready'")
-        
         if not summary_parts:
             summary_parts.append("No changes detected")
-        
+
         message = f"Dataset update completed: {', '.join(summary_parts)}"
-        
+
         # Build AP response
         ap_data = ap_payload.model_dump(by_alias=True, exclude_defaults=True)
         if has_record_set:
             for node in ap_data["nodes"]:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["dg:status"] = DatasetState.Ready.value
-        
-        # Include detailed change info in metadata
-        metadata = {
-            "summary": {
-                "nodes_added": len(nodes_to_add),
-                "nodes_updated": len(nodes_to_update),
-                "edges_added": len(edges_to_add),
-                "record_set_detected": has_record_set,
-                "datasets_processed": list(found_dataset_ids) if 'found_dataset_ids' in locals() else dataset_ids,
-            }
-        }
-        
+
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=message,
             ap=ap_data,
-            metadata=metadata,
+            metadata={
+                "summary": {
+                    "nodes_added": len(nodes_to_add),
+                    "nodes_updated": len(nodes_to_update),
+                    "edges_added": len(edges_to_add),
+                    "record_set_detected": has_record_set,
+                    "datasets_processed": dataset_ids,
+                }
+            },
         )
 
 
