@@ -278,6 +278,11 @@ async def extract_query_from_AP(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="The Analytical Pattern must contain exactly one 'User' node.",
         )
+    if len(db_connection_nodes) > 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="The Analytical Pattern must contain at most one 'DatabaseConnection' node, because only one database can be queried at a time.",
+        )
 
     # Get properties of datasets and database connections from MoMa and add them to the graph, as they are needed to execute the query
 
