@@ -23,33 +23,27 @@
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
       },
       {
-        "from": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
-        "labels": [
-          "distribution"
-        ],
-        "to": "475e6aa3-9c56-4360-aace-631888242921"
-      },
-      {
-        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
-        "labels": [
-          "input"
-        ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      },
-      {
-        "from": "69ce4693-e71e-4616-9320-037c90a88859",
-        "labels": [
-          "output"
-        ],
-        "to": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
-      },
-      {
         "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "distribution"
         ],
         "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
-      }
+      }, 
+      
+      {
+        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
+        "labels": [
+            "input"
+        ],
+        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+      }, 
+       {
+            "from": "69ce4693-e71e-4616-9320-037c90a88859",
+            "labels": [
+                "output"
+            ],
+            "to": "01624723-6b74-4719-a985-ceb70c623932"
+       }
     ],
     "nodes": [
       {
@@ -97,33 +91,6 @@
         }
       },
       {
-        "id": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
-        "labels": [
-          "sc:Dataset"
-        ],
-        "properties": {
-          "description": "Temporary dataset created after a query",
-          "sc:archivedAt": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
-        }
-      },
-      {
-        "id": "475e6aa3-9c56-4360-aace-631888242921",
-        "labels": [
-          "Data",
-          "CSV",
-          "cr:FileObject"
-        ],
-        "properties": {
-          "contentSize": "50 B",
-          "contentUrl": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8/475e6aa3-9c56-4360-aace-631888242921",
-          "description": "Mean temperature in Zurich for 2020",
-          "encodingFormat": "application/x-ipynb+json",
-          "name": "mean-temperature-Zurich-2020",
-          "sha256": "58312224507884348228d09db8af35d3d40fc088e189841a7d66b07d4901729e",
-          "type": "cr:FileObject"
-        }
-      },
-      {
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "sc:Dataset"
@@ -134,6 +101,12 @@
         "labels": [
           "dg:DatabaseConnection",
           "RelationalDatabase"
+        ]
+      },
+      {
+        "id": "01624723-6b74-4719-a985-ceb70c623932",
+        "labels": [
+          "Answer"
         ]
       }
     ]

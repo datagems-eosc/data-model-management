@@ -23,25 +23,14 @@
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
       },
       {
-        "from": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
-        "labels": [
-          "distribution"
-        ],
-        "to": "475e6aa3-9c56-4360-aace-631888242921"
-      },
-      {
-        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
+        "from": "1cd2500d-aba7-41ee-acfe-669fe0b8ae15",
         "labels": [
           "input"
         ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      },
-      {
-        "from": "69ce4693-e71e-4616-9320-037c90a88859",
-        "labels": [
-          "output"
-        ],
-        "to": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
+        "properties" :{
+            "argname": "arg1"
+        },
+        "to": "29a79838-adae-43e4-8e20-8d08c523445d"
       },
       {
         "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
@@ -49,7 +38,67 @@
           "distribution"
         ],
         "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
-      }
+      }, 
+      {
+        "from": "f69d5868-b6cc-4c16-9206-729d17a22872", 
+        "labels": [
+            "input"
+        ],
+        "properties": {
+            "argname": "arg2"
+
+        },
+        "to": "29a79838-adae-43e4-8e20-8d08c523445d"
+      }, 
+      {
+        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
+        "labels": [
+            "input"
+        ],
+        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+      }, 
+      {
+        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
+        "labels": [
+            "distribution"
+        ],
+        "to": "f69d5868-b6cc-4c16-9206-729d17a22872"
+      }, 
+      {
+        "from": "f69d5868-b6cc-4c16-9206-729d17a22872", 
+        "labels": [
+            "contained_in"
+        ], 
+        "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
+      },
+      {
+        "from": "1cd2500d-aba7-41ee-acfe-669fe0b8ae15", 
+        "labels": [
+            "contained_in"
+        ], 
+        "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
+      }, 
+      {
+        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71", 
+        "labels":[
+            "distribution"
+        ],
+        "to":"1cd2500d-aba7-41ee-acfe-669fe0b8ae15"      
+       },
+       {
+            "from": "69ce4693-e71e-4616-9320-037c90a88859",
+            "labels": [
+                "follows"
+        ],
+        "to": "29a79838-adae-43e4-8e20-8d08c523445d"
+       }, 
+       {
+            "from": "29a79838-adae-43e4-8e20-8d08c523445d",
+            "labels": [
+                "output"
+            ],
+            "to": "01624723-6b74-4719-a985-ceb70c623932"
+       }
     ],
     "nodes": [
       {
@@ -97,30 +146,17 @@
         }
       },
       {
-        "id": "b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8",
+        "id": "29a79838-adae-43e4-8e20-8d08c523445d",
         "labels": [
-          "sc:Dataset"
+          "Query_Operator",
+          "SQL_Operator"
         ],
         "properties": {
-          "description": "Temporary dataset created after a query",
-          "sc:archivedAt": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8"
-        }
-      },
-      {
-        "id": "475e6aa3-9c56-4360-aace-631888242921",
-        "labels": [
-          "Data",
-          "CSV",
-          "cr:FileObject"
-        ],
-        "properties": {
-          "contentSize": "50 B",
-          "contentUrl": "s3://data-model-management/results/b3ba2e4c-f6be-4fcc-a889-668c38f6c9d8/475e6aa3-9c56-4360-aace-631888242921",
-          "description": "Mean temperature in Zurich for 2020",
-          "encodingFormat": "application/x-ipynb+json",
-          "name": "mean-temperature-Zurich-2020",
-          "sha256": "58312224507884348228d09db8af35d3d40fc088e189841a7d66b07d4901729e",
-          "type": "cr:FileObject"
+          "description": "",
+          "endTime": "2026-03-17T10:44:17.829Z",
+          "name": "DuckDB Query Operator",
+          "query": "SELECT t1.time, t1.latitude, t1.longitude, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.time = t2.time and t1.longitude = t2.longitude and t1.latitude = t2.latitude;",
+          "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
       {
@@ -135,7 +171,32 @@
           "dg:DatabaseConnection",
           "RelationalDatabase"
         ]
+      },
+      {
+        "id": "f69d5868-b6cc-4c16-9206-729d17a22872",
+        "labels": [
+            "cr:FileObject", 
+            "Data"
+        ] 
+      }, 
+      {
+        "id": "1cd2500d-aba7-41ee-acfe-669fe0b8ae15", 
+        "labels": [
+            "cr:FileObject", 
+            "Data"
+        ]
+      }, 
+      {
+        "id": "01624723-6b74-4719-a985-ceb70c623932",
+        "labels": [
+          "cr:FileObject",
+          "Data"
+        ]
       }
     ]
+  },
+  "metadata": {
   }
+
+
 }
