@@ -142,3 +142,7 @@ cython_debug/
 dmm_api/data/results
 tests/deliverable
 .tmp/
+
+# macOS Finder metadata
+.DS_Store
+**/.DS_Store
