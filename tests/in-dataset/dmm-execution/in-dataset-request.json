@@ -69,7 +69,6 @@
         ],
         "properties": {
           "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
-          "endTime": "2026-03-17T10:44:17.829Z",
           "name": "In-Dataset Discovery Temperature",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
@@ -82,10 +81,9 @@
         ],
         "properties": {
           "description": "Translate text to SQL",
-          "endTime": "2026-03-17T10:44:17.829Z",
           "name": "Text-to-SQL",
           "process": "In-Dataset Discovery",
-          "query": "What is mean daily temperature in coverage of the coordinate {points} in the year 2020?, \u201cpoints\u201d: [[47.4, 8.5]]",
+          "query": "What is mean daily temperature in Zurich in the year 2020?",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
