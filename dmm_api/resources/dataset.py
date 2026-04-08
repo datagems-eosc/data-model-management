@@ -27,7 +27,7 @@ from typing import Dict, Any, List, Optional
 
 import dmm_api.resources.security as security
 
-# TODO: remove unused imports and functions 
+# TODO: remove unused imports and functions
 from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
@@ -160,7 +160,7 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/v1/api")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
-MOMA_REQUEST_TIMEOUT_SECONDS = float(os.getenv("MOMA_REQUEST_TIMEOUT_SECONDS", "30.0"))
+MOMA_REQUEST_TIMEOUT_SECONDS = 30.0
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 
 
@@ -203,7 +203,7 @@ async def get_dataset_metadata(
         dataset_status=dataset_status,
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
-    
+
     should_close = client is None
     if client is None:
         client = httpx.AsyncClient(
@@ -222,19 +222,19 @@ async def get_dataset_metadata(
             dataset_id=dataset_id,
             status_code=response.status_code,
         )
-        
+
         if response.status_code == 404:
             return (False, {"nodes": [], "edges": []})
-        
+
         response.raise_for_status()
         data = response.json()
-        
+
         nodes = data.get("nodes", [])
         edges = data.get("edges", [])
         dataset_exists = any(node.get("id") == dataset_id for node in nodes)
-        
+
         return (dataset_exists, {"nodes": nodes, "edges": edges})
-        
+
     except httpx.HTTPStatusError as e:
         logger.error(
             "MoMa API HTTP error while fetching dataset metadata",
@@ -269,7 +269,6 @@ async def data_workflow(
     dataset_id: str = Form(...),
 ):
     """Handle data workflow by uploading files and assigning metadata."""
-    # Call the upload function to upload the dataset to the scratchpad
     try:
         file_bytes = await file.read()
         s3path = upload_dataset_to_scratchpad(file_bytes, file_name, dataset_id)
@@ -411,7 +410,6 @@ async def search_datasets(
 
             data = response.json()
 
-            # MoMa list endpoint returns pre-grouped datasets with pagination metadata
             datasets = data.get("datasets", [])
             response_page = data.get("page", 1)
             response_page_size = data.get("pageSize", page_size)
@@ -435,12 +433,20 @@ async def search_datasets(
                 total=response_total,
             )
         except httpx.HTTPStatusError as e:
-            logger.error(f"MoMa API error: {e.response.status_code} - {e.response.text}")
+            logger.error(
+                "MoMa API HTTP error during dataset search",
+                status_code=e.response.status_code,
+                response_text=e.response.text,
+            )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
                     error=f"Error from MoMa API: {e.response.status_code}",
+                    details={
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -455,9 +461,12 @@ async def search_datasets(
                 detail=ErrorEnvelope(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     error="Failed to connect to MoMa API",
+                    details={
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
                 ).model_dump(),
             )
-
 
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
@@ -521,9 +530,14 @@ async def get_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
                     error=f"Error from MoMa API: {e.response.status_code}",
+                    details={
+                        "dataset_id": dataset_id,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
                 ).model_dump(),
             )
-        except httpx.RequestError:
+        except httpx.RequestError as e:
             logger.error(
                 "MoMa API request error during dataset fetch",
                 dataset_id=dataset_id,
@@ -535,6 +549,11 @@ async def get_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     error="Failed to connect to MoMa API",
+                    details={
+                        "dataset_id": dataset_id,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
                 ).model_dump(),
             )
         except Exception:
@@ -553,7 +572,7 @@ async def get_dataset(
     response_model_exclude_none=True
 )
 async def register_dataset(
-    wrapped: WrappedAPRequest, 
+    wrapped: WrappedAPRequest,
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope)):
     """
@@ -567,7 +586,7 @@ async def register_dataset(
         "Register dataset request received",
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
-
+    
     try:
         # Extract only Dataset nodes
         filtered_nodes, filtered_edges = extract_from_AP(
@@ -615,10 +634,10 @@ async def register_dataset(
         timeout=MOMA_REQUEST_TIMEOUT_SECONDS,
         follow_redirects=True,
     ) as client:
+        # Check if dataset already exists
         try:
-            # Check if dataset already exists
             exists, _ = await get_dataset_metadata(dataset_id, token=token, client=client)
-            
+
             if exists:
                 raise HTTPException(
                     status_code=status.HTTP_409_CONFLICT,
@@ -627,8 +646,58 @@ async def register_dataset(
                         error=f"Dataset with ID {dataset_id} already exists in Neo4j",
                     ).model_dump(),
                 )
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                "MoMa API HTTP error while checking dataset existence during register",
+                dataset_id=dataset_id,
+                status_code=e.response.status_code,
+                response_text=e.response.text,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error="MoMa API error while checking dataset existence",
+                    details={
+                        "dataset_id": dataset_id,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
+                ).model_dump(),
+            )
+        except httpx.RequestError as e:
+            logger.error(
+                "MoMa API request error while checking dataset existence during register",
+                dataset_id=dataset_id,
+                error_type=type(e).__name__,
+                error=str(e),
+                timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API while checking dataset existence",
+                    details={
+                        "dataset_id": dataset_id,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
+                ).model_dump(),
+            )
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error=f"Unexpected error while checking dataset existence: {type(e).__name__}: {str(e)}",
+                ).model_dump(),
+            )
 
-            # Create the dataset node via POST /datasets
+        # Create the dataset node via POST /datasets
+        try:
             post_url = f"{MOMA_URL}/datasets/"
             post_data = {"nodes": filtered_nodes, "edges": filtered_edges}
             logger.info(
@@ -637,13 +706,13 @@ async def register_dataset(
                 nodes_count=len(filtered_nodes),
                 edges_count=len(filtered_edges),
             )
-            
+
             response = await client.post(
                 post_url,
                 json=post_data,
                 headers={"Authorization": f"Bearer {token}"}
             )
-            
+
             response.raise_for_status()
             logger.info(
                 "Dataset created in MoMa",
@@ -651,15 +720,14 @@ async def register_dataset(
                 status_code=response.status_code,
             )
 
-            # Fake forward to AP Storage API
-            logger.info(f"AP be sent to AP Storage API")
-            
-            result = APSuccessEnvelope(
+            # Fake forward AP to AP Storage API
+            logger.info("AP be sent to AP Storage API")
+
+            return APSuccessEnvelope(
                 code=status.HTTP_201_CREATED,
                 message=f"Dataset with ID {dataset_id} registered successfully in Neo4j",
                 ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
             )
-            return result
 
         except HTTPException:
             raise
@@ -675,6 +743,11 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
                     error=f"Error from MoMa API (Status: {e.response.status_code})",
+                    details={
+                        "dataset_id": dataset_id,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -690,6 +763,11 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     error="Failed to connect to MoMa API",
+                    details={
+                        "dataset_id": dataset_id,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
                 ).model_dump(),
             )
         except Exception as e:
@@ -707,7 +785,6 @@ async def register_dataset(
                     error=f"Unexpected error: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
-        
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put(
@@ -729,7 +806,6 @@ async def load_dataset(
     )
 
     try:
-        # Extract only Dataset nodes from AP
         filtered_nodes, _ = extract_from_AP(
             ap_payload, target_labels={"sc:Dataset"}
         )
@@ -755,8 +831,8 @@ async def load_dataset(
         dataset_node = filtered_nodes[0]
         dataset_id = dataset_node.get("id")
         dataset_props = dataset_node.get("properties", {})
-        dataset_path = dataset_props.get("archivedAt")  
-        dataset_status = dataset_props.get("status")    
+        dataset_path = dataset_props.get("archivedAt")
+        dataset_status = dataset_props.get("status")
         logger.info(
             "Parsed dataset load payload",
             dataset_id=dataset_id,
@@ -778,7 +854,7 @@ async def load_dataset(
             ).model_dump(),
         )
 
-    # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged') before moving files
+    # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged')
     try:
         # Use enum-backed default if not provided
         effective_status = (
@@ -798,11 +874,10 @@ async def load_dataset(
         )
 
         if not exists:
-            msg = f"Dataset with ID {dataset_id} does not exist in Neo4j"
-            if effective_status:
-                msg += f" with status '{effective_status}'."
-            msg += (
-                "Please register the dataset first using /dataset/register endpoint."
+            msg = (
+                f"Dataset with ID {dataset_id} does not exist in Neo4j"
+                + (f" with status '{effective_status}'." if effective_status else ".")
+                + " Please register the dataset first using /dataset/register endpoint."
             )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -813,6 +888,45 @@ async def load_dataset(
             )
     except HTTPException:
         raise
+    except httpx.HTTPStatusError as e:
+        logger.error(
+            "MoMa API HTTP error while checking dataset existence during load",
+            dataset_id=dataset_id,
+            status_code=e.response.status_code,
+            response_text=e.response.text,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=ErrorEnvelope(
+                code=status.HTTP_502_BAD_GATEWAY,
+                error="MoMa API error while verifying dataset existence",
+                details={
+                    "dataset_id": dataset_id,
+                    "moma_status_code": e.response.status_code,
+                    "moma_response": e.response.text,
+                },
+            ).model_dump(),
+        )
+    except httpx.RequestError as e:
+        logger.error(
+            "MoMa API request error while checking dataset existence during load",
+            dataset_id=dataset_id,
+            error_type=type(e).__name__,
+            error=str(e),
+            timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=ErrorEnvelope(
+                code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                error="Failed to connect to MoMa API while verifying dataset existence",
+                details={
+                    "dataset_id": dataset_id,
+                    "request_error_type": type(e).__name__,
+                    "request_error": str(e),
+                },
+            ).model_dump(),
+        )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -837,7 +951,7 @@ async def load_dataset(
             raise FileNotFoundError(
                 f"Source dataset not found at expected location: {source_path}"
             )
-
+        
         if target_path.exists():
             # If force is True and source and target resolve to the same path, skip the move
             if force and source_path.resolve() == target_path.resolve():
@@ -898,7 +1012,7 @@ async def load_dataset(
             response = await client.patch(
                 f"{MOMA_URL}/nodes/{dataset_id}",
                 json={
-                    "archivedAt": new_path,             
+                    "archivedAt": new_path,
                     "status": DatasetState.Loaded.value,
                 },
                 headers={"Authorization": f"Bearer {token}"},
@@ -945,6 +1059,12 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
                     error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                    details={
+                        "dataset_id": dataset_id,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                        "rollback_failed": rollback_error is not None,
+                    },
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -973,6 +1093,12 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
+                    details={
+                        "dataset_id": dataset_id,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                        "rollback_failed": rollback_error is not None,
+                    },
                 ).model_dump(),
             )
         except Exception as e:
@@ -1130,6 +1256,45 @@ async def update_dataset(
                     )
         except HTTPException:
             raise
+        except httpx.HTTPStatusError as e:
+            logger.error(
+                "MoMa API HTTP error while verifying dataset existence during update",
+                dataset_ids=dataset_ids,
+                status_code=e.response.status_code,
+                response_text=e.response.text,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error="MoMa API error while verifying dataset existence",
+                    details={
+                        "dataset_ids": dataset_ids,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
+                ).model_dump(),
+            )
+        except httpx.RequestError as e:
+            logger.error(
+                "MoMa API request error while verifying dataset existence during update",
+                dataset_ids=dataset_ids,
+                error_type=type(e).__name__,
+                error=str(e),
+                timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API while verifying dataset existence",
+                    details={
+                        "dataset_ids": dataset_ids,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
+                ).model_dump(),
+            )
         except Exception as e:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1140,7 +1305,6 @@ async def update_dataset(
             )
 
         # Step 2: Ensure every node has a properties field (required by MoMa)
-        # MoMa requires the "properties" field to exist, but it can be empty {}
         for node in filtered_nodes:
             if "properties" not in node:
                 node["properties"] = {}
@@ -1178,6 +1342,7 @@ async def update_dataset(
         except httpx.HTTPStatusError as e:
             logger.error(
                 "Failed to upsert dataset",
+                dataset_ids=dataset_ids,
                 status_code=e.response.status_code,
                 response_body=e.response.text,
             )
@@ -1185,7 +1350,12 @@ async def update_dataset(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
                     code=status.HTTP_502_BAD_GATEWAY,
-                    error=f"Failed to upsert dataset: HTTP {e.response.status_code}: {e.response.text}",
+                    error=f"Failed to upsert dataset: HTTP {e.response.status_code}",
+                    details={
+                        "dataset_ids": dataset_ids,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
                 ).model_dump(),
             )
         except httpx.RequestError as e:
@@ -1200,7 +1370,12 @@ async def update_dataset(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=ErrorEnvelope(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    error=f"Failed to connect to MoMa API: {str(e)}",
+                    error="Failed to connect to MoMa API",
+                    details={
+                        "dataset_ids": dataset_ids,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
                 ).model_dump(),
             )
         except Exception as e:
