@@ -36,13 +36,20 @@
         ],
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
       }, 
-       {
-            "from": "69ce4693-e71e-4616-9320-037c90a88859",
-            "labels": [
-                "output"
-            ],
-            "to": "01624723-6b74-4719-a985-ceb70c623932"
-       }
+      {
+          "from": "29a79838-adae-43e4-8e20-8d08c523445d",
+          "labels": [
+              "output"
+          ],
+          "to": "01624723-6b74-4719-a985-ceb70c623932"
+      },
+      {
+          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "labels": [
+              "follows"
+          ],
+          "to": "29a79838-adae-43e4-8e20-8d08c523445d"
+      }
     ],
     "nodes": [
       {
@@ -86,6 +93,13 @@
           "query": "What is mean daily temperature in Zurich in the year 2020?",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
+      },
+      {
+        "id": "29a79838-adae-43e4-8e20-8d08c523445d",
+        "labels": [
+          "Query_Operator",
+          "SQL_Operator"
+        ]
       },
       {
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
