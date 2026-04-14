@@ -1175,17 +1175,18 @@ async def update_dataset(
 ):
     """
     Update datasets in Neo4j by:
-    1. Extracting all nodes/edges from AP
-    2. Verifying the root Dataset node(s) already exist → 404 if not
-    3. Ensuring all nodes have a properties field (required by MoMa, can be empty)
-    4. Sending everything to MoMa via POST /datasets/ (MoMa handles upsert internally)
+    1. Extracting Dataset nodes from AP
+    2. Verifying each Dataset node exists (lightweight check)
+    3. Sending everything to MoMa via POST /datasets/ (MoMa handles upsert)
     """
     ap_payload = wrapped.ap
     logger.info(
         "Update dataset request received",
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
+    
     try:
+        # Extract all nodes and edges
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
 
         if not filtered_nodes:
@@ -1197,6 +1198,7 @@ async def update_dataset(
                 ).model_dump(),
             )
 
+        # Get Dataset node IDs for existence check
         dataset_ids = [
             node["id"]
             for node in filtered_nodes
@@ -1234,15 +1236,33 @@ async def update_dataset(
         timeout=MOMA_REQUEST_TIMEOUT_SECONDS,
         follow_redirects=True,
     ) as client:
-        # Step 1: Verify all root Dataset nodes exist in Neo4j
+        # Step 1: Check if each Dataset exists (lightweight search)
         try:
             for dataset_id in dataset_ids:
-                exists, _ = await get_dataset_metadata(dataset_id, token=token, client=client)
+                search_url = f"{MOMA_URL}/datasets/"
+                search_params = {
+                    "nodeIds": dataset_id,
+                    "pageSize": 1,
+                    "properties": "id"
+                }
+                
+                response = await client.get(
+                    search_url,
+                    params=search_params,
+                    headers={"Authorization": f"Bearer {token}"}
+                )
+                response.raise_for_status()
+                
+                data = response.json()
+                datasets = data.get("datasets", [])
+                exists = len(datasets) > 0
+                
                 logger.info(
-                    "Verified dataset before update",
+                    "Verified dataset exists before update",
                     dataset_id=dataset_id,
                     exists=exists,
                 )
+                
                 if not exists:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -1254,6 +1274,7 @@ async def update_dataset(
                             ),
                         ).model_dump(),
                     )
+                    
         except HTTPException:
             raise
         except httpx.HTTPStatusError as e:
@@ -1303,23 +1324,23 @@ async def update_dataset(
                     error=f"Failed to verify dataset existence: {type(e).__name__}: {str(e)}",
                 ).model_dump(),
             )
-
+        
         # Step 2: Ensure every node has a properties field (required by MoMa)
         for node in filtered_nodes:
             if "properties" not in node:
                 node["properties"] = {}
 
+        # Step 3: Inject 'ready' status if RecordSet is present
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
-
-        # Inject 'ready' status into Dataset nodes when a RecordSet is present
+        
         if has_record_set:
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
 
-        # Step 3: Send everything to MoMa — it handles upsert internally
+        # Step 4: Send everything to MoMa (upsert)
         try:
             logger.info(
                 "Upserting datasets in MoMa",
@@ -1327,18 +1348,22 @@ async def update_dataset(
                 nodes_count=len(filtered_nodes),
                 edges_count=len(filtered_edges),
             )
+            
             response = await client.post(
                 f"{MOMA_URL}/datasets/",
                 json={"nodes": filtered_nodes, "edges": filtered_edges},
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
+            
             logger.info(
                 "Datasets upsert completed in MoMa",
                 status_code=response.status_code,
                 dataset_ids=dataset_ids,
             )
 
+        except HTTPException:
+            raise
         except httpx.HTTPStatusError as e:
             logger.error(
                 "Failed to upsert dataset",
@@ -1394,11 +1419,11 @@ async def update_dataset(
                 ).model_dump(),
             )
 
-        return APSuccessEnvelope(
-            code=status.HTTP_200_OK,
-            message="Dataset update completed",
-            ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
-        )
+    return APSuccessEnvelope(
+        code=status.HTTP_200_OK,
+        message="Dataset update completed",
+        ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
+    )
     
 
 @router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
