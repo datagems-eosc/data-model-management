@@ -160,7 +160,7 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/v1/api")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL")
-MOMA_REQUEST_TIMEOUT_SECONDS = 60.0
+MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 
 
