@@ -426,12 +426,17 @@ async def search_datasets(
 
             return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
-                message="Datasets retrieved successfully",
+                message=(
+                    "No datasets found matching the search criteria"
+                    if not datasets
+                    else f"{len(datasets)} datasets retrieved successfully"
+                ),
                 datasets=datasets,
                 offset=response_offset,
                 count=len(datasets),
                 total=response_total,
             )
+        
         except httpx.HTTPStatusError as e:
             logger.error(
                 "MoMa API HTTP error during dataset search",
