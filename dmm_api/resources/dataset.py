@@ -438,6 +438,20 @@ async def search_datasets(
                 status_code=e.response.status_code,
                 response_text=e.response.text,
             )
+
+            if e.response.status_code == status.HTTP_404_NOT_FOUND:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error="Dataset search target not found in MoMa",
+                        details={
+                            "moma_status_code": e.response.status_code,
+                            "moma_response": e.response.text,
+                        },
+                    ).model_dump(),
+                )
+
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
