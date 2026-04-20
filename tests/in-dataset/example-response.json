@@ -1,0 +1,30 @@
+               "Data",
+
+               "cr:FileObject"
+
+            ],
+
+            "properties":{
+
+               "contentUrl":"",
+
+               "sha256":"",
+
+               "contentSize":"",
+
+               "name":"meteo_tmean",
+
+               "encodingFormat":"text/sql",
+
+               "description":"",
+
+               "type":"cr:FileObject"
+
+            }
+
+         }
+
+      ]
+
+   }
+}
