@@ -191,6 +191,8 @@ def query_rewriting(
                 replacement = arg_value  # No quotes, no s3://dataset/ prefix
             elif source_type == "text/csv":  # CSV file path
                 replacement = f"'{arg_value}'"  # With quotes for CSV paths
+            elif source_type == "text/json" :
+                replacement = f"'{arg_value}'"  # With quotes for JSON paths
             else:
                 replacement = f"'{arg_value}'"  # Default with quotes
 
@@ -492,11 +494,15 @@ async def execute_query(
                 args_sources=query_info.get("args_sources", {}),
                 db_name=query_info.get("db_name"),
             )
+        logger.info(f"Query executed successfully on {db_connection} with software {software}")
         ap_payload, dataset_id = update_output_dataset_id(ap_payload)
+        logger.info(f"AP payload updated with output dataset ID: {dataset_id}")
         csv_bytes = result.to_csv(index=False).encode("utf-8")
         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
+        logger.info(f"Query results uploaded to {upload_path} for dataset ID {dataset_id}")
 
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+        logger.info(f"AP payload updated with query results: {upload_path}")
         upload_ap_to_results(
             json.dumps(
                 AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
@@ -505,6 +511,7 @@ async def execute_query(
             ),
             dataset_id,
         )
+        logger.info(f"Updated AP payload uploaded to results for dataset ID {dataset_id}")
 
         register_AP = generate_register_AP_after_query(AP_query_after)
         await register_dataset(WrappedAPRequest(ap=register_AP))

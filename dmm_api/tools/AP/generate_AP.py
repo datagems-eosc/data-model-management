@@ -66,13 +66,13 @@ def generate_update_AP(ap_payload: APRequest, new_path: str) -> APRequest:
         "nodes": [
             {
                 "id": node_id,
-                "labels": G_update.nodes[node_id]["labels"],
-                "properties": G_update.nodes[node_id]["properties"],
+                "labels": G_update.nodes[node_id].get("labels", []),
+                "properties": G_update.nodes[node_id].get("properties", {}),
             }
             for node_id in G_update.nodes()
         ],
         "edges": [
-            {"from": u, "to": v, "labels": data["labels"]}
+            {"from": u, "to": v, "labels": data.get("labels", [])}
             for u, v, data in G_update.edges(data=True)
         ],
     }
@@ -168,13 +168,13 @@ def generate_register_AP_after_query(ap_payload: APRequest) -> APRequest:
         "nodes": [
             {
                 "id": node_id,
-                "labels": G_register.nodes[node_id]["labels"],
-                "properties": G_register.nodes[node_id]["properties"],
+                "labels": G_register.nodes[node_id].get("labels", []),
+                "properties": G_register.nodes[node_id].get("properties", {}),
             }
             for node_id in G_register.nodes()
         ],
         "edges": [
-            {"from": u, "to": v, "labels": data["labels"]}
+            {"from": u, "to": v, "labels": data.get("labels", [])}
             for u, v, data in G_register.edges(data=True)
         ],
     }
