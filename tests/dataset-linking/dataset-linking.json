@@ -5,7 +5,8 @@
                         "labels": [ "dg:BasicDLElement"], 
                         "properties":{
                                 "type": "dg:BasicDLElement", 
-                                "name": "dl1"
+                                "dg:combinedSimilarity": "0.75",
+                                "dg:usesMetrics": "avg"
                         }
 
                 }, 
@@ -53,94 +54,46 @@
                 }, 
                 {
                         "id":"a5b34711-1a57-4926-8c6c-c9c682ac8d33",
-                        "labels": ["sc:keywords"],
+                        "labels": ["dg:PropertyComparison", "dg:TextualComparison"],
                         "properties": {
-                                "dgo:metricValue": "0.35",
-                                "dg:commonKeywords": ["weather", "greece", "temperature", "precipitation"]
+                                "dg:metricValue": "0.35",
+                                "dg:relevantWords": ["weather", "greece", "temperature", "precipitation"], 
+                                "dg:targetProperty": "keywords", 
+                                "dg:usesMetrics": "JaccardSimilarity"
 
                         }
                 }, 
                 {
-                        "id": "5a666a54-aa20-42d9-b1a3-ae0dbe04b3c4",
-                        "labels": ["dg:JaccardSimilarity"], 
-                        "properties": {
-                                "type": "dg:JaccardSimilarity"
-                        }
-                }, 
-                {
-                        "id": "62c3012a-ab1e-490b-8eb4-eb62bdc5e288", 
-                        "labels": ["dgo:UniqueKeyword"],
-                        "properties":{
-                                "dg:uniqueValues": ["climate"]
-                        }
-                },
-                {
-                        "id": "f9bb2a5a-c31d-445d-8e54-bd6c935dcbf7", 
-                        "labels": ["dgo:UniqueKeyword"],
-                        "properties":{
-                                "dg:uniqueValues": ["athens", "humidity"]
-                        }
-                },
-                {
                         "id":"cdd11856-ac88-4ee1-aaf1-dd32588eaac6", 
                         "labels":[
-                                "sc:descriptions"
+                                "dg:PropertyComparison", "dg:TextualComparison"
                         ],
                         "properties": {
-                                "dgo:metricValue": "0.71",
-                                "dataType": "xsd:decimal",
-                                "dg:commonWordsOnHeadlines": "[... Headline summary]"
-                        }
-                }, 
-                {
-                        "id": "e255ec29-56ec-4a6d-adcd-5350e02893d9", 
-                        "labels": [ "dg:BERT"], 
-                        "properties":{
-                                "type": "dg:BERT"
+                                "dg:metricValue": "0.71",
+                                "dg:relevantWords": "[... Headline summary]", 
+                                "dg:targetProperty": "descriptions", 
+                                "dg:usesMetrics": "BERT"
                         }
                 }, 
                 {
                         "id": "d6c13b1d-0126-4c3d-9625-0c9f53d3fa23", 
-                        "labels": ["sc:headlines"], 
-                        "properties": {
-                                "type": "sc:headlines", 
-                                "dgo:metricValue": "0.85",
-                                "dataType": "xsd:decimal",
-                                "dg:commonWordsOnHeadlines": "[... Headline summary]"
-                        }
-                }, 
-                {
-                        "id": "b66aa6de-0bfe-4e60-ab0c-08826ed575d2", 
                         "labels": [
-                                "sc:CombinedSimilarity"
-                        ], 
-                        "properties":{
-                                "type":"sc:CombinedSimilarity",
-                                "dgo:metricValue": "0.75",
-                                "dataType": "xsd:decimal"
-                        }
-                }, 
-                {
-                        "id": "9cfacea6-57d0-4c05-b455-20c85978231e", 
-                        "labels": [ 
-                                "dg:avg"
-                        ], 
+                                "dg:PropertyComparison", "dg:TextualComparison"
+                        ],
                         "properties": {
-                                "type": "dg:avg"
+                                "dg:targetProperty": "headlines", 
+                                "dg:metricValue": "0.85",
+                                "dg:relevantWords": "[... Headline summary]",
+                                "dg:usesMetrics": "BERT"
                         }
                 }
-
-
-
-
-
         ], 
         "edges": [
                 {
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
                         "labels": [
-                                "dgo:hasTargetDataset"
+                                "dg:hasTargetDataset"
                         ]
                         
                 }, 
@@ -155,7 +108,7 @@
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "71c167de-4aad-41f0-8c91-48e38285ed0d", 
                         "labels": [
-                                "dgo:hasTargetDataset"
+                                "dg:hasTargetDataset"
                         ]
                         
                 },
@@ -170,90 +123,123 @@
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "a5b34711-1a57-4926-8c6c-c9c682ac8d33", 
                         "labels": [
-                                "dgo:hasTargetProperty"
-                        ]
+                                "dg:hasComparison"
+                        ], 
+                        "properties":{
+                                "weight": "0.3"
+                        }
                 }, 
                 {
 
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "cdd11856-ac88-4ee1-aaf1-dd32588eaac6", 
                         "labels": [
-                                "dgo:hasTargetProperty"
-                        ]
+                                "dg:hasComparison"
+                        ], 
+                        "properties":{
+                                "weight": "0.3"
+                        }
                 }, 
                 {
 
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "d6c13b1d-0126-4c3d-9625-0c9f53d3fa23", 
                         "labels": [
-                                "dgo:hasTargetProperty"
-                        ]
+                                "dg:hasComparison"
+                        ], 
+                        "properties":{
+                                "weight": "0.4"
+                        }
                 }, 
                 {
 
                         "from": "cb5b9378-d437-4770-920b-9ae090bebed4", 
                         "to": "b66aa6de-0bfe-4e60-ab0c-08826ed575d2", 
                         "labels": [
-                                "dgo:hasTargetProperty"
+                                "dg:hasComparison"
                         ]
+                }, 
+
+                {
+                        "from": "a5b34711-1a57-4926-8c6c-c9c682ac8d33", 
+                        "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ["climate"]
+                        }
                 }, 
                 {
                         "from": "a5b34711-1a57-4926-8c6c-c9c682ac8d33", 
-                        "to": "5a666a54-aa20-42d9-b1a3-ae0dbe04b3c4", 
-                        "labels": ["dgo:usesMetric"]
-                },
-                {
-                        "from": "a5b34711-1a57-4926-8c6c-c9c682ac8d33", 
-                        "to": "62c3012a-ab1e-490b-8eb4-eb62bdc5e288", 
-                        "labels": ["dgo:uniqueKeywords"]
-                },
-                {
-                        "from": "a5b34711-1a57-4926-8c6c-c9c682ac8d33", 
-                        "to": "f9bb2a5a-c31d-445d-8e54-bd6c935dcbf7", 
-                        "labels": ["dgo:uniqueKeywords"]
+                        "to": "71c167de-4aad-41f0-8c91-48e38285ed0d", 
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ["athens", "humidity"]
+                        }
                 }, 
                 {
-                        "from": "cdd11856-ac88-4ee1-aaf1-dd32588eaac6",
-                        "to": "e255ec29-56ec-4a6d-adcd-5350e02893d9", 
+                        "from": "d6c13b1d-0126-4c3d-9625-0c9f53d3fa23", 
+                        "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
                         "labels":[
-                                "dgo:usesMetric"
-                        ]
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
                 }, 
                 {
-                        "from": "d6c13b1d-0126-4c3d-9625-0c9f53d3fa23",
-                        "to": "e255ec29-56ec-4a6d-adcd-5350e02893d9", 
+                        "from": "d6c13b1d-0126-4c3d-9625-0c9f53d3fa23", 
+                        "to": "71c167de-4aad-41f0-8c91-48e38285ed0d", 
                         "labels":[
-                                "dgo:usesMetric"
-                        ]
-                }, 
-                {
-                        "from": "a5b34711-1a57-4926-8c6c-c9c682ac8d33",
-                        "to": "5a666a54-aa20-42d9-b1a3-ae0dbe04b3c4", 
-                        "labels":[
-                                "dgo:usesMetric"
-                        ]
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
                 }, 
                 {
                         "from": "b66aa6de-0bfe-4e60-ab0c-08826ed575d2", 
-                        "to": "9cfacea6-57d0-4c05-b455-20c85978231e",
-                        "labels": [
-                                "dgo:usesMetric"
-                        ]
+                        "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
                 }, 
                 {
-                        "from": "62c3012a-ab1e-490b-8eb4-eb62bdc5e288", 
-                        "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
-                        "labels": [
-                                "dg:targetSet"
-                        ]
+                        "from": "b66aa6de-0bfe-4e60-ab0c-08826ed575d2", 
+                        "to": "71c167de-4aad-41f0-8c91-48e38285ed0d", 
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
                 },
                 {
-                        "from": "f9bb2a5a-c31d-445d-8e54-bd6c935dcbf7", 
+                        "from": "cdd11856-ac88-4ee1-aaf1-dd32588eaac6", 
+                        "to": "8a2d4e05-e4b7-43f6-8a1a-dbfe03a854d3", 
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
+                }, 
+                {
+                        "from": "cdd11856-ac88-4ee1-aaf1-dd32588eaac6", 
                         "to": "71c167de-4aad-41f0-8c91-48e38285ed0d", 
-                        "labels": [
-                                "dg:targetSet"
-                        ]
-                }
+                        "labels":[
+                                "dg:hasTargetDataset"
+                        ], 
+                        "properties": {
+                                "dg:uniqueKeywords": ""
+                        }
+                } 
                 
         ]
 }

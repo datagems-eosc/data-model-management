@@ -1,0 +1,10 @@
+(basicDLElement: dg:BasicDLElement { REQUIRED dg:combinedSimilarity FLOAT , REQUIRED dg:usesMetrics STRING })
+
+(propertyComparison: dg:PropertyComparison { REQUIRED dg:metricValue FLOAT , REQUIRED dg:targetProperty STRING, REQUIRED dg:usesMetrics STRING})
+
+(textualComparison: dg:PropertyComparison & dg:TextualComparion { dg:relevantWords LIST })
+
+
+(:textualComparison | :PropertyComparison | :basicDLElement) -[hasTargetDataset: dg:hasTargetDataset {OPTIONAL dg:uniqueKeywords LIST }] -> (:Dataset)
+
+(:basicDLElement) -[hasComparison: dg:hasComparison {REQUIRED weight FLOAT }] -> (:propertyComparison)
