@@ -106,6 +106,7 @@ def update_AP_after_query(
     return updated_AP
 
 def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
+    ap_payload = APRequest.model_validate(ap_payload)
     sql_operator_id = str(uuid.uuid4())
     new_dataset_node = Node(
         **{

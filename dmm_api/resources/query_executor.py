@@ -476,6 +476,7 @@ async def execute_query(
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
         ap_payload = wrapped.ap
+        logger.info(f"Received request to execute query with AP payload. ap = {ap_payload}")
         query_info = await extract_query_from_AP(ap_payload, token=token)
         software = query_info.get("software")
         query_filled = query_info.get("query")
@@ -500,7 +501,7 @@ async def execute_query(
         logger.info(f"Query results converted to CSV bytes, size: {len(csv_bytes)} bytes")
         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
         logger.info(f"CSV results uploaded to results storage at path: {upload_path}")
-
+        
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
         logger.info(f"AP updated with new dataset ID and properties after query execution. Dataset ID: {dataset_id}")
         upload_ap_to_results(
