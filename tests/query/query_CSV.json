@@ -100,7 +100,8 @@
       {
         "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
         "labels": [
-          "sc:Dataset"
+          "cr:FileObject",
+          "Data"
         ]
       },
       {
