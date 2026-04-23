@@ -494,12 +494,15 @@ async def execute_query(
                 args_sources=query_info.get("args_sources", {}),
                 db_name=query_info.get("db_name"),
             )
-        
+        logger.info(f"Query executed successfully with software '{software}' and database connection type '{db_connection}'")
         ap_payload, dataset_id = generate_dataset_node(ap_payload)
         csv_bytes = result.to_csv(index=False).encode("utf-8")
+        logger.info(f"Query results converted to CSV bytes, size: {len(csv_bytes)} bytes")
         upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
+        logger.info(f"CSV results uploaded to results storage at path: {upload_path}")
 
         AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
+        logger.info(f"AP updated with new dataset ID and properties after query execution. Dataset ID: {dataset_id}")
         upload_ap_to_results(
             json.dumps(
                 AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
@@ -508,8 +511,10 @@ async def execute_query(
             ),
             dataset_id,
         )
+        logger.info(f"Updated AP uploaded to results storage for dataset ID: {dataset_id}")
 
         register_AP = generate_register_AP_after_query(AP_query_after)
+        logger.info(f"Register AP generated for registering the new dataset in MoMa2. Register AP nodes: {len(register_AP.nodes)}, edges: {len(register_AP.edges)}")
         await register_dataset(WrappedAPRequest(ap=register_AP))
 
         # TODO: AP Storage
@@ -526,4 +531,9 @@ async def execute_query(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute query: {str(e)}",
+        )
+    except httpx.TimeoutException:
+        raise HTTPException(
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail=f"MoMa2 API request timed out. Node: {node_id}",
         )
