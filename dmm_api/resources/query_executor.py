@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException, status, Depends
 from typing import Dict, Any, Optional
 
 from ..tools.AP.generate_AP import generate_register_AP_after_query
-from ..tools.AP.update_AP import update_AP_after_query, update_output_dataset_id
+from ..tools.AP.update_AP import update_AP_after_query, update_output_dataset_id, generate_dataset_node
 
 from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..resources.dataset import APSuccessEnvelope, WrappedAPRequest, register_dataset
