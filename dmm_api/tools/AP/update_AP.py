@@ -122,7 +122,7 @@ def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
         new_edge = Edge(
                     **{"from": node.id, "to": sql_operator_id, "labels": ["follows"]}
                 )
-                ap_payload.edges.append(new_edge)
+        ap_payload.edges.append(new_edge)
         for edge in ap_payload.edges:
             if str(edge.source) == str(nlq_operator_id) and "output" in edge.labels:
                 edge.source = sql_operator_id
