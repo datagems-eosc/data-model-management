@@ -86,6 +86,12 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
+            "in-dataset-discovery/text2sql": {
+                "description": "Forward AP to IDD text2sql endpoint using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/in-dataset-discovery/text2sql",
+            },
+
             "MoMa2Croissant": {
                 "description": "Convert MoMa profile to Croissant format",
                 "methods": ["POST"],

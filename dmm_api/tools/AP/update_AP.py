@@ -104,3 +104,22 @@ def update_AP_after_query(
     updated_AP.edges.append(new_edge)
 
     return updated_AP
+
+def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
+    sql_operator_id = str(uuid.uuid4())
+    new_dataset_node = Node(
+        **{
+            "id": sql_operator_id,
+            "labels": ["Query_Operator", "SQL_Operator"]
+        }
+    )
+    ap_payload.nodes.append(new_dataset_node)
+    for node in ap_payload.nodes:
+        if "NLQ_Operator" in node.labels:
+            # The edge should be changed from SQL_Operator to NLQ_Operator
+            new_edge = Edge(
+                **{"from": node.id, "to": sql_operator_id, "labels": ["follows"]}
+            )
+            ap_payload.edges.append(new_edge)
+    
+    return ap_payload
