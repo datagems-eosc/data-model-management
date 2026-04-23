@@ -1663,7 +1663,8 @@ async def execute_and_store_idd(
 
     # Extract ap and metadata from the uploaded file to store only ap
     ap = payload_data.get("ap", {})
-    ap = add_sql_operators_to_ap(ap)
+    ap_wrapped = add_sql_operators_to_ap(wrapped.ap)
+    payload_data["ap"] = ap_wrapped.model_dump()
 
     try:
         print(f"[{service['name']}] Storing AP in AP Storage:")
