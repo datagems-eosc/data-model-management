@@ -22,6 +22,7 @@ cd tests
 - [7) Query a Dataset](#7-query-a-dataset)
 - [8) Converter](#8-converter)
 - [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
+- [10) In-dataset Discovery text2sql](#10-in-dataset-discovery-text2sql)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1488,6 +1489,24 @@ This stores the AP in MoMa and forwards the JSON file to the `cross-dataset-disc
     }
 }
 ```
+
+## 10) In-dataset Discovery text2sql
+
+
+The `POST /in-dataset-discovery/text2sql` endpoint requires a valid bearer token.
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/in-dataset-discovery/text2sql" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@in-dataset/request.json" | python3 -m json.tool
+```
+Example payload file: [tests/in-dataset/request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `in-dataset/request.json`).
+
+This stores the AP in MoMa and forwards the JSON file to the `in-dataset-discovery/search` endpoint. Then, the SQL_Operators is executed. The API returns:
+```json
+
+```
+
 
 
 
