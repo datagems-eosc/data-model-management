@@ -230,6 +230,7 @@ def extract_from_AP(
             "sc:Dataset",
             "cr:FileObject",
             "cr:RecordSet",
+            "cr:FileSet",
             "cr:Field",
             "dg:ColumnStatistics",
             "dg:DatabaseConnection",
