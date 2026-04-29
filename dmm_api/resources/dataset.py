@@ -40,6 +40,7 @@ from ..tools.AP.parse_AP import (
 from ..tools.AP.update_AP import (
     update_dataset_archivedAt,
     add_sql_operators_to_ap,
+    generate_dataset_node
 )
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
