@@ -2,6 +2,7 @@ from datetime import date
 from enum import Enum
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 from dmm_api.resources.converter import convertProfile
@@ -33,7 +34,9 @@ from ..tools.AP.parse_AP import (
     extract_from_AP,
     APRequest,
     group_datasets_by_components,
+    json_to_graph,
 )
+
 from ..tools.AP.update_AP import (
     update_dataset_archivedAt,
     add_sql_operators_to_ap,
