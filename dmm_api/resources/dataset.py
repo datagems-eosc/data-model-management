@@ -40,12 +40,21 @@ from ..tools.AP.parse_AP import (
 from ..tools.AP.update_AP import (
     update_dataset_archivedAt,
     add_sql_operators_to_ap,
-    generate_dataset_node
+    generate_dataset_node,
+    update_fileObject_id,
+    update_fileObject_properties,
+    update_AP_after_query
+
 )
+from ..tools.AP.generate_AP import (
+    generate_update_AP,
+    generate_register_AP_after_query
+) 
+
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 
-# from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
+from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 logger = structlog.get_logger(__name__)
