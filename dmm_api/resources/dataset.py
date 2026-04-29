@@ -2124,9 +2124,9 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     )
     logger.info(f"Updated AP uploaded to results storage for dataset ID: {dataset_id}")
 
-    register_AP = generate_register_AP_after_query(AP_query_after)
-    logger.info(f"Register AP generated for registering the new dataset in MoMa2. Register AP nodes: {len(register_AP.nodes)}, edges: {len(register_AP.edges)}")
-    await register_dataset(WrappedAPRequest(ap=register_AP))
+    # register_AP = generate_register_AP_after_query(AP_query_after)
+    # logger.info(f"Register AP generated for registering the new dataset in MoMa2. Register AP nodes: {len(register_AP.nodes)}, edges: {len(register_AP.edges)}")
+    # await register_dataset(WrappedAPRequest(ap=register_AP))
 
     # TODO: AP Storage
 
