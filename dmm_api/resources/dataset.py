@@ -2066,7 +2066,7 @@ async def polyglot_query(
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Query executed successfully, results stored at {upload_path}",
-            ap=AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
+            ap=executed_ap.model_dump(by_alias=True, exclude_defaults=True),
         )
 
     except HTTPException:
