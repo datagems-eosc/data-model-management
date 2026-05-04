@@ -3,6 +3,7 @@ from enum import Enum
 import json
 import os
 import re
+import time
 from pathlib import Path
 import shutil
 from dmm_api.resources.converter import convertProfile
@@ -1640,6 +1641,7 @@ def execute_query_csv(query, software):
 
 def execute_query_postgres(query, duckdb_connection):
     """Execute query on PostgreSQL via DuckDB"""
+    t0 = time.perf_counter()
     try:
         # Install and load postgres extension
         duckdb_connection.sql("INSTALL postgres;")
@@ -1673,10 +1675,13 @@ def execute_query_postgres(query, duckdb_connection):
             f"dbname={db_name} user={db_user} password={db_password} "
             f"host={db_host} port={db_port}"
         )
+        logger.info(f"[TIMER] DuckDB connection: {time.perf_counter() - t0:.4f}s")
+
 
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
+        t1 = time.perf_counter()
         result_df = duckdb_connection.execute(query.get("query")).fetchdf()
-
+        logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
     except Exception as e:
@@ -2062,6 +2067,7 @@ async def polyglot_query(
 ):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
+        
         executed_ap, upload_path = await execute_query(wrapped, token=token)
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
@@ -2105,15 +2111,14 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
             args_sources=query_info.get("args_sources", {}),
             db_name=query_info.get("db_name"),
         )
-    logger.info(f"Query executed successfully with software '{software}' and database connection type '{db_connection}'")
     ap_payload, dataset_id = generate_dataset_node(ap_payload)
+    t2 = time.perf_counter()
     csv_bytes = result.to_csv(index=False).encode("utf-8")
-    logger.info(f"Query results converted to CSV bytes, size: {len(csv_bytes)} bytes")
     upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
-    logger.info(f"CSV results uploaded to results storage at path: {upload_path}")
-    
+    logger.info(f"[TIMER] Results printed in s3: {time.perf_counter() - t2:.4f}s")    
     AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
     logger.info(f"AP updated with new dataset ID and properties after query execution. Dataset ID: {dataset_id}")
+    t3 = time.perf_counter()
     upload_ap_to_results(
         json.dumps(
             AP_query_after.model_dump(by_alias=True, exclude_defaults=True),
@@ -2122,6 +2127,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
         ),
         dataset_id,
     )
+    logger.info(f"[TIMER] AP uploaded: {time.perf_counter() - t3:.4f}s")
     logger.info(f"Updated AP uploaded to results storage for dataset ID: {dataset_id}")
 
     # register_AP = generate_register_AP_after_query(AP_query_after)
