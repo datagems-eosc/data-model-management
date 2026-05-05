@@ -66,6 +66,8 @@ def map_recordSet(recordSet):
         else:
             recordSet_dict[key] = val
     recordSet_dict["field"] = fields
+    if recordSet_dict.get("@type") is None:
+        recordSet_dict["@type"] = "cr:RecordSet"
     return recordSet_dict
 
 
