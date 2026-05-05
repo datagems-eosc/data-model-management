@@ -24,6 +24,8 @@ def map_to_croissant(datasets):
                 dataset_dict["@id"] = val
             else:
                 dataset_dict[key] = val
+        if dataset_dict.get("@type") is None:
+            dataset_dict["@type"] = "cr:Dataset"
     return dataset_dict
 
 
@@ -37,6 +39,8 @@ def map_to_croissant_dataset(datasets):
                 dataset_dict["@id"] = val
             else:
                 dataset_dict[key] = val
+        if dataset_dict.get("@type") is None:
+            dataset_dict["@type"] = "cr:Dataset"
     return dataset_dict
 
 
@@ -49,6 +53,8 @@ def map_fileObjects(fileObject):
             fileObject_dict["@id"] = val
         else:
             fileObject_dict[key] = val
+    if fileObject_dict.get("@type") is None:
+        fileObject_dict["@type"] = "cr:FileObject"
     return fileObject_dict
 
 
@@ -86,6 +92,8 @@ def map_field(field):
             field_dict[key] = val
 
     field_dict["statistics"] = statistics[0] if statistics else None
+    if field_dict.get("@type") is None:
+        field_dict["@type"] = "cr:Field"
     return field_dict
 
 
@@ -98,4 +106,6 @@ def map_statistics(statistic):
             statistic_dict["@id"] = val
         else:
             statistic_dict[key] = val
+    if statistic_dict.get("@type") is None:
+        statistic_dict["@type"] = "dg:ColumnStatistics"
     return statistic_dict
