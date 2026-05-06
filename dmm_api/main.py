@@ -100,6 +100,11 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/authtest",
             },
+            "polyglot/query/result": {
+                "description": "Get the result of a polyglot query",
+                "methods": ["GET"],
+                "url": "/api/v1/polyglot/query/result/{dataset_id}",
+            }
         },
     }
 

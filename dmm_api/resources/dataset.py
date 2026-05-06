@@ -55,7 +55,7 @@ from ..tools.AP.generate_AP import (
 from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 
-from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results
+from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results, get_results_uuid
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 logger = structlog.get_logger(__name__)
@@ -2137,6 +2137,25 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     # TODO: AP Storage
 
     return AP_query_after, upload_path
+
+
+@router.get("polyglot/query/result/{dataset_id}")
+async def get_query_result(dataset_id: str, token: str = Depends(security.oauth2_scheme)):
+    """Endpoint to retrieve query results by dataset ID"""
+    try:
+        results = await get_results_uuid(dataset_id)
+        return results
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Result for dataset ID '{dataset_id}' not found.",
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve query result: {str(e)}",
+        )
+
 
 @router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
 async def execute_and_store_idd(
