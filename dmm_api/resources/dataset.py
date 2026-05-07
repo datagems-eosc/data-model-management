@@ -1680,7 +1680,8 @@ def execute_query_postgres(query, duckdb_connection):
 
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
         t1 = time.perf_counter()
-        q = f"SELECT * FROM postgres_query('pg_db','{query.get('query')}')"
+        pg_sql = query.get("query").replace("'", "''")
+        q = f"""SELECT * FROM postgres_query("pg_db","{pg_sql}")"""
         result_df = duckdb_connection.execute(q).fetchdf()
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
