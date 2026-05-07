@@ -1960,7 +1960,7 @@ async def extract_query_from_AP(
 
     for argname, source in args_sources.items():
         if source == "text/sql":
-            args_map[argname] = "pg_db.public." + G.nodes[args_map[argname]].get(
+            args_map[argname] = "public." + G.nodes[args_map[argname]].get(
                 "properties", {}
             ).get("name", "")
         elif source == "text/csv":
