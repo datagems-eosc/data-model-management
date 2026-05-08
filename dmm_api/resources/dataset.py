@@ -1680,19 +1680,13 @@ def execute_query_postgres(query, duckdb_connection):
 
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
         t1 = time.perf_counter()
-        pg_sql = query.get("query").replace("'", "''")
-        q = f"""SELECT * FROM postgres_query("pg_db","{pg_sql}")"""
-        result_df = duckdb_connection.execute(q).fetchdf()
+        result_df = duckdb_connection.execute(("SELECT * FROM postgres_query('pg_db', ?)",[query.get("query")])).fetchdf()
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
     except Exception as e:
         raise Exception(
             f"PostgreSQL connection failed: {str(e)}. "
-            f"Check that: 1) Host is reachable (host={os.getenv('DATAGEMS_POSTGRES_HOST')}), "
-            f"2) Port is correct (port={os.getenv('DATAGEMS_POSTGRES_PORT')}), "
-            f"3) Credentials are valid (user={os.getenv('DS_READER_USER')}), "
-            f"4) Database exists (db={query.get('db_name')})"
         )
 
 
