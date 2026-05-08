@@ -1686,11 +1686,7 @@ def execute_query_postgres(query, duckdb_connection):
 
     except Exception as e:
         raise Exception(
-            f"PostgreSQL connection failed: {str(e)}. "
-            f"Check that: 1) Host is reachable (host={os.getenv('DATAGEMS_POSTGRES_HOST')}), "
-            f"2) Port is correct (port={os.getenv('DATAGEMS_POSTGRES_PORT')}), "
-            f"3) Credentials are valid (user={os.getenv('DS_READER_USER')}), "
-            f"4) Database exists (db={query.get('db_name')})"
+            f"PostgreSQL connection failed: {str(e)}."
         )
 
 
