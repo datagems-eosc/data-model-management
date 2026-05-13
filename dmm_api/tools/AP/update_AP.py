@@ -93,7 +93,7 @@ def update_AP_after_query(
     fileObject_id = str(uuid.uuid4())
     s3_path = new_path.replace("/s3/", "s3://")
     updated_AP = update_fileObject_id(updated_AP, old_fileObject_id, fileObject_id)
-    updated_AP = update_fileObject_properties(updated_AP,fileObject_id, new_path)
+    updated_AP = update_fileObject_properties(updated_AP,fileObject_id, s3_path)
 
     updated_AP = update_dataset_archivedAt(updated_AP, dataset_id, s3_path)
 
