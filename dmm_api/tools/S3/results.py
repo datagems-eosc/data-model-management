@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 import csv
+from typing import Optional
 
 
 RESULTS_DIR = os.environ.get("RESULTS_DIR", "/s3/data-model-management")
@@ -41,12 +42,18 @@ def upload_ap_to_results(ap_content: str, dataset_id: str) -> None:
     except Exception as e:
         raise RuntimeError(f"Failed to upload AP to results: {str(e)}")
 
-def get_results_uuid(dataset_id: str) -> str:
+def get_results_uuid(dataset_id: str, line: Optional[int] = None ) -> str:
     results_folder = Path(results_path) / dataset_id
     if not results_folder.exists():
         raise FileNotFoundError(f"Results folder for dataset {dataset_id} not found.")
-    else:
-        file = results_folder / "output.csv"
-        reader = csv.DictReader(StringIO(file.read_text(encoding="utf-8")))
-        json_data = json.dumps(list(reader), indent=2)
-        return json_data
+    file = results_folder / "output.csv"
+    if line is not None:
+        lines = []
+        with file.open(encoding="utf-8") as f:
+            for i, l in enumerate(f):
+                if i >= line:
+                    break
+                lines.append(l)
+        return "".join(lines)
+
+    return file.read_text(encoding="utf-8")

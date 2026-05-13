@@ -2139,10 +2139,14 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
 
 
 @router.get("/polyglot/query/result/{dataset_id}")
-async def get_query_result(dataset_id: str, token: str = Depends(security.oauth2_scheme)):
+async def get_query_result(
+        dataset_id: str,
+        token: str = Depends(security.oauth2_scheme),
+        lines: Optional[int] = Query(..., alias="lines")
+    ):
     """Endpoint to retrieve query results by dataset ID"""
     try:
-        results = await get_results_uuid(dataset_id)
+        results = get_results_uuid(dataset_id, line=lines)
         return results
     except FileNotFoundError:
         raise HTTPException(
