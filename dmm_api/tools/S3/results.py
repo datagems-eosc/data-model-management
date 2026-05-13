@@ -51,7 +51,7 @@ def get_results_uuid(dataset_id: str, line: Optional[int] = None ) -> str:
         lines = []
         with file.open(encoding="utf-8") as f:
             for i, l in enumerate(f):
-                if i >= line:
+                if i > line:
                     break
                 lines.append(l)
         return "".join(lines)

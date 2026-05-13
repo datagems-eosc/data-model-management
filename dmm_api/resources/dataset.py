@@ -2142,7 +2142,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
 async def get_query_result(
         dataset_id: str,
         token: str = Depends(security.oauth2_scheme),
-        lines: Optional[int] = Query(..., alias="lines")
+        lines: Optional[int] = Query(None, alias="lines")
     ):
     """Endpoint to retrieve query results by dataset ID"""
     try:
