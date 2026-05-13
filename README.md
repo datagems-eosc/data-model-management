@@ -88,11 +88,10 @@ Primary endpoint URLs (grouped):
 
 - **Query execution**
     - `https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query` — Executes query workflows and stores results.
+    - `https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query/result/{dataset_id}` - Returns the file content of a query result
 
 - **Authentication test utilities**
     - `https://datagems-dev.scayle.es/dmm/api/v1/authtest` — Validates bearer token and echoes request context.
-
-
 ---
 
 ## Running the API Locally

@@ -23,6 +23,7 @@ cd tests
 - [8) Converter](#8-converter)
 - [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
 - [10) In-dataset Discovery text2sql](#10-in-dataset-discovery-text2sql)
+- [11) Get Query Result](#11-get-query-result)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1507,7 +1508,32 @@ This stores the AP in MoMa and forwards the JSON file to the `in-dataset-discove
 
 ```
 
+## 11) Get Query Result
 
+The polyglot/query/results/{dataset-uuid} endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
+
+### GET the result of a query
+```bash
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query/result/c0ab5594-58ac-41d3-9c90-dd9d34a659ad' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" 
+```
+
+Optional query parameter:
+- `lines` (int, default `None`): if lines = 10, the first 10 lines of the output csv file will be returned; by default the full file content will be returned
+```bash
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query/result/c0ab5594-58ac-41d3-9c90-dd9d34a659ad?lines=10' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" 
+```
+
+This will return :
+
+```json
+"mean_daily_temperature_celsius\n10.613293907290553\n"
+```
 
 
 ## Auth Test (Bearer token required)
