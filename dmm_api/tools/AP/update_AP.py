@@ -51,7 +51,7 @@ def update_fileObject_properties(
         if str(node.id) == str(fileObject_id) and "cr:FileObject" in node.labels:
             if "properties" not in node.model_dump():
                 node.properties = {}
-            node.properties["contentUrl"] = f"s3://{new_path}/output.csv"
+            node.properties["contentUrl"] = f"{new_path}/output.csv"
             node.properties["contentSize"] = "1000000 B"
             node.properties["encodingFormat"] = "text/csv"
             node.properties["name"] = "output.csv"
@@ -92,7 +92,7 @@ def update_AP_after_query(
     old_fileObject_id = output_edge.target
     fileObject_id = str(uuid.uuid4())
     s3_path = new_path.replace("/s3/", "s3://")
-    update_AP = update_fileObject_id(updated_AP, old_fileObject_id, fileObject_id)
+    updated_AP = update_fileObject_id(updated_AP, old_fileObject_id, fileObject_id)
     updated_AP = update_fileObject_properties(updated_AP,fileObject_id, new_path)
 
     updated_AP = update_dataset_archivedAt(updated_AP, dataset_id, s3_path)
