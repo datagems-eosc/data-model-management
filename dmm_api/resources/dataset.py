@@ -2138,7 +2138,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     return AP_query_after, upload_path
 
 
-@router.get("polyglot/query/result/{dataset_id}")
+@router.get("/polyglot/query/result/{dataset_id}")
 async def get_query_result(dataset_id: str, token: str = Depends(security.oauth2_scheme)):
     """Endpoint to retrieve query results by dataset ID"""
     try:
