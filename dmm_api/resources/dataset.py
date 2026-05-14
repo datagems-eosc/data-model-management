@@ -1535,21 +1535,6 @@ async def execute_and_store(
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
-    # exchanged_token = await _exchange_token_for_cdd(
-    #     user_token=token,
-    # )
-    # if not exchanged_token:
-    #     logger.warning(
-    #         "Could not obtain a cdd token. The request to the external service will be made without authentication, which may lead to failure if the service requires a valid token."
-    #     )
-    #     return APResponseSuccessEnvelope(
-    #         code=status.HTTP_200_OK,
-    #         message=f"AP stored successfully, but failed to obtain token for {service['name']}. Request sent without authentication.",
-    #         content={
-    #             "warning": "Failed to obtain token for external service. Request sent without authentication."
-    #         },
-    #     )
-
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -1737,15 +1722,46 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                 )
                 con.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
 
-            # Handle CSV paths in query (convert S3 paths to local paths)
             processed_query = query.get("query", "")
             s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", processed_query)
 
-            for s3_path in s3_paths:
-                cleaned_path = s3_path.replace("'", "")
-                local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
-                replacement = f"read_csv_auto('{local_folder}')"
-                processed_query = processed_query.replace(s3_path, replacement)
+            # Create views for CSV sources and replace in query
+            csv_view_map = {}
+            for idx, s3_path in enumerate(s3_paths):
+                cleaned = s3_path.replace("'", "")
+                local_path = cleaned.replace("s3://dataset/", f"{DATASET_DIR}/")
+                view_name = f"csv_src_{idx}"
+                csv_view_map[s3_path] = view_name
+                con.sql(f"""
+                    CREATE VIEW {view_name} AS
+                    SELECT * FROM read_csv_auto('{local_path}');
+                """)
+
+            for s3_path, view_name in csv_view_map.items():
+                processed_query = processed_query.replace(s3_path, view_name)
+            
+            # Create views for PostgreSQL sources and replace in query
+            pg_view_map = {}
+            for argname, source in args_sources.items():
+                if source == "text/sql":
+                    pg_sql = query[argname].rstrip().rstrip(";")
+                    view_name = f"pg_src_{argname}"
+
+                    pg_view_map[argname] = view_name
+
+                    con.sql(f"""
+                        CREATE VIEW {view_name} AS
+                        SELECT * FROM postgres_query('pg_db', $$ {pg_sql} $$);
+                    """)
+
+                    processed_query = processed_query.replace(argname, view_name)
+
+
+            # for s3_path in s3_paths:
+            #     cleaned_path = s3_path.replace("'", "")
+            #     local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
+            #     replacement = f"read_csv_auto('{local_folder}')"
+            #     processed_query = processed_query.replace(s3_path, replacement)
 
             # Execute the mixed query
             result_df = con.execute(processed_query).fetchdf()
