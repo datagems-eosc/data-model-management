@@ -8,40 +8,7 @@
         ],
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
-      {
-        "from": "d8f86123-456f-4e14-8d62-0a1d95881d76",
-        "labels": [
-          "input"
-        ],
-        "properties": {
-          "argname": "arg1"
-        },
-        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
-      },
-      {
-        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
-        "labels": [
-          "distribution"
-        ],
-        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
-      },
-      {
-        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
-        "labels": [
-          "contained_in"
-        ],
-        "to": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4"
-      },
-      {
-        "from": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
-        "labels": [
-          "input"
-        ],
-        "properties": {
-          "argname": "arg2"
-        },
-        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
-      },
+
       {
         "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
@@ -62,20 +29,78 @@
           "request"
         ],
         "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
-      },
+      }, 
       {
-        "from": "b551f361-3f61-4ccf-a001-7c28d065c30d",
+        "from": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
         "labels": [
           "distribution"
         ],
-        "to": "d8f86123-456f-4e14-8d62-0a1d95881d76"
-      },
+        "to": "3b516b4d-5318-422f-a605-b86b5796d565"
+      }, 
       {
-        "from": "945567af-06dc-4d62-854e-5bf68d486a54",
+        "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
         "labels": [
           "distribution"
         ],
-        "to": "9bd99e2b-97b4-4fb3-858a-6229df4df73f"
+        "to": "7e09b481-0812-4321-8e80-f9dc812f8b71"
+      }, 
+      {
+          "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+          "labels": [
+            "distribution"
+          ],
+          "to": "e6e93f40-02a6-4335-97db-4f7c02d5da89"
+      },
+      {
+        "from": "3b516b4d-5318-422f-a605-b86b5796d565",
+        "labels": [
+          "input"
+        ],
+        "properties":{
+          "argName": "arg1"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      }, 
+      {
+        "from": "7e09b481-0812-4321-8e80-f9dc812f8b71",
+        "labels": [
+          "input"
+        ],  
+        "properties":{
+          "argName": "arg2"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from": "6f6e18e2-c61c-4c72-8de8-808b16757166",
+        "labels": [
+          "input"
+        ],  
+        "properties":{
+          "argName": "arg3"
+        },
+        "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
+      },
+      {
+        "from":"6f6e18e2-c61c-4c72-8de8-808b16757166",
+        "labels":[
+          "contained_in"
+        ],
+        "to":"e6e93f40-02a6-4335-97db-4f7c02d5da89"
+      }, 
+      {
+        "from":"629bed3a-c1f1-421b-858a-f0f685bb8275",
+        "labels":[
+          "distribution"
+        ],
+        "to":"6f6e18e2-c61c-4c72-8de8-808b16757166"
+      }, 
+      {
+        "from":"7e09b481-0812-4321-8e80-f9dc812f8b71",
+        "labels":[
+          "contained_in"
+        ],
+        "to":"e6e93f40-02a6-4335-97db-4f7c02d5da89"
       }
     ],
     "nodes": [
@@ -100,48 +125,12 @@
         "properties": {
           "description": "Query executed via DuckDB on Postgres",
           "name": "DuckDB Query Operator",
-          "query": "SELECT t1.modifiedDate, t1.conceptType, t2.latitude, t2.longitude, t2.tmean FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.modifiedDate = t2.time LIMIT 100;",
+          "query": "SELECT t3.topic, t2.subtopic, t1.question FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.subtopic = t2.subtopic JOIN {{arg3}} as t3 ON t1.topic = t3.topic LIMIT 100;",
           "queryType": "SELECT",
           "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
-      {
-        "id": "945567af-06dc-4d62-854e-5bf68d486a54",
-        "labels": [
-          "sc:Dataset"
-        ]
-      },
-      {
-        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
-        "labels": [
-          "cr:FileObject",
-          "Data"
-        ]
-      },
-      {
-        "id": "b551f361-3f61-4ccf-a001-7c28d065c30d",
-        "labels": [
-          "sc:Dataset"
-        ]
-      },
-      {
-        "id": "b1eef6e4-a3a4-4721-ba86-5f99ed52e2c4",
-        "labels": [
-          "dg:DatabaseConnection"
-        ]
-      },
-      {
-        "id": "d8f86123-456f-4e14-8d62-0a1d95881d76",
-        "labels": [
-          "cr:FileObject"
-        ]
-      },
-      {
-        "id": "9bd99e2b-97b4-4fb3-858a-6229df4df73f",
-        "labels": [
-          "cr:FileObject"
-        ]
-      },
+
       {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
         "labels": [
@@ -157,6 +146,52 @@
           "description": "Task to query a dataset",
           "name": "Dataset Querying Task"
         }
+      }, 
+      {
+        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad", 
+        "labels":[
+          "Data", 
+          "cr:FileObject"
+        ]
+      }, 
+      {
+        "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318", 
+        "labels":[
+          "Dataset"
+        ]
+      }, 
+      {
+        "id": "3b516b4d-5318-422f-a605-b86b5796d565",
+        "labels":[
+          "Data", 
+          "cr:FileObject"
+        ]
+      }, 
+      {
+        "id": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+        "labels":[
+          "Dataset"
+         ]
+      }, 
+      {
+        "id": "7e09b481-0812-4321-8e80-f9dc812f8b71",
+        "labels":[
+          "Data", 
+          "cr:FileObject"
+        ]
+      }, 
+      {
+        "id": "6f6e18e2-c61c-4c72-8de8-808b16757166",
+        "labels":[
+          "Data", 
+          "cr:FileObject"
+        ]
+      },
+      {
+        "id": "e6e93f40-02a6-4335-97db-4f7c02d5da89",
+        "labels":[
+          "dg:DatabaseConnection"
+        ]
       }
     ]
   }
