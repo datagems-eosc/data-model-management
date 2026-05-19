@@ -1957,7 +1957,6 @@ async def extract_query_from_AP(
             db_types.add("postgres")
         elif source == "text/csv":
             db_types.add("csv")
-
     query_info["db_connection"] = (
         "mixed"
         if len(db_types) > 1
@@ -2112,7 +2111,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     software = query_info.get("software")
     query_filled = query_info.get("query")
     db_connection = query_info.get("db_connection", "Unknown DB Connection")
-
+    logger.info(f"Executing query with software: {software}, db_connection: {db_connection}")
     if db_connection == "postgres":
         result = execute_query_postgres(
             query_info, duckdb.connect(database=":memory:")
@@ -2126,6 +2125,9 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
             args_sources=query_info.get("args_sources", {}),
             db_name=query_info.get("db_name"),
         )
+    elif db_connection == "unknown":
+        logger.error("Mime Type of the FileObjects could not be identified")
+        
     ap_payload, dataset_id = generate_dataset_node(ap_payload)
     t2 = time.perf_counter()
     csv_bytes = result.to_csv(index=False).encode("utf-8")
