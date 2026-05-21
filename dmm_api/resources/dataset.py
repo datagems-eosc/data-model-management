@@ -2469,16 +2469,28 @@ def get_full_ap_subgraph(
 
     query = f"""
     {match_ap}
-    OPTIONAL MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap)
-    WITH ap, COLLECT(DISTINCT u) AS users, COLLECT(DISTINCT t) AS tasks
-    OPTIONAL MATCH (ap)-[:{downstream_rels}*0..{max_depth}]-(n)
-    WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
-    WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
+    OPTIONAL MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
+    WITH ap,
+         COLLECT(DISTINCT u) AS users,
+         COLLECT(DISTINCT t) AS tasks,
+         COLLECT(req) + COLLECT(acc) AS upstream_edges
+
+    OPTIONAL MATCH (ap)-[drel:{downstream_rels}*0..{max_depth}]-(n)
+    WITH ap, users, tasks, upstream_edges,
+         COLLECT(DISTINCT n) AS downstream_nodes,
+         COLLECT(DISTINCT drel) AS downstream_edges
+
+    WITH ap,
+         users + tasks + downstream_nodes + [ap] AS all_nodes_raw,
+         upstream_edges + downstream_edges AS all_edges_raw
     UNWIND all_nodes_raw AS n
-    WITH ap, COLLECT(DISTINCT n) AS all_nodes
+    WITH ap, COLLECT(DISTINCT n) AS all_nodes, all_edges_raw
+
     OPTIONAL MATCH (a)-[r]-(b)
     WHERE a IN all_nodes AND b IN all_nodes
-    RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
+    WITH ap, all_nodes, all_edges_raw + COLLECT(DISTINCT r) AS all_edges
+
+    RETURN ap, all_nodes, all_edges
     """
 
     return query
