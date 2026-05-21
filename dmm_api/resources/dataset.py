@@ -2423,14 +2423,22 @@ async def search_APs(
     gql_query = get_full_ap_subgraph(apId=apId, userId=userId)
     logger.info(f"Generated Grafeo query for AP search: {gql_query}")
     rows = run_grafeo_query(gql_query)   # now rows is a list of dicts
-    all_node_ids = set()
-    all_rel_ids = set()
+    results = []
     for row in rows:
-        all_node_ids.update(row["all_nodes"])
-        all_rel_ids.update(row["all_rels"])
-    nodes_dict = fetch_nodes_by_ids(list(all_node_ids))
-    edges_dict = fetch_rels_by_ids(list(all_rel_ids))
-    return Grafeo_to_AP({"aps": {"nodes": nodes_dict, "edges": edges_dict}}, property_filter=property)
+        node_ids = row["all_nodes"]
+        rel_ids = row["all_rels"]
+
+        nodes_dict = fetch_nodes_by_ids(node_ids)
+        edges_dict = fetch_rels_by_ids(rel_ids)
+
+        ap_graph = Grafeo_to_AP(
+            {"aps": {"nodes": nodes_dict, "edges": edges_dict}},
+            property_filter=property
+        )
+
+        results.append(ap_graph)
+
+    return results
 
     # return Grafeo_to_AP(result)
 
