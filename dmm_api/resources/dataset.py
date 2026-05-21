@@ -2425,8 +2425,10 @@ async def search_APs(
     rows = run_grafeo_query(gql_query)   # now rows is a list of dicts
     results = []
     for row in rows:
+        # Extract IDs from Grafeo objects
         node_ids = row["all_nodes"]
-        rel_ids = row["all_edges"]
+        rel_ids  = row["all_rels"]
+
 
         nodes_dict = fetch_nodes_by_ids(node_ids)
         edges_dict = fetch_rels_by_ids(rel_ids)
@@ -2448,52 +2450,55 @@ def get_full_ap_subgraph(
     userId: Optional[List[str]] = None,
     max_depth: int = 5
 ) -> str:
-
-
-    match_ap = """
-    MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern)
+    """
+    Return a Grafeo-compatible Cypher query that:
+      - matches Analytical_Pattern nodes (optionally filtered by apId)
+      - optionally matches upstream User->Task->AP chains (optionally filtered by userId)
+      - collects downstream nodes via the listed relationship types up to max_depth
+      - builds the node set and then re-matches all relationships between those nodes
+      - returns ap, all_nodes, and all_rels
     """
 
+    # 1. Match APs only (apply apId filter here)
+    match_ap = "MATCH (ap:Analytical_Pattern) "
     where_clauses = []
-    if userId:
-        where_clauses.append(f"u.id IN [{', '.join(repr(x) for x in userId)}]")
     if apId:
         where_clauses.append(f"ap.id IN [{', '.join(repr(x) for x in apId)}]")
     if where_clauses:
         match_ap += "WHERE " + " AND ".join(where_clauses) + " "
-
     match_ap += "WITH ap "
 
-    # 3. Build the downstream relationship list
+    # relationship types for downstream traversal (kept as a string for readability)
     downstream_rels = "consist_of|distribution|input|output|follows|contained_in"
 
+    # Build optional user filter to apply after the OPTIONAL MATCH that binds `u`
+    user_filter_after_optional = ""
+    if userId:
+        user_filter_after_optional = "WHERE u.id IN [" + ", ".join(repr(x) for x in userId) + "]"
+
     query = f"""
-    {match_ap}
-    OPTIONAL MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
-    WITH ap,
-         COLLECT(DISTINCT u) AS users,
-         COLLECT(DISTINCT t) AS tasks,
-         COLLECT(req) + COLLECT(acc) AS upstream_edges
+{match_ap}
+OPTIONAL MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap)
+{user_filter_after_optional}
+WITH ap,
+     COLLECT(DISTINCT u) AS users,
+     COLLECT(DISTINCT t) AS tasks
 
-    OPTIONAL MATCH (ap)-[drel:{downstream_rels}*0..{max_depth}]-(n)
-    WITH ap, users, tasks, upstream_edges,
-         COLLECT(DISTINCT n) AS downstream_nodes,
-         COLLECT(DISTINCT drel) AS downstream_edges
+OPTIONAL MATCH (ap)-[:{downstream_rels}*0..{max_depth}]-(n)
+WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
 
-    WITH ap,
-         users + tasks + downstream_nodes + [ap] AS all_nodes_raw,
-         upstream_edges + downstream_edges AS all_edges_raw
-    UNWIND all_nodes_raw AS n
-    WITH ap, COLLECT(DISTINCT n) AS all_nodes, all_edges_raw
+WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
+UNWIND all_nodes_raw AS n
+WITH ap, COLLECT(DISTINCT n) AS all_nodes
 
-    OPTIONAL MATCH (a)-[r]-(b)
-    WHERE a IN all_nodes AND b IN all_nodes
-    WITH ap, all_nodes, all_edges_raw + COLLECT(DISTINCT r) AS all_edges
+OPTIONAL MATCH (a)-[r]-(b)
+WHERE a IN all_nodes AND b IN all_nodes
 
-    RETURN ap, all_nodes, all_edges
-    """
+RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
+""".strip()
 
     return query
+
 
 
 def fetch_nodes_by_ids(node_ids: List[int]) -> Dict[int, dict]:
