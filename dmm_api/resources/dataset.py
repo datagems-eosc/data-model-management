@@ -2361,14 +2361,21 @@ def run_grafeo_query(query: str):
         return data.get("rows", data)
 
 @router.post("/grafeo/query")
-async def grafeo_query(body: dict):
+async def grafeo_query(
+    body: dict,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)
+    ):
     query = body["query"]
     return run_grafeo_query(query)
 
 @router.post("/ap/store")
 async def grafeo_AP(
     body: str | None = Form(None),
-    file: UploadFile | None = File(None)
+    file: UploadFile | None = File(None),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    
 ):
     # Ensure at least one input is provided
     if body is None and file is None:
@@ -2410,6 +2417,8 @@ async def search_APs(
         apId:Optional[List[str]] = Query(None),
         userId:Optional[List[str]] = Query(None),
         property:Optional[List[str]] = Query(None),
+        token: str = Depends(security.oauth2_scheme),
+        token_payload: dict[str, Any] = Depends(security.require_app_scope),
     ):
     gql_query = get_full_ap_subgraph(apId=apId, userId=userId)
     logger.info(f"Generated Grafeo query for AP search: {gql_query}")
