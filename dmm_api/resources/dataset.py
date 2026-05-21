@@ -2448,38 +2448,41 @@ def get_full_ap_subgraph(
     userId: Optional[List[str]] = None,
     max_depth: int = 5
 ) -> str:
-    # Base pattern to match APs, optionally via a User
-    match_ap = "MATCH (ap:Analytical_Pattern)"
+
+
+    match_ap = """
+    MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern)
+    """
+
     where_clauses = []
-
     if userId:
-        # If userId is provided, we must traverse from the User
-        match_ap = """
-        MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern)
-        """
-        if userId:
-            where_clauses.append(f"u.id IN [{', '.join(repr(x) for x in userId)}]")
-
+        where_clauses.append(f"u.id IN [{', '.join(repr(x) for x in userId)}]")
     if apId:
         where_clauses.append(f"ap.id IN [{', '.join(repr(x) for x in apId)}]")
-
     if where_clauses:
         match_ap += "WHERE " + " AND ".join(where_clauses) + " "
-    
-    match_ap += "WITH DISTINCT ap "
 
-    # The rest of the query remains the same
-    subgraph_query = f"""
+    match_ap += "WITH ap "
+
+    # 3. Build the downstream relationship list
+    downstream_rels = "consist_of|distribution|input|output|follows|contained_in"
+
+    query = f"""
     {match_ap}
-    OPTIONAL MATCH (ap)-[*0..{max_depth}]-(connected)
-    WITH ap, COLLECT(DISTINCT connected) AS ap_nodes
-    UNWIND ap_nodes AS n
+    OPTIONAL MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap)
+    WITH ap, COLLECT(DISTINCT u) AS users, COLLECT(DISTINCT t) AS tasks
+    OPTIONAL MATCH (ap)-[:{downstream_rels}*0..{max_depth}]-(n)
+    WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
+    WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
+    UNWIND all_nodes_raw AS n
     WITH ap, COLLECT(DISTINCT n) AS all_nodes
     OPTIONAL MATCH (a)-[r]-(b)
     WHERE a IN all_nodes AND b IN all_nodes
     RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
     """
-    return subgraph_query
+
+    return query
+
 
 def fetch_nodes_by_ids(node_ids: List[int]) -> Dict[int, dict]:
     if not node_ids:
