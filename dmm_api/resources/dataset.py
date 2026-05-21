@@ -7,7 +7,9 @@ import time
 from pathlib import Path
 import shutil
 from dmm_api.resources.converter import convertProfile
+import requests
 
+from dmm_api.tools.AP.log_AP import AP_to_Grafeo, Grafeo_to_AP
 import duckdb
 import structlog
 from fastapi import (
@@ -178,6 +180,7 @@ IDD_URL = os.getenv("IDD_URL", "https://datagems-dev.scayle.es/in-dataset-discov
 MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
 IDD_TIMEOUT_SECONDS = 30.0
+GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
 
 
 EXTERNAL_SERVICES = {
@@ -2340,3 +2343,149 @@ async def execute_and_store_idd(
         message=f"{service['name']} completed successfully",
         content=response_payload,
     )
+
+@router.get("/grafeo/test")
+async def grafeo_test():
+    return run_grafeo_query("RETURN 1 as ok")
+
+def run_grafeo_query(query: str):
+    url = "http://grafeo:7474/cypher"   # adjust to your endpoint
+    payload = {"query": query}
+    headers = {"Content-Type": "application/json"}
+    resp = requests.post(url, json=payload, headers=headers)
+    resp.raise_for_status()
+    data = resp.json()
+    if "columns" in data and "rows" in data:
+        return [dict(zip(data["columns"], row)) for row in data["rows"]]
+    else:
+        return data.get("rows", data)
+
+@router.post("/grafeo/query")
+async def grafeo_query(
+    body: dict,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)
+    ):
+    query = body["query"]
+    return run_grafeo_query(query)
+
+@router.post("/ap/store")
+async def grafeo_AP(
+    body: str | None = Form(None),
+    file: UploadFile | None = File(None),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    
+):
+    # Ensure at least one input is provided
+    if body is None and file is None:
+        raise HTTPException(
+            status_code=400,
+            detail="You must provide either 'body' or 'file'."
+        )
+    if body is not None:
+        try:
+            ap_dict = json.loads(body)
+            body = WrappedAPRequest(**ap_dict)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
+
+    elif file is not None:
+        content = await file.read()
+        try:
+            ap_dict = json.loads(content)
+            body = WrappedAPRequest(**ap_dict)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid file content: {e}")
+    
+    payload_data = body.ap
+    try: 
+        grafeo_queries = AP_to_Grafeo(payload_data)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    for query in grafeo_queries:
+        grafeo_response = run_grafeo_query(query)
+        print(f"Grafeo response for query '{query}': {grafeo_response}")
+    return {"message": "AP successfully stored in Grafeo"}
+
+
+@router.get("/ap/search")
+async def search_APs(
+        apId:Optional[List[str]] = Query(None),
+        userId:Optional[List[str]] = Query(None),
+        property:Optional[List[str]] = Query(None),
+        token: str = Depends(security.oauth2_scheme),
+        token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    ):
+    gql_query = get_full_ap_subgraph(apId=apId, userId=userId)
+    logger.info(f"Generated Grafeo query for AP search: {gql_query}")
+    rows = run_grafeo_query(gql_query)   # now rows is a list of dicts
+    all_node_ids = set()
+    all_rel_ids = set()
+    for row in rows:
+        all_node_ids.update(row["all_nodes"])
+        all_rel_ids.update(row["all_rels"])
+    nodes_dict = fetch_nodes_by_ids(list(all_node_ids))
+    edges_dict = fetch_rels_by_ids(list(all_rel_ids))
+    return Grafeo_to_AP({"aps": {"nodes": nodes_dict, "edges": edges_dict}}, property_filter=property)
+
+    # return Grafeo_to_AP(result)
+
+        
+def get_full_ap_subgraph(
+    apId: Optional[List[str]] = None,
+    userId: Optional[List[str]] = None,
+    max_depth: int = 5
+) -> str:
+    # Base pattern to match APs, optionally via a User
+    match_ap = "MATCH (ap:Analytical_Pattern)"
+    where_clauses = []
+
+    if userId:
+        # If userId is provided, we must traverse from the User
+        match_ap = """
+        MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern)
+        """
+        if userId:
+            where_clauses.append(f"u.id IN [{', '.join(repr(x) for x in userId)}]")
+
+    if apId:
+        where_clauses.append(f"ap.id IN [{', '.join(repr(x) for x in apId)}]")
+
+    if where_clauses:
+        match_ap += "WHERE " + " AND ".join(where_clauses) + " "
+    
+    match_ap += "WITH DISTINCT ap "
+
+    # The rest of the query remains the same
+    subgraph_query = f"""
+    {match_ap}
+    OPTIONAL MATCH (ap)-[*0..{max_depth}]-(connected)
+    WITH ap, COLLECT(DISTINCT connected) AS ap_nodes
+    UNWIND ap_nodes AS n
+    WITH ap, COLLECT(DISTINCT n) AS all_nodes
+    OPTIONAL MATCH (a)-[r]-(b)
+    WHERE a IN all_nodes AND b IN all_nodes
+    RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
+    """
+    return subgraph_query
+
+def fetch_nodes_by_ids(node_ids: List[int]) -> Dict[int, dict]:
+    if not node_ids:
+        return {}
+    ids_str = ', '.join(str(i) for i in node_ids)
+    query = f"MATCH (n) WHERE id(n) IN [{ids_str}] RETURN id(n) AS internal_id, n"
+    result = run_grafeo_query(query)   # returns list of dicts: [{"internal_id": 15, "n": {...}}, ...]
+    return {row["internal_id"]: row["n"] for row in result}
+
+def fetch_rels_by_ids(rel_ids: List[int]) -> Dict[int, dict]:
+    if not rel_ids:
+        return {}
+    ids_str = ', '.join(str(i) for i in rel_ids)
+    query = f"MATCH ()-[r]-() WHERE id(r) IN [{ids_str}] RETURN id(r) AS internal_id, r"
+    result = run_grafeo_query(query)
+    return {row["internal_id"]: row["r"] for row in result}
+

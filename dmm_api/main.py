@@ -104,6 +104,26 @@ async def api_home():
                 "description": "Get the result of a polyglot query",
                 "methods": ["GET"],
                 "url": "/api/v1/polyglot/query/result/{dataset_id}",
+            }, 
+            "grafeo/test": {
+                "description": "Test endpoint for Grafeo integration",
+                "methods": ["GET"],
+                "url": "/api/v1/grafeo/test",
+            },
+            "grafeo/query": {
+                "description": "Query endpoint for Grafeo integration",
+                "methods": ["POST"],
+                "url": "/api/v1/grafeo/query",
+            }, 
+            "ap/store": {
+                "description": "Store AP in Grafeo",
+                "methods": ["POST"],
+                "url": "/api/v1/ap/store",
+            }, 
+            "ap/search": {
+                "description": "Get APs from Grafeo",
+                "methods": ["GET"],
+                "url": "/api/v1/ap/search",
             }
         },
     }
