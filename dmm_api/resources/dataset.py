@@ -2426,7 +2426,7 @@ async def search_APs(
     results = []
     for row in rows:
         node_ids = row["all_nodes"]
-        rel_ids = row["all_rels"]
+        rel_ids = row["all_edges"]
 
         nodes_dict = fetch_nodes_by_ids(node_ids)
         edges_dict = fetch_rels_by_ids(rel_ids)
