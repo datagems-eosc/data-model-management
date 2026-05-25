@@ -89,7 +89,11 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/in-dataset-discovery/text2sql",
             },
-
+            "dataset-recsys/recommend": {
+                "description": "Forward AP to REC_SYS recommendation endpoint using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/dataset-recsys/recommend",
+            },
             "MoMa2Croissant": {
                 "description": "Convert MoMa profile to Croissant format",
                 "methods": ["POST"],

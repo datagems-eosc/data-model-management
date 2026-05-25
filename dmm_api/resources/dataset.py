@@ -177,8 +177,10 @@ router = APIRouter()
 MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/v1/api")
 CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
 IDD_URL = os.getenv("IDD_URL", "https://datagems-dev.scayle.es/in-dataset-discovery")
+REC_SYS_URL = os.getenv("REC_SYS_URL", "https://datagems-dev.scayle.es/dataset-recsys")
 MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
 CDD_REQUEST_TIMEOUT_SECONDS = 30.0
+REC_SYS_REQUEST_TIMEOUT_SECONDS = 30.0
 IDD_TIMEOUT_SECONDS = 30.0
 GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
 
@@ -192,6 +194,11 @@ EXTERNAL_SERVICES = {
         "url": f"{IDD_URL}/text2sql4ap",
         "name": "In-Dataset Discovery (text2sql)",
     },
+    "/dataset-recsys/recommend": {
+        "url": f"{REC_SYS_URL}/recommend/ap",
+        "name": "Dataset Recommendation System",
+    }
+
 }
 CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
@@ -1529,10 +1536,73 @@ async def execute_and_store(
             ).model_dump(),
         )
 
-    
+@router.post(
+    "/dataset-recsys/recommend", response_model=APResponseSuccessEnvelope
+)
+async def execute_and_store_dataset_recommendations(
+    request: Request,
+    file: Optional[UploadFile] = File(None),
+    body: Optional[WrappedAPRequest] = Body(None),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+) -> APResponseSuccessEnvelope:
+    """Generic handler: forward AP to the appropriate service, store it, return full response.
 
+    Accepts AP in either format:
+    - Multipart form with file upload: file=@path/to/file.json
+    - JSON body: {"ap": {...}}
+    """
+    # Strip the API prefix to get the route path
+    route_path = request.url.path.replace("/api/v1", "", 1)
+    if route_path not in EXTERNAL_SERVICES:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorEnvelope(
+                code=status.HTTP_404_NOT_FOUND,
+                error=f"Unknown endpoint: {route_path}",
+            ).model_dump(),
+        )
+    service = EXTERNAL_SERVICES[route_path]
+
+    # Parse payload from either file or JSON body
+    payload_data = None
+
+    if file:
+        # Read and parse the uploaded JSON file
+        content = await file.read()
+        try:
+            payload_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid JSON in uploaded file: {str(e)}",
+                ).model_dump(),
+            )
+    elif body:
+        # Use JSON body directly (automatic FastAPI parsing)
+        payload_data = {"ap": body.ap.model_dump()}
+    else:
+        # Fallback: manually try to parse JSON body if automatic parsing didn't work
+        try:
+            body_content = await request.body()
+            if body_content:
+                payload_data = json.loads(body_content)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    if not payload_data or "ap" not in payload_data:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="Request must include either a JSON file upload or JSON body with 'ap' field",
+            ).model_dump(),
+        )
+    
     async with httpx.AsyncClient(
-        timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+        timeout=REC_SYS_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
         response = await client.post(
             service["url"],
@@ -1742,10 +1812,20 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                 processed_query = processed_query.replace(s3_path, view_name)
             
             # Create views for PostgreSQL sources and replace in query
+            args_map = query.get("args_map", {})
             pg_view_map = {}
             for argname, source in args_sources.items():
                 if source == "text/sql":
-                    pg_sql = query[argname].rstrip().rstrip(";")
+                    pg_source = args_map.get(argname)
+                    if not pg_source:
+                        raise ValueError(
+                            f"Missing SQL source mapping for argument '{argname}'"
+                        )
+
+                    pg_sql = pg_source.rstrip().rstrip(";")
+                    if not re.match(r"^\s*(SELECT|WITH)\b", pg_sql, re.IGNORECASE):
+                        pg_sql = f"SELECT * FROM {pg_sql}"
+
                     view_name = f"pg_src_{argname}"
 
                     pg_view_map[argname] = view_name
@@ -1755,7 +1835,17 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                         SELECT * FROM postgres_query('pg_db', $$ {pg_sql} $$);
                     """)
 
-                    processed_query = processed_query.replace(argname, view_name)
+                    processed_query = processed_query.replace(pg_source, view_name)
+                    processed_query = re.sub(
+                        r"\{\{\s*" + re.escape(argname) + r"\s*\}\}",
+                        view_name,
+                        processed_query,
+                    )
+                    processed_query = re.sub(
+                        r"\{\s*" + re.escape(argname) + r"\s*\}",
+                        view_name,
+                        processed_query,
+                    )
 
 
             # for s3_path in s3_paths:
@@ -1998,6 +2088,7 @@ async def extract_query_from_AP(
             #     filename = re.sub(r"^s3:/?/?", "", args_map[argname])
             #     args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
 
+    query_info["args_map"] = args_map
     query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
     return query_info
 
@@ -2084,8 +2175,10 @@ async def polyglot_query(
     try:
         
         executed_ap, upload_path = await execute_query(wrapped, token=token)
-        ## AP storage in Grafeo
-        store_AP_in_grafeo(executed_ap)
+        try: 
+            store_AP_in_grafeo(executed_ap.model_dump(by_alias=True, exclude_defaults=True))
+        except Exception as e:
+            print(f"AP Storage failed: {e}")
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Query executed successfully, results stored at {upload_path}",
