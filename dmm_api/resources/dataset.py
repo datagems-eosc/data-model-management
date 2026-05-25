@@ -1844,19 +1844,22 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                         pg_sql = f"public.{pg_sql}"
                     if pg_sql.lower().startswith(("select", "with")):
                         pg_sql = re.sub(
-                            r"\bfrom\s+([a-zA-Z0-9_\.]+)",
+                            r"\bfrom\s+([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)?)",
                             r"FROM pg_db.\1",
                             pg_sql,
                             flags=re.IGNORECASE
                         )
                         pg_sql = re.sub(
-                            r"\bjoin\s+([a-zA-Z0-9_\.]+)",
+                            r"\bjoin\s+([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)?)",
                             r"JOIN pg_db.\1",
                             pg_sql,
                             flags=re.IGNORECASE
                         )
-
-
+                        pg_sql = re.sub(
+                            r"(?<!pg_db\.)\b([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\b",
+                            r"pg_db.\1.\2",
+                            pg_sql
+                        )
                     if not re.match(r"^\s*(SELECT|WITH)\b", pg_sql, re.IGNORECASE):
                         # table reference
                         view_sql = f"SELECT * FROM pg_db.{pg_sql}"
@@ -2099,21 +2102,6 @@ async def extract_query_from_AP(
             args_map[argname] = (
                 G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
             )
-            # ## If the contentUrl as been generated locally, we miss the dataset_id, so we need to get it from the distribution edge
-            # if re.match(r"^s3:/?[^/]+\.(csv|json)$", args_map[argname]):
-            #     dataset_id = next(
-            #         (
-            #             from_node
-            #             for from_node, to_node, edge_data in G.in_edges(
-            #                 node_id, data=True
-            #             )
-            #             if "distribution" in edge_data.get("labels", [])
-            #         ),
-            #         None,
-            #     )
-            #     # Strip the s3:/ or s3:// prefix from the filename, then rebuild with dataset_id
-            #     filename = re.sub(r"^s3:/?/?", "", args_map[argname])
-            #     args_map[argname] = f"s3://dataset/{dataset_id}/{filename}"
 
     query_info["args_map"] = args_map
     query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
