@@ -1679,15 +1679,21 @@ def execute_query_csv(query, software):
             s3_query = query
             # Match S3 paths with or without quotes
             s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", s3_query)
-            for s3_path in s3_paths:
-                # Remove quotes if present
+            for idx, s3_path in enumerate(s3_paths):
                 cleaned_path = s3_path.replace("'", "")
                 local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
-                replacement = f"read_csv_auto('{local_folder}')"
-                s3_query = s3_query.replace(s3_path, replacement)
+                view_name = f"csv_view_{idx}"
+                con.sql(f"""
+                    CREATE VIEW {view_name} AS
+                    SELECT * FROM read_csv_auto('{local_folder}');
+                """)
+                
+                s3_query = re.sub(re.escape(s3_path), view_name, s3_query)
             con = duckdb.connect(database=":memory:")
-            result_df = con.execute(s3_query).fetchdf()
-            con.close()
+            try: 
+                result_df = con.execute(s3_query).fetchdf()
+            finally:
+                con.close()
             return result_df
         else:
             raise Exception(f"Unsupported software: {software}")
