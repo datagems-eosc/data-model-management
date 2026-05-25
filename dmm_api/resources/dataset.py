@@ -1764,6 +1764,10 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
             if any(source == "text/sql" for source in args_sources.values()):
                 con.sql("INSTALL postgres;")
                 con.sql("LOAD postgres;")
+                con.sql("SET pg_experimental_filter_pushdown = true;")
+                con.sql("SET pg_use_binary_copy = true;")
+                con.sql("SET pg_use_ctid_scan = true;")
+
 
                 db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
                 db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
@@ -1809,11 +1813,15 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                 """)
 
             for s3_path, view_name in csv_view_map.items():
-                processed_query = processed_query.replace(s3_path, view_name)
+                processed_query = re.sub(
+                    re.escape(s3_path),
+                    view_name,
+                    processed_query
+                )
+
             
             # Create views for PostgreSQL sources and replace in query
             args_map = query.get("args_map", {})
-            pg_view_map = {}
             for argname, source in args_sources.items():
                 if source == "text/sql":
                     pg_source = args_map.get(argname)
@@ -1823,40 +1831,53 @@ def execute_query_csv_postgres(query, software, args_sources=None, db_name=None)
                         )
 
                     pg_sql = pg_source.rstrip().rstrip(";")
+
+                    # If it's not a SELECT, treat it as a table reference
+                    if "." not in pg_sql and not pg_sql.lower().startswith(("select", "with")):
+                        # default schema
+                        pg_sql = f"public.{pg_sql}"
+                    if pg_sql.lower().startswith(("select", "with")):
+                        pg_sql = re.sub(
+                            r"\bfrom\s+([a-zA-Z0-9_\.]+)",
+                            r"FROM pg_db.\1",
+                            pg_sql,
+                            flags=re.IGNORECASE
+                        )
+                        pg_sql = re.sub(
+                            r"\bjoin\s+([a-zA-Z0-9_\.]+)",
+                            r"JOIN pg_db.\1",
+                            pg_sql,
+                            flags=re.IGNORECASE
+                        )
+
+
                     if not re.match(r"^\s*(SELECT|WITH)\b", pg_sql, re.IGNORECASE):
-                        pg_sql = f"SELECT * FROM {pg_sql}"
+                        # table reference
+                        view_sql = f"SELECT * FROM pg_db.{pg_sql}"
+                    else:
+                        # SELECT or WITH query
+                        view_sql = f"SELECT * FROM ({pg_sql}) t"
 
                     view_name = f"pg_src_{argname}"
 
-                    pg_view_map[argname] = view_name
-
                     con.sql(f"""
                         CREATE VIEW {view_name} AS
-                        SELECT * FROM postgres_query('pg_db', $$ {pg_sql} $$);
+                        {view_sql};
                     """)
 
-                    processed_query = processed_query.replace(pg_source, view_name)
                     processed_query = re.sub(
                         r"\{\{\s*" + re.escape(argname) + r"\s*\}\}",
                         view_name,
                         processed_query,
                     )
-                    processed_query = re.sub(
-                        r"\{\s*" + re.escape(argname) + r"\s*\}",
-                        view_name,
-                        processed_query,
-                    )
 
-
-            # for s3_path in s3_paths:
-            #     cleaned_path = s3_path.replace("'", "")
-            #     local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
-            #     replacement = f"read_csv_auto('{local_folder}')"
-            #     processed_query = processed_query.replace(s3_path, replacement)
 
             # Execute the mixed query
-            result_df = con.execute(processed_query).fetchdf()
-            con.close()
+            try:
+                result_df = con.execute(processed_query).fetchdf()
+            finally:
+                con.close()
+
 
             return result_df
 
@@ -2430,12 +2451,6 @@ async def execute_and_store_idd(
                 },
             )
 
-
-    return APResponseSuccessEnvelope(
-        code=response.status_code,
-        message=f"{service['name']} completed successfully",
-        content=response_payload,
-    )
 
 @router.get("/grafeo/test")
 async def grafeo_test():
