@@ -1529,14 +1529,7 @@ async def execute_and_store(
             ).model_dump(),
         )
 
-    # Extract ap and metadata from the uploaded file to store only ap
-    ap = payload_data.get("ap", {})
-    try:
-        print(f"[{service['name']}] Storing AP in AP Storage:")
-        print(json.dumps(ap, indent=2))
-        print(f"[{service['name']}] AP stored successfully.")
-    except Exception as e:
-        print(f"[{service['name']}] AP Storage failed: {e}")
+    
 
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -1549,6 +1542,11 @@ async def execute_and_store(
 
     try:
         response_payload = response.json()
+        ## AP storage in Grafeo
+        try: 
+            store_AP_in_grafeo(response_payload.get("ap", {}))
+        except Exception as e:
+            print(f"[{service['name']}] AP Storage failed: {e}")
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -2086,6 +2084,8 @@ async def polyglot_query(
     try:
         
         executed_ap, upload_path = await execute_query(wrapped, token=token)
+        ## AP storage in Grafeo
+        store_AP_in_grafeo(executed_ap)
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Query executed successfully, results stored at {upload_path}",
@@ -2370,7 +2370,7 @@ async def grafeo_query(
     return run_grafeo_query(query)
 
 @router.post("/ap/store")
-async def grafeo_AP(
+async def ap_storage(
     body: str | None = Form(None),
     file: UploadFile | None = File(None),
     token: str = Depends(security.oauth2_scheme),
@@ -2400,16 +2400,21 @@ async def grafeo_AP(
     
     payload_data = body.ap
     try: 
-        grafeo_queries = AP_to_Grafeo(payload_data)
+        store_AP_in_grafeo(payload_data)
+        #grafeo_queries = AP_to_Grafeo(payload_data)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    for query in grafeo_queries:
-        grafeo_response = run_grafeo_query(query)
-        print(f"Grafeo response for query '{query}': {grafeo_response}")
+    # for query in grafeo_queries:
+    #     run_grafeo_query(query)
     return {"message": "AP successfully stored in Grafeo"}
+
+def store_AP_in_grafeo(ap: APRequest):
+    grafeo_queries = AP_to_Grafeo(ap)
+    for query in grafeo_queries:
+        run_grafeo_query(query)
 
 
 @router.get("/ap/search")

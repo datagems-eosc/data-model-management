@@ -83,13 +83,6 @@
           "distribution"
         ],
         "to": "c7a2b9b7-8127-4ad9-8092-bd739e920a8d"
-      }, 
-      {
-        "from": "729f8932-8300-4ac5-a71e-b41904ca7433",
-        "labels": [
-          "distribution"
-        ],
-        "to": ""
       }
     ],
     "nodes": [
