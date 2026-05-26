@@ -1751,6 +1751,7 @@ def execute_query_mixed(query_builder):
     DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
     
     try:
+        con = duckdb.connect(database=":memory:")
         db_connections = []
         view_map = {}
         for argname, arg_info in query_builder.get("args_map", {}).items():
@@ -1776,7 +1777,6 @@ def execute_query_mixed(query_builder):
                 """)
             else:
                 logger.error(f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}")
-        con = duckdb.connect(database=":memory:")
 
         processed_query = query_rewriting_views(query_builder["query"], view_map)
 
