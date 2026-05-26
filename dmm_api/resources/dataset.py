@@ -2097,9 +2097,20 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
         elif query_builder["type"] == "mixed":
             result = execute_query_mixed(query_builder)
         elif query_builder["type"] == "unknown":
-            logger.error("Mime Type of the FileObjects could not be identified")
-    else: 
-        logger.error(f"Unsupported software specified in the AP: {query_builder['software']}")
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Could not determine the MIME type of one or more FileObjects in the AP. Please ensure all FileObjects have a valid encodingFormat.",
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"Unsupported query type '{query_builder['type']}'. Expected 'postgres' or 'mixed'.",
+            )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Unsupported software '{query_builder['software']}'. Only DuckDB-based operators are supported.",
+        )
     
         
     ap_payload, dataset_id = generate_dataset_node(ap_payload)
