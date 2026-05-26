@@ -120,16 +120,29 @@ class MimeType(str, Enum):
     application_docx = "application/docx"
     application_pptx = "application/pptx"
     application_pdf = "application/pdf"
-    image_jpeg = "image/jpeg"
-    image_png = "image/png"
-    text_csv = "text/csv"
-    text_sql = "text/sql"
     application_xlsx = (
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
     application_docx_ooxml = (
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
+    application_json = "application/json"
+    application_jsonl = "application/jsonl"
+    application_pptx = "application/vnd.openxmlformats-officedocument.presentationml.presentation", 
+    application_xml = "application/xml"
+    image_jpeg = "image/jpeg"
+    image_png = "image/png"
+    image_gif = "image/gif"
+    image_webp = "image/webp"
+    image_bmp = "image/bmp"
+    image_tiff = "image/tiff"
+    text_csv = "text/csv"
+    text_sql = "text/sql"
+    text_html = "text/html"
+    text_markdown = "text/markdown"
+    text_plain = "text/plain"
+    
+
 
 
 class DatasetProperty(str, Enum):
@@ -1668,53 +1681,26 @@ async def execute_and_store_dataset_recommendations(
     )
 
 
-
-
-def execute_query_csv(query, software):
-    software = software.lower()
-    DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
-    try:
-        # Query with DuckDB
-        if software == "duckdb":
-            s3_query = query
-            # Match S3 paths with or without quotes
-            s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", s3_query)
-            for idx, s3_path in enumerate(s3_paths):
-                cleaned_path = s3_path.replace("'", "")
-                local_folder = cleaned_path.replace("s3://dataset/", f"{DATASET_DIR}/")
-                view_name = f"csv_view_{idx}"
-                con.sql(f"""
-                    CREATE VIEW {view_name} AS
-                    SELECT * FROM read_csv_auto('{local_folder}');
-                """)
-                
-                s3_query = re.sub(re.escape(s3_path), view_name, s3_query)
-            con = duckdb.connect(database=":memory:")
-            try: 
-                result_df = con.execute(s3_query).fetchdf()
-            finally:
-                con.close()
-            return result_df
-        else:
-            raise Exception(f"Unsupported software: {software}")
-    except Exception as e:
-        raise Exception(f"Query execution failed: {str(e)}")
-
-
-def execute_query_postgres(query, duckdb_connection):
+def execute_query_postgres(query_builder):
     """Execute query on PostgreSQL via DuckDB"""
+    duckdb_connection = duckdb.connect(database=":memory:")
     t0 = time.perf_counter()
     try:
         # Install and load postgres extension
         duckdb_connection.sql("INSTALL postgres;")
         duckdb_connection.sql("LOAD postgres;")
 
+        db_name = None
+        for argname, arg_info in query_builder.get("args_map", {}).items():
+            if arg_info.get("mimeType") == "text/sql":
+                db_name = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+
         # Attach PostgreSQL database
         db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
         db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
         db_user = os.getenv("DS_READER_USER")
         db_password = os.getenv("DS_READER_PS")
-        db_name = query["db_name"]
+        
 
         # Check if required environment variables are set
         missing_vars = []
@@ -1739,13 +1725,17 @@ def execute_query_postgres(query, duckdb_connection):
         )
         logger.info(f"[TIMER] DuckDB connection: {time.perf_counter() - t0:.4f}s")
 
-
+        query = query_builder.get("query", "")
+        query = query_rewriting(query_builder)
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
         t1 = time.perf_counter()
-        result_df = duckdb_connection.execute(
-            "SELECT * FROM postgres_query('pg_db', ?)",
-            [query.get("query")]
-        ).fetchdf()        
+        try: 
+            result_df = duckdb_connection.execute(
+                "SELECT * FROM postgres_query('pg_db', ?)",
+                [query]
+            ).fetchdf()  
+        finally:
+            duckdb_connection.close()      
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
@@ -1755,182 +1745,131 @@ def execute_query_postgres(query, duckdb_connection):
         )
 
 
-def execute_query_csv_postgres(query, software, args_sources=None, db_name=None):
+
+def execute_query_mixed(query_builder):
     """Execute query with mixed CSV and PostgreSQL sources via DuckDB"""
-    software = software.lower()
     DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
-    if args_sources is None:
-        args_sources = {}
+    
     try:
-        if software == "duckdb":
-            # Create DuckDB connection
-            con = duckdb.connect(database=":memory:")
+        db_connections = []
+        view_map = {}
+        for argname, arg_info in query_builder.get("args_map", {}).items():
+            if arg_info.get("mimeType") == "text/sql":
+                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                if db_connection not in db_connections:
+                    db_connections.append(db_connection)    
 
-            # If any args are from postgres, attach the database
-            if any(source == "text/sql" for source in args_sources.values()):
-                con.sql("INSTALL postgres;")
-                con.sql("LOAD postgres;")
-                con.sql("SET pg_experimental_filter_pushdown = true;")
-                con.sql("SET pg_use_binary_copy = true;")
-                con.sql("SET pg_use_ctid_scan = true;")
+                view_name = f"pg_{argname}"
+                con.sql(f"""
+                    CREATE VIEW {view_name} AS
+                    SELECT * FROM {arg_info.get("contentUrl", "")};
+                """) 
+                view_map[argname] = view_name              
+            elif arg_info.get("mimeType") == "text/csv":
+                path = arg_info.get("contentUrl", "")
+                local_path = path.replace("s3://dataset/", f"{DATASET_DIR}/")
+                view_name = f"csv_{argname}"
+                view_map[argname] = view_name
+                con.sql(f"""
+                    CREATE VIEW {view_name} AS
+                    SELECT * FROM read_csv_auto('{local_path}');
+                """)
+            else:
+                logger.error(f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}")
+        con = duckdb.connect(database=":memory:")
 
+        processed_query = query_rewriting_views(query_builder["query"], view_map)
 
-                db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
-                db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
-                db_user = os.getenv("DS_READER_USER")
-                db_password = os.getenv("DS_READER_PS")
-                db_name = query["db_name"]
+        if len(db_connections)> 1:
+            con.sql("INSTALL postgres;")
+            con.sql("LOAD postgres;")
+            con.sql("SET pg_experimental_filter_pushdown = true;")
+            con.sql("SET pg_use_binary_copy = true;")
+            con.sql("SET pg_use_ctid_scan = true;")
+            db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
+            db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
+            db_user = os.getenv("DS_READER_USER")
+            db_password = os.getenv("DS_READER_PS")
+            missing_vars = []
+            if not db_host:
+                missing_vars.append("DATAGEMS_POSTGRES_HOST")
+            if not db_port:
+                missing_vars.append("DATAGEMS_POSTGRES_PORT")
+            if not db_user:
+                missing_vars.append("DS_READER_USER")
+            if not db_password:
+                missing_vars.append("DS_READER_PS")
 
-                # Check if required environment variables are set
-                missing_vars = []
-                if not db_host:
-                    missing_vars.append("DATAGEMS_POSTGRES_HOST")
-                if not db_port:
-                    missing_vars.append("DATAGEMS_POSTGRES_PORT")
-                if not db_user:
-                    missing_vars.append("DS_READER_USER")
-                if not db_password:
-                    missing_vars.append("DS_READER_PS")
+            if missing_vars:
+                raise ValueError(
+                    f"Missing PostgreSQL environment variables: {', '.join(missing_vars)}"
+                )
+            for db_connection in db_connections:
+                db_name = db_connection 
 
-                if missing_vars:
-                    raise ValueError(
-                        f"Missing PostgreSQL environment variables: {', '.join(missing_vars)}"
-                    )
 
                 connection_string = (
                     f"dbname={db_name} user={db_user} password={db_password} "
                     f"host={db_host} port={db_port}"
                 )
-                con.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
+                con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
 
-            processed_query = query.get("query", "")
-            s3_paths = re.findall(r"'?s3://dataset/[^\s,;'\"]+(?:')?", processed_query)
+        try:
+            result_df = con.execute(processed_query).fetchdf()
+        finally:
+            con.close()
 
-            # Create views for CSV sources and replace in query
-            csv_view_map = {}
-            for idx, s3_path in enumerate(s3_paths):
-                cleaned = s3_path.replace("'", "")
-                local_path = cleaned.replace("s3://dataset/", f"{DATASET_DIR}/")
-                view_name = f"csv_src_{idx}"
-                csv_view_map[s3_path] = view_name
-                con.sql(f"""
-                    CREATE VIEW {view_name} AS
-                    SELECT * FROM read_csv_auto('{local_path}');
-                """)
-
-            for s3_path, view_name in csv_view_map.items():
-                processed_query = re.sub(
-                    re.escape(s3_path),
-                    view_name,
-                    processed_query
-                )
-
-            
-            # Create views for PostgreSQL sources and replace in query
-            args_map = query.get("args_map", {})
-            for argname, source in args_sources.items():
-                if source == "text/sql":
-                    pg_source = args_map.get(argname)
-                    if not pg_source:
-                        raise ValueError(
-                            f"Missing SQL source mapping for argument '{argname}'"
-                        )
-
-                    pg_sql = pg_source.rstrip().rstrip(";")
-
-                    # If it's not a SELECT, treat it as a table reference
-                    if "." not in pg_sql and not pg_sql.lower().startswith(("select", "with")):
-                        # default schema
-                        pg_sql = f"public.{pg_sql}"
-                    if pg_sql.lower().startswith(("select", "with")):
-                        pg_sql = re.sub(
-                            r"\bfrom\s+([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)?)",
-                            r"FROM pg_db.\1",
-                            pg_sql,
-                            flags=re.IGNORECASE
-                        )
-                        pg_sql = re.sub(
-                            r"\bjoin\s+([a-zA-Z0-9_]+(?:\.[a-zA-Z0-9_]+)?)",
-                            r"JOIN pg_db.\1",
-                            pg_sql,
-                            flags=re.IGNORECASE
-                        )
-                        pg_sql = re.sub(
-                            r"(?<!pg_db\.)\b([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\b",
-                            r"pg_db.\1.\2",
-                            pg_sql
-                        )
-                    if not re.match(r"^\s*(SELECT|WITH)\b", pg_sql, re.IGNORECASE):
-                        # table reference
-                        view_sql = f"SELECT * FROM pg_db.{pg_sql}"
-                    else:
-                        # SELECT or WITH query
-                        view_sql = f"SELECT * FROM ({pg_sql}) t"
-
-                    view_name = f"pg_src_{argname}"
-
-                    con.sql(f"""
-                        CREATE VIEW {view_name} AS
-                        {view_sql};
-                    """)
-
-                    processed_query = re.sub(
-                        r"\{\{\s*" + re.escape(argname) + r"\s*\}\}",
-                        view_name,
-                        processed_query,
-                    )
-
-
-            # Execute the mixed query
-            try:
-                result_df = con.execute(processed_query).fetchdf()
-            finally:
-                con.close()
-
-
-            return result_df
-
-        else:
-            raise Exception(f"Unsupported software: {software}")
+        return result_df
 
     except Exception as e:
-        raise Exception(f"Mixed query execution failed: {str(e)}")
+        raise Exception(f"Query execution failed: {str(e)}")
 
+def query_rewriting_views(query, view_map):
+    rewritten_query = query
+    for argname, view_name in view_map.items():
+        rewritten_query = re.sub(
+            r"\{\{\s*" + re.escape(argname) + r"\s*\}\}",
+            view_name,
+            rewritten_query,
+        )
+        rewritten_query = re.sub(
+            r"\{\s*" + re.escape(argname) + r"\s*\}",
+            view_name,
+            rewritten_query,
+        )
+    return rewritten_query
 
 def query_rewriting(
-    query: str, args_map: Dict[str, Any], args_sources: Dict[str, str] = None
+    query_builder: Dict[str, Any]
 ) -> str:
     """
     Rewrite query placeholders with actual values.
-
     For PostgreSQL tables: {{arg1}} -> table_name (without quotes)
     For CSV files: {{arg1}} -> 's3://dataset/path/file.csv' (with quotes)
     """
-    if args_sources is None:
-        args_sources = {}
 
-    rewritten_query = query
-
-    for arg_name, arg_value in args_map.items():
-        if isinstance(arg_value, str) and arg_value:
-            source_type = args_sources.get(arg_name, "")
-            # Replace both {{arg_name}} and {arg_name} patterns
-            if source_type == "text/sql":  # PostgreSQL table reference
-                replacement = arg_value  # No quotes, no s3://dataset/ prefix
-            elif source_type == "text/csv":  # CSV file path
-                replacement = f"'{arg_value}'"  # With quotes for CSV paths
-            elif source_type == "text/json" :
-                replacement = f"'{arg_value}'"  # With quotes for JSON paths
-            else:
-                replacement = f"'{arg_value}'"  # Default with quotes
-
-            # Replace {{arg_name}} pattern
+    rewritten_query = query_builder.get("query", "")
+    for arg_name, arg_value in query_builder.get("args_map", {}).items():
+        if arg_value.get("mimeType") == "text/sql":
+            replacement = arg_value.get("contentUrl", "")  # Extract table name from contentUrl
             rewritten_query = re.sub(
                 r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
                 replacement,
                 rewritten_query,
             )
-            # Replace {arg_name} pattern (alternative syntax)
+            rewritten_query = re.sub(
+                r"\{\s*" + re.escape(arg_name) + r"\s*\}",
+                replacement,
+                rewritten_query,
+            )
+        elif arg_value["mimeType"] == "text/csv":
+        # For CSV sources, we expect the arg_value to be the S3 path
+            replacement = "'" + arg_value.get("contentUrl", "") + "'"
+            rewritten_query = re.sub(
+                r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
+                replacement,
+                rewritten_query,
+            )
             rewritten_query = re.sub(
                 r"\{\s*" + re.escape(arg_name) + r"\s*\}",
                 replacement,
@@ -1940,36 +1879,40 @@ def query_rewriting(
     return rewritten_query
 
 
-async def extract_query_from_AP(
-    ap_payload: APRequest,
-    token: str,
-    expected_ap_process: Optional[str] = None,
-    expected_operator_command: Optional[str] = None,
+async def extract_query_from_AP(ap_payload, token
 ) -> Dict[str, Any]:
+    """
+    The query builder returns a dictionary containing:
+    - query: the SQL query with placeholders (e.g. {{arg1}})
+    - type: mixed or postgres
+    - software: the software to execute the query (e.g. duckdb, ontop)
+    - args_map: a mapping of argument names to their values and metadata, e.g.:
+        {
+            "arg1": {
+                "mimeType": "",
+                "contentUrl": "",
+                "dbConnection": {
+                    "host": "...",
+                    "port": "...",
+                    ...
+                }
+            },
+            ...
+    """
     try:
-        G = json_to_graph(ap_payload)
+        data = json.loads(ap_payload)
+        ap_data = data.get("ap", data)
+        request = APRequest(**ap_data)
+        G = json_to_graph(request)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
 
-    (
-        AP_nodes,
-        operator_nodes,
-        dataset_nodes,
-        file_object_nodes,
-        user_nodes,
-        db_connection_nodes,
-    ) = (
-        [],
-        [],
-        [],
-        [],
-        [],
-        [],
-    )
+    AP_nodes, operator_nodes, dataset_nodes, file_object_nodes, user_nodes, db_connection_nodes = [], [], [], [], [], []
 
+    ## CHECKS about the AP 
     for node_id, attributes in G.nodes(data=True):
         labels = attributes.get("labels", [])
         if "Analytical_Pattern" in labels:
@@ -1985,127 +1928,45 @@ async def extract_query_from_AP(
         elif "dg:DatabaseConnection" in labels:
             db_connection_nodes.append(node_id)
 
-    if len(AP_nodes) != 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain exactly one 'Analytical_Pattern' node.",
-        )
+    ## Get the query 
+    query_builder = {}
+    query_builder["query"] = G.nodes[operator_nodes[0]].get("properties", {}).get("query", "")
 
-    if len(operator_nodes) < 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain at least one 'SQL_Operator' node.",
-        )
+    ## Get the software 
+    query_builder["software"] = G.nodes[operator_nodes[0]].get("properties", {}).get("name", "Unknown Software")
 
-    if len(dataset_nodes) < 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain at least one 'Dataset' node.",
-        )
-
-    if len(user_nodes) != 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain exactly one 'User' node.",
-        )
-    if len(db_connection_nodes) > 1:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The Analytical Pattern must contain at most one 'DatabaseConnection' node, because only one database can be queried at a time.",
-        )
-
-    # Get properties of datasets and database connections from MoMa and add them to the graph, as they are needed to execute the query
-
-    for node_id in db_connection_nodes:
-        dbc_properties = await get_node_properties(node_id, token=token)
-        current_properties = G.nodes[node_id].get("properties", {})
-        current_properties.update(dbc_properties)
-        G.nodes[node_id].update({"properties": current_properties})
-
-    AP_id = AP_nodes[0]
-    AP_properties = G.nodes[AP_id].get("properties", {})
-    AP_process = AP_properties.get("Process")
-
-    if expected_ap_process and AP_process != expected_ap_process:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Expected Analytical Pattern 'Process'='{expected_ap_process}', but found '{AP_process}'. AP node ID: '{AP_id}', properties: {AP_properties}",
-        )
-
-    query_info: Dict[str, Any] = {}
-    query_info["software"] = (
-        G.nodes[operator_nodes[0]]
-        .get("properties", {})
-        .get("name", "Unknown Software")
-        .split(" ")[0]
-    )
-    query_info["query"] = (
-        G.nodes[operator_nodes[0]].get("properties", {}).get("query", "No query found")
-    )
-
-    if query_info["software"] not in ["DuckDB", "Ontop"]:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Unsupported software: {query_info['software']}. Supported software are 'DuckDB' and 'Ontop'.",
-        )
-
-    args_sources = {}
+    ## Get the arg_map 
     args_map = {
         data.get("properties", {}).get("argname"): u
         for u, v, data in G.edges(data=True)
         if "argname" in data.get("properties", {})
     }
-
+    mimeTypes = set()
     for argname in args_map.keys():
         node_id = args_map[argname]
         file_object_properties = await get_node_properties(node_id, token=token)
-
-        G.nodes[node_id].update({"properties": file_object_properties})
-        logger.info(f"Arg '{argname}' is updated)")
-
-    for argname, node_id in args_map.items():
-        args_sources[argname] = (
-            G.nodes[node_id].get("properties", {}).get("encodingFormat", "")
-        )
-
-    # Store args_sources in query_info for later use
-    query_info["args_sources"] = args_sources
-
-    # Map source types to connection types
-    db_types = set()
-    for source in args_sources.values():
-        if source == "text/sql":
-            db_types.add("postgres")
-        elif source == "text/csv":
-            db_types.add("csv")
-    query_info["db_connection"] = (
-        "mixed"
-        if len(db_types) > 1
-        else next(iter(db_types))
-        if db_types
-        else "unknown"
-    )
-    # Extract database name from DatabaseConnection node
-    db_name = None
-    if db_connection_nodes:
-        db_properties = G.nodes[db_connection_nodes[0]].get("properties", {})
-        db_name = db_properties.get("name", "ds_era5_land")
-        query_info["db_name"] = db_name
-
-    for argname, source in args_sources.items():
-        if source == "text/sql":
-            args_map[argname] = "public." + G.nodes[args_map[argname]].get(
-                "properties", {}
-            ).get("name", "")
-        elif source == "text/csv":
-            node_id = args_map[argname]
-            args_map[argname] = (
-                G.nodes[args_map[argname]].get("properties", {}).get("contentUrl", "")
-            )
-
-    query_info["args_map"] = args_map
-    query_info["query"] = query_rewriting(query_info["query"], args_map, args_sources)
-    return query_info
+        mimeType = file_object_properties.get("encodingFormat", "")
+        args_map[argname] = {
+            "mimeType" : mimeType,
+            "contentUrl": file_object_properties.get("contentUrl", ""), 
+            "name" : file_object_properties.get("name", "")
+        }
+        mimeTypes.add(mimeType)
+        db_connection_properties = None
+        for u, v, data in G.edges(node_id, data=True):
+            if "contained_in" in data.get("labels", []):
+                db_connection_node_id = v
+                db_connection_properties = G.nodes[db_connection_node_id].get("properties", {})
+        args_map[argname]["dbConnection"] = db_connection_properties
+    query_builder["args_map"] = args_map
+    if db_connection_nodes and len(db_connection_nodes) == 1:
+        if any(m != "text/sql" for m in mimeTypes):
+            query_builder["type"] = "mixed"
+        else:
+            query_builder["type"] = "postgres"
+    else:
+        query_builder["type"] = "mixed"
+    return query_builder
 
 
 # To be implemented
@@ -2218,26 +2079,17 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     from ..resources.dataset import register_dataset
 
     ap_payload = wrapped.ap
-    query_info = await extract_query_from_AP(ap_payload, token=token)
-    software = query_info.get("software")
-    query_filled = query_info.get("query")
-    db_connection = query_info.get("db_connection", "Unknown DB Connection")
-    logger.info(f"Executing query with software: {software}, db_connection: {db_connection}")
-    if db_connection == "postgres":
-        result = execute_query_postgres(
-            query_info, duckdb.connect(database=":memory:")
-        )
-    elif db_connection == "csv":
-        result = execute_query_csv(query_filled, software)
-    elif db_connection == "mixed":
-        result = execute_query_csv_postgres(
-            query_info,
-            software,
-            args_sources=query_info.get("args_sources", {}),
-            db_name=query_info.get("db_name"),
-        )
-    elif db_connection == "unknown":
-        logger.error("Mime Type of the FileObjects could not be identified")
+    query_builder = await extract_query_from_AP(ap_payload, token=token)
+    if query_builder["software"].split(" ")[0].lower() == "duckdb":
+        if query_builder["type"] == "postgres":
+            result = execute_query_postgres(query_builder)
+        elif query_builder["type"] == "mixed":
+            result = execute_query_mixed(query_builder)
+        elif query_builder["type"] == "unknown":
+            logger.error("Mime Type of the FileObjects could not be identified")
+    else: 
+        logger.error(f"Unsupported software specified in the AP: {query_builder['software']}")
+    
         
     ap_payload, dataset_id = generate_dataset_node(ap_payload)
     t2 = time.perf_counter()
@@ -2258,11 +2110,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     logger.info(f"[TIMER] AP uploaded: {time.perf_counter() - t3:.4f}s")
     logger.info(f"Updated AP uploaded to results storage for dataset ID: {dataset_id}")
 
-    # register_AP = generate_register_AP_after_query(AP_query_after)
-    # logger.info(f"Register AP generated for registering the new dataset in MoMa2. Register AP nodes: {len(register_AP.nodes)}, edges: {len(register_AP.edges)}")
-    # await register_dataset(WrappedAPRequest(ap=register_AP))
 
-    # TODO: AP Storage
 
     return AP_query_after, upload_path
 
