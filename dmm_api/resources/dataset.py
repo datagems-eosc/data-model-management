@@ -1900,9 +1900,12 @@ async def extract_query_from_AP(ap_payload, token
             ...
     """
     try:
-        data = json.loads(ap_payload)
-        ap_data = data.get("ap", data)
-        request = APRequest(**ap_data)
+        if isinstance(ap_payload, APRequest):
+            request = ap_payload
+        else:
+            data = json.loads(ap_payload)
+            ap_data = data.get("ap", data)
+            request = APRequest(**ap_data)
         G = json_to_graph(request)
     except Exception as e:
         raise HTTPException(
