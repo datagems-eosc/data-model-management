@@ -1753,19 +1753,16 @@ def execute_query_mixed(query_builder):
     try:
         con = duckdb.connect(database=":memory:")
         db_connections = []
+        pg_views_pending = []  # (view_name, contentUrl) — created after ATTACH
         view_map = {}
         for argname, arg_info in query_builder.get("args_map", {}).items():
             if arg_info.get("mimeType") == "text/sql":
                 db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
                 if db_connection not in db_connections:
-                    db_connections.append(db_connection)    
-
+                    db_connections.append(db_connection)
                 view_name = f"pg_{argname}"
-                con.sql(f"""
-                    CREATE VIEW {view_name} AS
-                    SELECT * FROM {arg_info.get("contentUrl", "")};
-                """) 
-                view_map[argname] = view_name              
+                pg_views_pending.append((view_name, arg_info.get("contentUrl", "")))
+                view_map[argname] = view_name
             elif arg_info.get("mimeType") == "text/csv":
                 path = arg_info.get("contentUrl", "")
                 local_path = path.replace("s3://dataset/", f"{DATASET_DIR}/")
@@ -1780,7 +1777,7 @@ def execute_query_mixed(query_builder):
 
         processed_query = query_rewriting_views(query_builder["query"], view_map)
 
-        if len(db_connections)> 1:
+        if db_connections:
             con.sql("INSTALL postgres;")
             con.sql("LOAD postgres;")
             con.sql("SET pg_experimental_filter_pushdown = true;")
@@ -1805,14 +1802,19 @@ def execute_query_mixed(query_builder):
                     f"Missing PostgreSQL environment variables: {', '.join(missing_vars)}"
                 )
             for db_connection in db_connections:
-                db_name = db_connection 
-
-
+                db_name = db_connection
                 connection_string = (
                     f"dbname={db_name} user={db_user} password={db_password} "
                     f"host={db_host} port={db_port}"
                 )
                 con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
+
+        # Create Postgres views after ATTACH so the catalog is available
+        for view_name, content_url in pg_views_pending:
+            con.sql(f"""
+                CREATE VIEW {view_name} AS
+                SELECT * FROM {content_url};
+            """)
 
         try:
             result_df = con.execute(processed_query).fetchdf()
