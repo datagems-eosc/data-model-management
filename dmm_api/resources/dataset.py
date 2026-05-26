@@ -128,7 +128,7 @@ class MimeType(str, Enum):
     )
     application_json = "application/json"
     application_jsonl = "application/jsonl"
-    application_pptx = "application/vnd.openxmlformats-officedocument.presentationml.presentation", 
+    application_pptx_ooxml = "application/vnd.openxmlformats-officedocument.presentationml.presentation", 
     application_xml = "application/xml"
     image_jpeg = "image/jpeg"
     image_png = "image/png"
