@@ -1815,7 +1815,11 @@ def execute_query_mixed(query_builder):
         for view_name, content_url in pg_views_pending:
             con.sql(f"""
                 CREATE VIEW {view_name} AS
-                SELECT * FROM {content_url};
+                SELECT *
+                FROM postgres_query(
+                    '{db_connection}',
+                    'SELECT * FROM {content_url}'
+                );
             """)
 
         try:
