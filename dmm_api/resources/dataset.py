@@ -1757,11 +1757,13 @@ def execute_query_mixed(query_builder):
         view_map = {}
         for argname, arg_info in query_builder.get("args_map", {}).items():
             if arg_info.get("mimeType") == "text/sql":
-                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                content_url = arg_info.get("contentUrl", "")
+                db_conn_props = arg_info.get("dbConnection") or {}
+                db_connection = db_conn_props.get("name") or content_url.split(".")[0]
                 if db_connection not in db_connections:
                     db_connections.append(db_connection)
                 view_name = f"pg_{argname}"
-                pg_views_pending.append((view_name, arg_info.get("contentUrl", "")))
+                pg_views_pending.append((view_name, content_url))
                 view_map[argname] = view_name
             elif arg_info.get("mimeType") == "text/csv":
                 path = arg_info.get("contentUrl", "")
@@ -1824,7 +1826,7 @@ def execute_query_mixed(query_builder):
         return result_df
 
     except Exception as e:
-        raise Exception(f"Query execution failed: {str(e)}")
+        raise Exception(f"{str(e)}")
 
 def query_rewriting_views(query, view_map):
     rewritten_query = query
@@ -1961,7 +1963,7 @@ async def extract_query_from_AP(ap_payload, token
         for u, v, data in G.edges(node_id, data=True):
             if "contained_in" in data.get("labels", []):
                 db_connection_node_id = v
-                db_connection_properties = G.nodes[db_connection_node_id].get("properties", {})
+                db_connection_properties = await get_node_properties(db_connection_node_id, token=token)
         args_map[argname]["dbConnection"] = db_connection_properties
     query_builder["args_map"] = args_map
     if db_connection_nodes and len(db_connection_nodes) == 1:
