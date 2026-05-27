@@ -25,6 +25,7 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "python-multipart>=0.0.20",
     "structlog>=24.1.0",
+    "sqlglot>=26.0.0",
     "uvicorn>=0.24.0,<0.35.0",
 ]
 
