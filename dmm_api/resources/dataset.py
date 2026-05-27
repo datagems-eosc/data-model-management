@@ -1548,6 +1548,73 @@ async def execute_and_store(
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
             ).model_dump(),
         )
+    async with httpx.AsyncClient(
+        timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
+        response = await client.post(
+            service["url"],
+            headers={"Authorization": f"Bearer {token}"},
+            json=payload_data,
+        )
+
+    try:
+        response_payload = response.json()
+        ## AP storage in Grafeo
+        try: 
+            store_AP_in_grafeo(response_payload.get("ap", {}))
+        except Exception as e:
+            print(f"[{service['name']}] AP Storage failed: {e}")
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+
+    # If response is not successful, raise an error with context-aware messages
+    if response.status_code >= 400:
+        logger.error(
+            f"Error from {service['name']}",
+            status_code=response.status_code,
+            response_text=response.text,
+        )
+
+        # Extract error message and format it with service name and status code
+        if isinstance(response_payload, dict):
+            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
+        else:
+            cdd_error_msg = response.text
+
+        # Build context-specific error messages based on status code
+        status_messages = {
+            status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
+            status.HTTP_403_FORBIDDEN: "Authorization failed. You lack the required role to perform this action.",
+            status.HTTP_424_FAILED_DEPENDENCY: "The service failed to communicate with a required dependency (OIDC provider, database, etc.).",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "An unexpected error occurred in the service while processing the request.",
+            status.HTTP_503_SERVICE_UNAVAILABLE: "The service is not ready. A core component may have failed during initialization.",
+        }
+
+        context_msg = status_messages.get(response.status_code, "")
+        error_message = (
+            f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
+        )
+        if context_msg:
+            error_message = f"{error_message} — {context_msg}"
+
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=ErrorEnvelope(
+                code=response.status_code,
+                error=error_message,
+            ).model_dump(),
+        )
+
+    return APResponseSuccessEnvelope(
+        code=response.status_code,
+        message=f"{service['name']} completed successfully",
+        content=response_payload,
+    )
+    
+    
 
 @router.post(
     "/dataset-recsys/recommend", response_model=APResponseSuccessEnvelope
