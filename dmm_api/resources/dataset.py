@@ -1846,7 +1846,7 @@ def execute_query_mixed(query_builder):
                 logger.error(f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}")
 
         processed_query = query_rewriting_views(query_builder["query"], view_map)
-        args_map = extract_alias(processed_query, query_builder["query"])
+        args_map = extract_alias(processed_query, query_builder["args_map"])
         args_map, query_executable = write_views_minimal_extraction(processed_query, args_map)
 
         if db_connections:
@@ -1887,7 +1887,7 @@ def execute_query_mixed(query_builder):
                 con.sql(view)
 
         try:
-            result_df = con.execute(processed_query).fetchdf()
+            result_df = con.execute(query_executable).fetchdf()
         finally:
             con.close()
 
