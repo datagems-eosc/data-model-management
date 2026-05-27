@@ -8,6 +8,11 @@ from pathlib import Path
 import shutil
 from dmm_api.resources.converter import convertProfile
 import requests
+import sqlglot
+from sqlglot.optimizer import optimize
+from sqlglot import expressions as exp
+
+
 
 from dmm_api.tools.AP.log_AP import AP_to_Grafeo, Grafeo_to_AP
 import duckdb
@@ -1820,7 +1825,6 @@ def execute_query_mixed(query_builder):
     try:
         con = duckdb.connect(database=":memory:")
         db_connections = []
-        pg_views_pending = []  # (view_name, contentUrl) — created after ATTACH
         view_map = {}
         for argname, arg_info in query_builder.get("args_map", {}).items():
             if arg_info.get("mimeType") == "text/sql":
@@ -1830,21 +1834,20 @@ def execute_query_mixed(query_builder):
                 if db_connection not in db_connections:
                     db_connections.append(db_connection)
                 view_name = f"pg_{argname}"
-                pg_views_pending.append((view_name, content_url))
                 view_map[argname] = view_name
+                arg_info["view_name"] = view_name  
             elif arg_info.get("mimeType") == "text/csv":
-                path = arg_info.get("contentUrl", "")
-                local_path = path.replace("s3://dataset/", f"{DATASET_DIR}/")
+                
                 view_name = f"csv_{argname}"
                 view_map[argname] = view_name
-                con.sql(f"""
-                    CREATE VIEW {view_name} AS
-                    SELECT * FROM read_csv_auto('{local_path}');
-                """)
+                arg_info["view_name"] = view_name
+                
             else:
                 logger.error(f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}")
 
         processed_query = query_rewriting_views(query_builder["query"], view_map)
+        args_map = extract_alias(processed_query, query_builder["query"])
+        args_map, query_executable = write_views_minimal_extraction(processed_query, args_map)
 
         if db_connections:
             con.sql("INSTALL postgres;")
@@ -1878,16 +1881,10 @@ def execute_query_mixed(query_builder):
                 )
                 con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
 
-        # Create Postgres views after ATTACH so the catalog is available
-        for view_name, content_url in pg_views_pending:
-            con.sql(f"""
-                CREATE VIEW {view_name} AS
-                SELECT *
-                FROM postgres_query(
-                    '{db_connection}',
-                    'SELECT * FROM {content_url}'
-                );
-            """)
+        for argname, arg_info in query_builder.get("args_map", {}).items():
+            view  = arg_info.get("view")
+            if view:
+                con.sql(view)
 
         try:
             result_df = con.execute(processed_query).fetchdf()
@@ -2561,3 +2558,101 @@ def fetch_rels_by_ids(rel_ids: List[int]) -> Dict[int, dict]:
     result = run_grafeo_query(query)
     return {row["internal_id"]: row["r"] for row in result}
 
+def extract_alias(sql, args_map):
+    args_map = args_map
+
+    parsed = sqlglot.parse_one(sql)
+
+    # Reverse view_map for quick lookup: view_name → argname
+    reverse_view_map = {}
+    for argname, info in args_map.items():
+        view_name = info.get("view_name", "")
+        if view_name:
+            reverse_view_map[view_name] = argname
+
+    # Find all table references in the SQL
+    for table in parsed.find_all(exp.Table):
+        view_name = table.name  # e.g. "pg_arg2"
+        alias = table.alias     # e.g. "p"
+
+        if alias and view_name in reverse_view_map:
+            argname = reverse_view_map[view_name]
+            args_map[argname]["alias"] = alias
+
+    return args_map
+
+def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
+    tree = sqlglot.parse_one(query)
+    optimized = optimize(tree)
+
+    filters_by_table = extract_filters_per_tables(optimized)
+
+    for argname, arg_info in args_maps.items():
+        alias = arg_info.get("alias", argname)
+        view_name = arg_info.get("view_name", argname)
+        conds = filters_by_table.get(alias, [])
+        if not conds:
+            if arg_info.get("mimeType") == "text/sql":
+                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')}"
+                view = f"""CREATE OR REPLACE VIEW {view_name} AS
+                    SELECT *
+                    FROM postgres_query(
+                        '{db_connection}',
+                        '{pg_sql}'
+                    );"""
+            if arg_info.get("mimeType") == "text/csv":
+                local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
+                view = f"""CREATE OR REPLACE VIEW {view_name} AS
+                    SELECT *
+                    FROM read_csv_auto('{local_path}');"""
+        else:    
+            where_clause = " AND ".join(c for c in conds).replace(f'"{arg_info.get("alias")}".', "")
+            if arg_info.get("mimeType") == "text/sql":
+                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')} WHERE {where_clause}"
+                view = f"""CREATE OR REPLACE VIEW {view_name} AS
+                    SELECT *
+                    FROM postgres_query(
+                        '{db_connection}',
+                        '{pg_sql}'
+                    );"""
+            if arg_info.get("mimeType") == "text/csv":
+                local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
+                view = f"""CREATE OR REPLACE VIEW {view_name} AS
+                    SELECT *
+                    FROM read_csv_auto('{local_path}')
+                    WHERE {where_clause};"""
+        args_maps[argname]["view"] = view
+    return args_maps, optimized.sql()
+
+def extract_filters_per_tables(tree):
+    filters = {}
+    for where in tree.find_all(exp.Where):
+        for condition in split_conditions(where.this):
+            tables = {col.table for col in condition.find_all(exp.Column)}
+            if len(tables) == 1:
+                for table in tables:
+                    if table not in filters:
+                        filters[table] = []
+                    print("Condition:", condition.sql(), "Table:", table)
+                    filters[table].append(condition.sql())
+    # JOIN filters
+    for join in tree.find_all(exp.Join):
+        on = join.args.get("on")
+        if on:
+            for cond in split_conditions(on):
+                tables = {col.table for col in cond.find_all(exp.Column)}
+                if len(tables) == 1:
+                    for t in tables:
+                        if t not in filters:
+                            filters[t] = []
+                        print("Join Condition:", cond.sql(), "Table:", t)
+                        filters[t].append(cond.sql())
+    return filters
+def split_conditions(expr):
+    if isinstance(expr, exp.And):
+        yield from split_conditions(expr.left)
+        yield from split_conditions(expr.right)
+    else:
+        yield expr
