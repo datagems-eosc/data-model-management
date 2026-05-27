@@ -1,0 +1,111 @@
+{
+  "ap": {
+    "edges": [
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "c16253f9-9189-4a6c-bd96-d7818548dc4b"
+      },
+      {
+        "from": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+        "labels": [
+          "is_accomplished"
+        ],
+        "to": "99154e4e-acc8-4d07-95a7-f19c6f582f44"
+      },
+      {
+        "from": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+      },
+      {
+        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
+        "labels": [
+          "distribution"
+        ],
+        "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
+      }, 
+      {
+        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
+        "labels": [
+            "input"
+        ],
+        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+      }, 
+      {
+          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "labels": [
+              "output"
+          ],
+          "to": "b15f0dda-d963-44db-8d49-07a11332a042"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ],
+        "properties": {}
+      },
+      {
+        "id": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to disambiguate was there a heatwave in Europe recently?",
+          "name": "Disambiguation heatwave europe recently Task"
+        }
+      },
+      {
+        "id": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern about disambiguation of a heatwave in Europe recently?",
+          "name": "Disambiguation heatwave europe recently",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "69ce4693-e71e-4616-9320-037c90a88859",
+        "labels": [
+          "Query_Disambiguation_Operator",
+          "Operator"
+        ],
+        "properties": {
+          "description": "Disambiguation of the NL query",
+          "name": "Query-Disambiguation",
+          "process": "Query Disambiguation",
+          "query": "Was there a heatwave in Europe recently?",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
+        "labels": [
+          "sc:Dataset"
+        ]
+      },
+      {
+        "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
+        "labels": [
+          "dg:DatabaseConnection",
+          "RelationalDatabase"
+        ]
+      },
+      {
+        "id": "b15f0dda-d963-44db-8d49-07a11332a042", 
+        "labels":[
+            "sc:Text"
+        ]
+      }
+    ]
+  }
+}
