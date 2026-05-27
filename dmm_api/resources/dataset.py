@@ -2595,11 +2595,12 @@ def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
             if arg_info.get("mimeType") == "text/sql":
                 db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')}"
+                pg_sql_escaped = pg_sql.replace("'", "''")
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM postgres_query(
                         '{db_connection}',
-                        '{pg_sql}'
+                        '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
                 local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
@@ -2611,11 +2612,12 @@ def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
             if arg_info.get("mimeType") == "text/sql":
                 db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')} WHERE {where_clause}"
+                pg_sql_escaped = pg_sql.replace("'", "''")
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM postgres_query(
                         '{db_connection}',
-                        '{pg_sql}'
+                        '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
                 local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
