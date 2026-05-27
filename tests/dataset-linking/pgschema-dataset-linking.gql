@@ -1,10 +1,20 @@
-(BasicDLElementType: BasicDLElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING })
+# Nodes
+(BasicDLElementType: BasicDLElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING, REQUIRED date DATE})
 
-(PropertyComparisonType: PropertyComparison { REQUIRED metricValue FLOAT , REQUIRED targetProperty STRING, REQUIRED usesMetrics STRING})
+(PropertyComparisonType: PropertyComparison { REQUIRED metricValue FLOAT , REQUIRED targetProperty STRING, REQUIRED usesMetrics STRING, OPTIONAL relevantWords LIST })
 
-(TextualComparisonType: PropertyComparisonType & TextualComparion { REQUIRED relevantWords LIST })
+(TextEvidenceType: TextEvidence {REQUIRED rank INT, REQUIRED similarity FLOAT, REQUIRED usesMetrics STRING })
 
+(:FileObjectComparisonType :FileObjectComparison {REQUIRED matchingProperty STRING})
 
-(:TextualComparisonType | :PropertyComparisonType | :BasicDLElementType) -[hasTargetDatasetType: hasTargetDataset {OPTIONAL uniqueKeywords LIST }] -> (:Dataset)
+# Edges
 
-(:BasicDLElementType) -[hasComparisonType: hasComparison {REQUIRED weight FLOAT }] -> (:PropertyComparisonType)
+(:BasicDLElement) -[hasComparisonType: hasComparison {REQUIRED weight FLOAT }] -> (:PropertyComparison)
+
+(:PropertyComparison) -[hasEvidenceType: hasEviidence] -> (:TextEvidence)
+
+(:TextEvidence | :PropertyComparison) -[:hasTargetDatasetType :hasTargetDataset {OPTIONAL chunk STRING}] -> (:sc_Dataset)
+
+(:FileObjectComparison) -[:hasTargetFileObject] -> (:cr_FileObject)
+
+(:BasicDLElement) -[hasDetailType: hasDetail] -> (:FileObjectComparison)
