@@ -119,15 +119,20 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/grafeo/query",
             }, 
-            "ap/store": {
+            "aplog/store": {
                 "description": "Store AP in Grafeo",
                 "methods": ["POST"],
-                "url": "/api/v1/ap/store",
+                "url": "/api/v1/aplog/store",
             }, 
-            "ap/search": {
+            "aplog/search": {
                 "description": "Get APs from Grafeo",
                 "methods": ["GET"],
-                "url": "/api/v1/ap/search",
+                "url": "/api/v1/aplog/search",
+            }, 
+            "aplog/get": {
+                "description": "Get a specific AP by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/aplog/get/{ap_id}",
             }
         },
     }
