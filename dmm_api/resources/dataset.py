@@ -2405,7 +2405,8 @@ async def grafeo_query(
     query = body["query"]
     return run_grafeo_query(query)
 
-@router.post("/aplog/store")
+@router.post("/aplog/store", 
+             status_code=status.HTTP_201_CREATED,)
 async def ap_storage(
     body: str | None = Form(None),
     file: UploadFile | None = File(None),
@@ -2437,18 +2438,48 @@ async def ap_storage(
     payload_data = body.ap
     try: 
         store_AP_in_grafeo(payload_data)
-        #grafeo_queries = AP_to_Grafeo(payload_data)
+
+        return {
+            "message": "AP successfully stored in Grafeo"
+        }
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e)
         )
-    # for query in grafeo_queries:
-    #     run_grafeo_query(query)
-    return {"message": "AP successfully stored in Grafeo"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to store AP in Grafeo: {str(e)}"
+        )
 
+    
+@router.get("/aplog/get/{ap_id}")
+async def get_aplog(ap_id: str, token: str = Depends(security.oauth2_scheme)):
+    gql_query = f"""
+    MATCH (ap:Analytical_Pattern {{id: '{ap_id}'}})-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
+    OPTIONAL MATCH (a)-[r]-(b)
+    WHERE a IN collect(DISTINCT n) AND b IN collect(DISTINCT n)
+    RETURN ap, collect(DISTINCT n) AS all_nodes, collect(DISTINCT r) AS all_rels
+    """
+    rows = run_grafeo_query(gql_query)
+    if not rows:
+        raise HTTPException(status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo.")
+    
+    row = rows[0]
+    node_ids = row["all_nodes"]
+    rel_ids  = row["all_rels"]
 
-@router.get("/ap/search")
+    nodes_dict = fetch_nodes_by_ids(node_ids)
+    edges_dict = fetch_rels_by_ids(rel_ids)
+
+    ap_graph = Grafeo_to_AP(
+        {"ap": {"nodes": nodes_dict, "edges": edges_dict}}
+    )
+
+    return APResponseSuccessEnvelope(data=ap_graph)
+
+@router.get("/aplog/search")
 async def search_APs(
         apId:Optional[List[str]] = Query(None),
         userId:Optional[List[str]] = Query(None),

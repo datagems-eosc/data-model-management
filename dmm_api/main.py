@@ -128,6 +128,11 @@ async def api_home():
                 "description": "Get APs from Grafeo",
                 "methods": ["GET"],
                 "url": "/api/v1/aplog/search",
+            }, 
+            "aplog/get": {
+                "description": "Get a specific AP by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/aplog/get/{ap_id}",
             }
         },
     }

@@ -54,7 +54,9 @@ def AP_to_Grafeo(AP_payload: APRequest) -> dict:
 
         grafeo_queries.append(
             f'''MERGE (n{label_str} {{id: "{node.get("id")}"}})
-            SET n += {{{props_str}}}'''
+            SET n += {{{props_str}}}
+            ON CREATE SET n.created_at = timestamp(), n.updated_at = timestamp()
+            ON MATCH SET n.updated_at = timestamp()'''
         )
 
     for edge in grafeo_json["edges"]:
