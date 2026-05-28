@@ -1,0 +1,84 @@
+{
+    "nodes": [
+        {
+            "id": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+            "labels": [
+                "Analytical_Pattern"
+            ],
+            "properties": {
+                "description": "Analytical Pattern to disambiguate a query",
+                "process": "query_disambiguation",
+                "name": "Disambiguation heatwave europe recently"
+            }
+        },
+        {
+            "id": "69ce4693-e71e-4616-9320-037c90a88859",
+            "labels": [
+                "Query_Disambiguation_Operator",
+                "Operator"
+            ],
+            "properties": {
+                "description": "Disambiguation of an NL query",
+                "name": "Query Disambiguation Operator",
+                "inputs": [
+                    {"name": "query", "type":"string", "required": true}, 
+                    {"name": "database_connection", "type":"DatabaseConnection", "required": true}
+                ],
+                "outputs": [
+                    {"name": "results", "type":"array", "required": true}
+                ]
+            }
+        },
+        
+        {
+            "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
+            "labels": [
+                "dg:DatabaseConnection",
+                "RelationalDatabase"
+            ], 
+            "properties": {}
+        },
+        {
+            "id": "670f08a2-3b6f-4dba-b4c7-a485c4e9caa4",
+            "labels": ["ResultType", "array"],
+            "properties": {
+                "name": "qd_results",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                        "content":    { "type": "string" }
+                        },
+                        "required": ["content"]
+                    }
+                }
+            }
+        }
+    ], 
+    
+    "edges": [  
+        {
+            "from": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+            "labels": [
+                "consist_of"
+            ],
+            "to": "69ce4693-e71e-4616-9320-037c90a88859"
+        },
+        {
+            "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
+            "labels": [
+                "input"
+            ],
+            "to": "69ce4693-e71e-4616-9320-037c90a88859"
+        }, 
+        {
+            "from": "69ce4693-e71e-4616-9320-037c90a88859",
+            "labels": [
+                "output"
+            ],
+            "to": "670f08a2-3b6f-4dba-b4c7-a485c4e9caa4"
+        }
+    ]
+    
+}
