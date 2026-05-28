@@ -33,32 +33,16 @@ def AP_to_Grafeo(AP_payload: APRequest) -> dict:
 
     # Get AP id from the node with label "Analytical_Pattern" and property "id"
     ap_node = next((node for node in grafeo_json["nodes"] if "Analytical_Pattern" in node["labels"]), None)
+    task_node = next((node for node in grafeo_json["nodes"] if "Task" in node["labels"]), None)
+    operator_node = next((node for node in grafeo_json["nodes"] if "Operator" in node["labels"]), None)
     if not ap_node:
         raise ValueError("No AP node with id property found in the graph.")
     
-    query = f"MATCH (n:Analytical_Pattern {{id: '{ap_node['id']}'}}) RETURN n"
+    check_queries = {}
+    check_queries["Analytical_Pattern"] = f"MATCH (n:Analytical_Pattern {{id: '{ap_node['id']}'}}) RETURN n"
+    check_queries["Task"] = f"MATCH (n:Task {{id: '{task_node['id']}'}}) RETURN n"
+    check_queries["Operator"] = f"MATCH (n:Operator) WHERE n.id IN {tuple(op['id'] for op in operator_node)} RETURN n"
 
-    response = requests.post(
-        f"{GRAFEO_URL}/query",
-        json={"query": query},
-    )
-
-    try:
-        response.raise_for_status()
-    except requests.HTTPError:
-        logger.error("Grafeo error:", response.text)
-        raise
-
-    # Convert to JSON AFTER checking status
-    response_json = response.json()
-    logger.info(f"response_json: {response_json}")
-
-    # Safe access
-    rows = response_json.get("rows", [])
-
-    if rows:
-        raise ValueError(f"AP with id {ap_node['id']} already exists in Grafeo.")
-    
     for node in grafeo_json["nodes"]:
         # Normalize labels
         labels = [normalize_label(l) for l in node.get("labels", [])]
@@ -87,7 +71,7 @@ def AP_to_Grafeo(AP_payload: APRequest) -> dict:
                 q += f" SET {set_clause}"
             grafeo_queries.append(q)
  
-    return grafeo_queries
+    return check_queries, grafeo_queries
 
 def normalize_label(label: str) -> str:
     return label.replace(":", "__").replace(" ", "_")
@@ -165,3 +149,45 @@ def Grafeo_to_AP(raw_data: dict, property_filter: Optional[List[str]] = None) ->
         }
     }
 
+def grafeo_begin():
+    resp = requests.post(f"{GRAFEO_URL}/transaction/start")
+    resp.raise_for_status()
+    return resp.json()["txId"]
+
+def grafeo_execute(txId, query):
+    resp = requests.post(
+        f"{GRAFEO_URL}/transaction/{txId}/execute",
+        json={"query": query}
+    )
+    resp.raise_for_status()
+    return resp.json()
+
+def grafeo_commit(txId):
+    resp = requests.post(f"{GRAFEO_URL}/transaction/{txId}/commit")
+    resp.raise_for_status()
+
+def grafeo_rollback(txId):
+    requests.post(f"{GRAFEO_URL}/transaction/{txId}/rollback")
+
+def store_AP_in_grafeo(ap: APRequest):
+    check_queries, grafeo_queries = AP_to_Grafeo(ap)
+    try:
+
+        ## Add something to retrieve ap id / task id / operator id 
+
+        txId = grafeo_begin()
+        
+        for node, query in check_queries.items():
+            response = grafeo_execute(txId, query)
+            rows = response.get("rows", [])
+            if rows:
+                grafeo_rollback(txId)
+                raise ValueError(f"AP with node {node} already exists in Grafeo. Rolling back transaction.")
+        for query in grafeo_queries:
+            grafeo_execute(txId, query)
+        grafeo_commit(txId)
+
+    except Exception as e:
+        grafeo_rollback(txId)
+        raise 
+        

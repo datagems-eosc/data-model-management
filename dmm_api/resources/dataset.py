@@ -14,7 +14,7 @@ from sqlglot import expressions as exp
 
 
 
-from dmm_api.tools.AP.log_AP import AP_to_Grafeo, Grafeo_to_AP
+from dmm_api.tools.AP.log_AP import Grafeo_to_AP, store_AP_in_grafeo
 import duckdb
 import structlog
 from fastapi import (
@@ -2405,7 +2405,7 @@ async def grafeo_query(
     query = body["query"]
     return run_grafeo_query(query)
 
-@router.post("/ap/store")
+@router.post("/aplog/store")
 async def ap_storage(
     body: str | None = Form(None),
     file: UploadFile | None = File(None),
@@ -2446,11 +2446,6 @@ async def ap_storage(
     # for query in grafeo_queries:
     #     run_grafeo_query(query)
     return {"message": "AP successfully stored in Grafeo"}
-
-def store_AP_in_grafeo(ap: APRequest):
-    grafeo_queries = AP_to_Grafeo(ap)
-    for query in grafeo_queries:
-        run_grafeo_query(query)
 
 
 @router.get("/ap/search")

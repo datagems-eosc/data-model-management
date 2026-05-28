@@ -17,7 +17,7 @@ cd tests
 - [2) Search an AP](#2-search-an-AP)
 
 
-## 1) Store an AP
+## 1) Store an AP - no one should use it 
 
 The endpoint allow to store an AP in the database Grafeo.
 
