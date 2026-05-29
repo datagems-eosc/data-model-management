@@ -42,7 +42,22 @@
               "output"
           ],
           "to": "b15f0dda-d963-44db-8d49-07a11332a042"
+      }, 
+      {
+          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "labels": [
+              "output"
+          ],
+          "to": "de8fbec3-f23a-46cc-ac07-e63150054389"
+      }, 
+      {
+          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "labels": [
+              "output"
+          ],
+          "to": "bbe2a117-23e4-4b18-8162-4d12e5de353d"
       }
+      
     ],
     "nodes": [
       {
@@ -70,7 +85,9 @@
         "properties": {
           "description": "Analytical Pattern about disambiguation of a heatwave in Europe recently?",
           "name": "Disambiguation heatwave europe recently",
-          "startTime": "2026-03-17T10:43:17.829Z"
+          "startTime": "2026-03-17T10:43:17.829Z", 
+          "endTime": "2026-03-17T10:44:17.829Z"
+
         }
       },
       {
@@ -84,7 +101,9 @@
           "name": "Query-Disambiguation",
           "process": "Query Disambiguation",
           "query": "Was there a heatwave in Europe recently?",
-          "startTime": "2026-03-17T10:43:17.829Z"
+          "startTime": "2026-03-17T10:43:17.829Z",
+          "endTime": "2026-03-17T10:44:17.829Z"
+
         }
       },
       {
@@ -103,14 +122,29 @@
       {
         "id": "b15f0dda-d963-44db-8d49-07a11332a042", 
         "labels":[
-            "sc:Text"
+            "ResultType"
         ], 
         "properties": {
-            "suggested_queries" : [
-                "Was there a heatwave in Greece 2025-05-21 to 2025-05-27?",
-                "Was there a heatwave in Greece 2025-04-28 to 2025-05-27?",
-                "Was there a heatwave in Switzerland 2025-05-21 to 2025-05-27?"
-            ]
+            "suggested_query" :
+                "Was there a heatwave in Greece 2025-05-21 to 2025-05-27?"  
+        }
+      },
+      {
+        "id": "de8fbec3-f23a-46cc-ac07-e63150054389", 
+        "labels":[
+            "ResultType"
+        ], 
+        "properties": {
+            "suggested_query" : "Was there a heatwave in Greece 2025-04-28 to 2025-05-27?"
+        }
+      },
+      {
+        "id": "bbe2a117-23e4-4b18-8162-4d12e5de353d", 
+        "labels":[
+            "ResultType"
+        ], 
+        "properties": {
+            "suggested_query" : "Was there a heatwave in Switzerland 2025-05-21 to 2025-05-27?"
         }
       }
     ]
