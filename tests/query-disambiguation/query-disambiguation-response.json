@@ -6,21 +6,21 @@
         "labels": [
           "request"
         ],
-        "to": "c16253f9-9189-4a6c-bd96-d7818548dc4b"
+        "to": "bd2bb468-9999-4c09-b9af-fc836c2f6c73"
       },
       {
-        "from": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+        "from": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
         "labels": [
           "is_accomplished"
         ],
-        "to": "99154e4e-acc8-4d07-95a7-f19c6f582f44"
+        "to": "fe00ff20-07fe-4cb9-ac99-16a161d95280"
       },
       {
-        "from": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+        "from": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
         "labels": [
           "consist_of"
         ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+        "to": "505580d9-4147-49a3-b0df-e103593388be"
       },
       {
         "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
@@ -34,24 +34,24 @@
         "labels": [
             "input"
         ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
+        "to": "505580d9-4147-49a3-b0df-e103593388be"
       }, 
       {
-          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "from": "505580d9-4147-49a3-b0df-e103593388be",
           "labels": [
               "output"
           ],
           "to": "b15f0dda-d963-44db-8d49-07a11332a042"
       }, 
       {
-          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "from": "505580d9-4147-49a3-b0df-e103593388be",
           "labels": [
               "output"
           ],
           "to": "de8fbec3-f23a-46cc-ac07-e63150054389"
       }, 
       {
-          "from": "69ce4693-e71e-4616-9320-037c90a88859",
+          "from": "505580d9-4147-49a3-b0df-e103593388be",
           "labels": [
               "output"
           ],
@@ -68,7 +68,7 @@
         "properties": {}
       },
       {
-        "id": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+        "id": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
         "labels": [
           "Task"
         ],
@@ -78,7 +78,7 @@
         }
       },
       {
-        "id": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+        "id": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
         "labels": [
           "Analytical_Pattern"
         ],
@@ -91,7 +91,7 @@
         }
       },
       {
-        "id": "69ce4693-e71e-4616-9320-037c90a88859",
+        "id": "505580d9-4147-49a3-b0df-e103593388be",
         "labels": [
           "Query_Disambiguation_Operator",
           "Operator"
@@ -197,5 +197,5 @@
         ],
         "overall_clarity": "low"
     }   
-}
+  }
 }
