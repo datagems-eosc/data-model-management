@@ -13,53 +13,90 @@ cd tests
 
 ## Table of Contents
 
-- [1) Store an AP](#1-store-an-AP)
+
+- [1) Get an AP](#1-get-an-AP)
 - [2) Search an AP](#2-search-an-AP)
+- [3) Store an AP](#3-store-an-AP)
 
+## 1) Get an AP
 
-## 1) Store an AP - no one should use it 
-
-The endpoint allow to store an AP in the database Grafeo.
+You can retrieve an AP that are stored in Grafeo by its id. 
 
 ```bash
-curl -X 'POST' \
-  'https://datagems-dev.scayle.es/dmm/api/v1/ap/store' \
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/aplog/get/a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf' \
   -H 'accept: application/json' \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "file=@query/query_db.json" | python -m json.tool
+  -H "Authorization: Bearer $TOKEN" | python -m json.tool
 ```
-Example data file: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
 
-The API returns when the AP is successfully loaded in Grafeo:
+The API returns:
 ```json
 {
-    {
-    "message": "AP successfully stored in Grafeo"
+    "code": 200,
+    "message": "success",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "id": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "labels": [
+                        "Operator",
+                        "SQL_Operator",
+                        "Query_Operator"
+                    ],
+                    "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                    "properties": {
+                        ...
+                    }
+                },
+                ...
+            ],
+            "edges": [
+                {
+                    "from": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                    "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
+                    "labels": [
+                        "consist_of"
+                    ]
+                },
+                {
+                    "from": "474c2c12-4185-42a0-9e79-38af377bdcad",
+                    "to": "a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf",
+                    "labels": [
+                        "is_accomplished"
+                    ]
+                },
+                ...
+            ]
+        }
     }
 }
-```
 
-The API returns when the AP id already exists in the database.
-```json
-{
-    {
-    "detail": "AP with id a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf already exists in Grafeo."
-}
-}
 ```
 
 ## 2) Search an AP
 
-You can retrieve AP that are stored in Grafeo. You can filter by the AP id, the User id, and select the properties. All parameters are optional.
+You can retrieve AP that are stored in Grafeo. You can filter by the User id, startDate, endDate, operator type, dataset id and file object id. All parameters are optional.
 
-### GET one or more datasets after filtering
+### GET the AP logs 
+
+By default, the 20 more recent AP (order by date) are returned. The returned AP logs will contain the User, Task and Analytical Pattern
 
 Parameters:
-- nodeIds: UUID(s) to fetch.
-- properties: Which dataset properties to include (e.g. url, country, name, archivedAt, datePublished).
-- apId: Filter by AP id.
 - userID: Filter by User id.
-- property: Only these properties will be showed.
+- startDate/endDate: Filter by the AP date
+- limit: The number of returned AP logs, default is 20
+
+
+
 
 ```bash
 curl -X 'GET' \
@@ -134,3 +171,36 @@ The API returns:
 ]
 
 ```
+
+
+## 3) Store an AP - no one should use it 
+
+The endpoint allow to store an AP in the database Grafeo.
+
+```bash
+curl -X 'POST' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/ap/store' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@query/query_db.json" | python -m json.tool
+```
+Example data file: [tests/query/query_db.json](tests/query/query_db.json) (command path when running from `tests`: `query/query_db.json`).
+
+The API returns when the AP is successfully loaded in Grafeo:
+```json
+{
+    {
+    "message": "AP successfully stored in Grafeo"
+    }
+}
+```
+
+The API returns when the AP id already exists in the database.
+```json
+{
+    {
+    "detail": "AP with id a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf already exists in Grafeo."
+}
+}
+```
+

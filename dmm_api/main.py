@@ -1,6 +1,7 @@
 import os
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.exceptions import HTTPException
+from fastapi.responses import JSONResponse, RedirectResponse
 import uvicorn
 
 from dmm_api.resources.dataset import router as dataset_router
@@ -22,6 +23,17 @@ app = FastAPI(
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
 app.include_router(security_router, prefix="/api/v1")
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    """Return the detail payload directly, without FastAPI's {"detail": ...} wrapper."""
+    detail = exc.detail
+    if isinstance(detail, dict):
+        body = detail
+    else:
+        body = {"code": exc.status_code, "error": str(detail)}
+    return JSONResponse(status_code=exc.status_code, content=body)
 
 
 # Root
@@ -133,6 +145,11 @@ async def api_home():
                 "description": "Get a specific AP by ID",
                 "methods": ["GET"],
                 "url": "/api/v1/aplog/get/{ap_id}",
+            }, 
+            "aplog/delete": {
+                "description": "Delete a specific AP by ID",
+                "methods": ["DELETE"],
+                "url": "/api/v1/aplog/delete/{ap_id}",
             }
         },
     }
