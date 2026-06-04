@@ -59,7 +59,11 @@ from ..tools.AP.update_AP import (
     generate_dataset_node,
     update_fileObject_id,
     update_fileObject_properties,
-    update_AP_after_query
+    update_AP_after_query, 
+    update_endTime, 
+    update_startTime, 
+    update_endTime_node,
+    update_starTime_node
 
 )
 from ..tools.AP.generate_AP import (
@@ -1573,6 +1577,9 @@ async def execute_and_store(
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
             ).model_dump(exclude_none=True),
         )
+    ap_obj = APRequest.model_validate(payload_data["ap"])
+    ap_obj = update_startTime(ap_obj)
+    payload_data["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -1584,6 +1591,9 @@ async def execute_and_store(
 
     try:
         response_payload = response.json()
+        ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
+        ap_obj = update_endTime(ap_obj)
+        response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
         try: 
             store_AP_in_grafeo(response_payload.get("ap", {}))
@@ -2316,12 +2326,11 @@ async def execute_and_store_idd(
         f"Updated AP",
         ap=ap,
     )
+    ap = update_startTime(ap)
     payload_data["ap"] = ap.model_dump(by_alias=True, exclude_defaults=True)
 
     try:
-        print(f"[{service['name']}] Storing AP in AP Storage:")
-        print(json.dumps(ap, indent=2))
-        print(f"[{service['name']}] AP stored successfully.")
+        store_AP_in_grafeo(payload_data["ap"])
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 

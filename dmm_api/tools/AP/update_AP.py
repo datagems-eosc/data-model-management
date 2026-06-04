@@ -1,6 +1,7 @@
 import uuid
 import copy
 from dmm_api.tools.AP.parse_AP import APRequest, Edge, Node
+from datetime import datetime, timezone
 
 
 # TODO: update the id for more than one dataset?
@@ -111,7 +112,7 @@ def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
     new_dataset_node = Node(
         **{
             "id": sql_operator_id,
-            "labels": ["Query_Operator", "SQL_Operator"], 
+            "labels": ["Query_Operator", "SQL_Operator", "Operator"], 
         }
     )
     ap_payload.nodes.append(new_dataset_node)
@@ -119,13 +120,53 @@ def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
         if "NLQ_Operator" in node.labels:
             nlq_operator_id = node.id
             # The edge should be changed from SQL_Operator to NLQ_Operator
+        if "Analytical_Pattern" in node.labels:
+            ap_id = node.id
     if nlq_operator_id:
         new_edge = Edge(
                     **{"from": sql_operator_id, "to": nlq_operator_id, "labels": ["follows"]}
+                )
+        ap_payload.edges.append(new_edge)
+        new_edge = Edge(
+                    **{"from": ap_id, "to": sql_operator_id, "labels": ["consist_of"]}
                 )
         ap_payload.edges.append(new_edge)
         for edge in ap_payload.edges:
             if str(edge.source) == str(nlq_operator_id) and "output" in edge.labels:
                 edge.source = sql_operator_id
 
+    return ap_payload
+
+def update_startTime(ap_payload: APRequest) -> APRequest:
+    timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for node in ap_payload.nodes:
+        if "properties" not in node.model_dump():
+            node.properties = {}
+        node.properties["startTime"] = timeNow
+    return ap_payload
+
+def update_endTime(ap_payload: APRequest) -> APRequest:
+    timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for node in ap_payload.nodes:
+        if "properties" not in node.model_dump():
+            node.properties = {}
+        node.properties["endTime"] = timeNow
+    return ap_payload
+
+def update_starTime_node(ap_payload: APRequest, node_id: str) -> APRequest:
+    timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for node in ap_payload.nodes:
+        if str(node.id) == str(node_id):
+            if "properties" not in node.model_dump():
+                node.properties = {}
+            node.properties["startTime"] = timeNow
+    return ap_payload
+
+def update_endTime_node(ap_payload: APRequest, node_id: str) -> APRequest:
+    timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    for node in ap_payload.nodes:
+        if str(node.id) == str(node_id):
+            if "properties" not in node.model_dump():
+                node.properties = {}
+            node.properties["endTime"] = timeNow
     return ap_payload
