@@ -17,7 +17,7 @@ cd tests
 - [1) Get an AP](#1-get-an-AP)
 - [2) Search an AP](#2-search-an-AP)
 - [3) Store an AP](#3-store-an-AP)
-
+- [4) Delete an AP](#4-delete-an-AP)
 ## 1) Get an AP
 
 You can retrieve an AP that are stored in Grafeo by its id. 
@@ -250,7 +250,7 @@ The API returns:
 
 ## 3) Store an AP
 
-The endpoint allow to store an AP in the database Grafeo.
+The endpoint allow to store an AP in the database Grafeo. This endpoint is only used for testing, the AP logs are stored after they are executed. 
 
 ```bash
 curl -X 'POST' \
@@ -279,7 +279,7 @@ When the AP already exist in Grafeo, the API returns :
 }
 ```
 
-## Delete an AP
+## 4) Delete an AP
 
 The endpoint allow to delete an AP in the database Grafeo.
 
