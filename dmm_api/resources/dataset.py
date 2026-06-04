@@ -2626,7 +2626,6 @@ async def search_APs(
             if nb > limit:
                 break
             response.append(get_full_aplog(row["ap"]["id"], token=token, txId=txId))
-        return response
     if txId is not None:
         grafeo_rollback(txId)
     else:
