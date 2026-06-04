@@ -2627,8 +2627,7 @@ async def search_APs(
             if nb > limit:
                 break
             response.append(get_full_aplog(row["ap"]["id"], token=token, txId=txId))
-    if txId is not None:
-        grafeo_rollback(txId)
+    
     else:
         ## Return only User -> Task -> AP
         response = []
@@ -2643,6 +2642,8 @@ async def search_APs(
             edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "labels": ["is_accomplished"]})
             ap_graph = {"ap": {"nodes": nodes, "edges": edges}}
             response.append(ap_graph)
+    if txId is not None:
+        grafeo_rollback(txId)
     if len(response) == 0 :
         raise HTTPException(status_code=404, detail=f"No AP logs found with the input parameters.")
     return APlogSuccessEnvelope(
