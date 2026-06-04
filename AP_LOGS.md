@@ -24,7 +24,7 @@ You can retrieve an AP that are stored in Grafeo by its id.
 
 ```bash
 curl -X 'GET' \
-  'https://datagems-dev.scayle.es/dmm/api/v1/aplog/get/a51f3e82-ca74-4ef6-8d1e-2bb08f4df6cf' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/aplog/get/fe00ff20-07fe-4cb9-ac99-16a161d95280' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN" | python -m json.tool
 ```
@@ -84,17 +84,23 @@ The API returns:
 
 ## 2) Search an AP
 
-You can retrieve AP that are stored in Grafeo. You can filter by the User id, startDate, endDate, operator type, dataset id and file object id. All parameters are optional.
+You can retrieve Analytical Pattern (AP) logs stored in Grafeo.  
+All parameters are optional.  
+The endpoint supports **two retrieval modes** depending on the filters used.
 
-### GET the AP logs 
+### Shallow AP Log (default)
 
-By default, the 20 more recent AP (order by date) are returned. The returned AP logs will contain the User, Task and Analytical Pattern
+Returned when **no deep filters** are provided, or when only these parameters are used:
 
-Parameters:
 - userID: Filter by User id.
 - startDate/endDate: Filter by the AP date
 - limit: The number of returned AP logs, default is 20
 
+In this mode, each AP log contains only: 
+- **User** node, **Task** node, and **Analytical_Pattern** node
+- Connected nodes: 
+    - `User -request-> Task`  
+    - `Task -is_accomplished-> Analytical_Pattern`
 
 ```bash
 curl -X 'GET' \
@@ -113,49 +119,47 @@ The API returns:
             "ap": {
                 "nodes": [
                     {
-                        "_id": 29,
-                        "_labels": [
+                        "labels": [
                             "Analytical_Pattern"
                         ],
-                        "created_at": "2026-06-04T10:31:38.767Z",
-                        "description": "Analytical Pattern about disambiguation of a heatwave in Europe recently?",
-                        "endTime": "2026-03-17T10:44:17.829Z",
                         "id": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
-                        "name": "Disambiguation heatwave europe recently",
-                        "startTime": "2026-03-17T10:43:17.829Z",
-                        "updated_at": "2026-06-04T10:31:38.767Z"
+                        "properties": {
+                            ...
+                        }
                     },
                     {
-                        "_id": 27,
-                        "_labels": [
+                        "labels": [
                             "User"
                         ],
-                        "created_at": "2026-06-04T10:31:38.767Z",
                         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-                        "updated_at": "2026-06-04T10:31:38.767Z"
+                        "properties": {
+                            ...
+                        }
                     },
                     {
-                        "_id": 28,
-                        "_labels": [
+                        "labels": [
                             "Task"
                         ],
-                        "created_at": "2026-06-04T10:31:38.767Z",
-                        "description": "Task to disambiguate was there a heatwave in Europe recently?",
                         "id": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
-                        "name": "Disambiguation heatwave europe recently Task",
-                        "updated_at": "2026-06-04T10:31:38.767Z"
+                        "properties": {
+                            ...
+                        }
                     }
                 ],
                 "edges": [
                     {
                         "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
                         "to": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
-                        "type": "request"
+                        "labels": [
+                            "request"
+                        ]
                     },
                     {
                         "from": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
                         "to": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
-                        "type": "is_accomplished"
+                        "labels": [
+                            "is_accomplished"
+                        ]
                     }
                 ]
             }
@@ -164,9 +168,85 @@ The API returns:
     "count": 1,
     "total": 1
 }
-
 ```
 
+### Full AP Graph (deep filters)
+
+Returned when *any* of the following parameters are provided:
+- `operator`
+- `fileObjectId`
+- `datasetId`
+
+In this mode, each full AP log will be returned.
+
+```bash
+curl -X 'GET' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/aplog/search?operator=Query_Disambiguation_Operator' \
+  -H 'accept: application/json' \
+  -H "Authorization: Bearer $TOKEN" | python -m json.tool
+```
+
+The API returns:
+```json
+{
+    "code": 200,
+    "message": "APlogs retrieved successfully with the input parameters.",
+    "aplogs": [
+        {
+            "ap": {
+                "nodes": [
+                    {
+                        "labels": [
+                            "Analytical_Pattern"
+                        ],
+                        "id": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
+                        "properties": {
+                            ...
+                        }
+                    },
+                    {
+                        "labels": [
+                            "Operator",
+                            "Query_Disambiguation_Operator"
+                        ],
+                        "id": "505580d9-4147-49a3-b0df-e103593388be",
+                        "properties": {
+                            ...
+                        }
+                    },
+                    ...
+                ],
+                "edges": [
+                    {
+                        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                        "to": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
+                        "labels": [
+                            "request"
+                        ]
+                    },
+                    {
+                        "from": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
+                        "to": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
+                        "labels": [
+                            "is_accomplished"
+                        ]
+                    },
+                    {
+                        "from": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
+                        "to": "505580d9-4147-49a3-b0df-e103593388be",
+                        "labels": [
+                            "consist_of"
+                        ]
+                    },
+                    ...
+                ]
+            }
+        }
+    ],
+    "count": 1,
+    "total": 1
+}
+```
 
 ## 3) Store an AP
 
