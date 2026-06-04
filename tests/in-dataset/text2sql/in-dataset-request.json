@@ -37,18 +37,18 @@
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
       }, 
       {
-          "from": "29a79838-adae-43e4-8e20-8d08c523445d",
-          "labels": [
-              "output"
-          ],
-          "to": "01624723-6b74-4719-a985-ceb70c623932"
+        "from": "29a79838-adae-43e4-8e20-8d08c523445d",
+        "labels": [
+            "output"
+        ],
+        "to": "01624723-6b74-4719-a985-ceb70c623932"
       },
       {
-          "from": "29a79838-adae-43e4-8e20-8d08c523445d",
-          "labels": [
-              "follows"
-          ],
-          "to": "69ce4693-e71e-4616-9320-037c90a88859"
+        "from": "29a79838-adae-43e4-8e20-8d08c523445d",
+        "labels": [
+            "follows"
+        ],
+        "to": "69ce4693-e71e-4616-9320-037c90a88859"
       }
     ],
     "nodes": [
@@ -84,7 +84,8 @@
         "id": "69ce4693-e71e-4616-9320-037c90a88859",
         "labels": [
           "Query_Operator",
-          "NLQ_Operator"
+          "NLQ_Operator", 
+          "Operator"
         ],
         "properties": {
           "description": "Translate text to SQL",
@@ -98,28 +99,32 @@
         "id": "29a79838-adae-43e4-8e20-8d08c523445d",
         "labels": [
           "Query_Operator",
-          "SQL_Operator"
+          "SQL_Operator", 
+          "Operator"
         ]
       },
       {
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "sc:Dataset"
-        ]
+        ], 
+        "properties": {}
       },
       {
         "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
         "labels": [
           "dg:DatabaseConnection",
           "RelationalDatabase"
-        ]
+        ],
+        "properties": {}
       },
       {
         "id": "01624723-6b74-4719-a985-ceb70c623932",
         "labels": [
           "cr:FileObject",
           "Data"
-        ]
+        ],
+        "properties": {}
       }
     ]
   }

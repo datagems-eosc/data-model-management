@@ -120,7 +120,8 @@
         "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
           "SQL_Operator",
-          "Query_Operator"
+          "Query_Operator", 
+          "Operator"
         ],
         "properties": {
           "description": "Query executed via DuckDB on Postgres",
@@ -135,7 +136,8 @@
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
         "labels": [
           "User"
-        ]
+        ],
+        "properties": {}
       },
       {
         "id": "474c2c12-4185-42a0-9e79-38af377bdcad",
@@ -152,46 +154,53 @@
         "labels":[
           "Data", 
           "cr:FileObject"
-        ]
+        ],
+        "properties": {}
       }, 
       {
         "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318", 
         "labels":[
           "sc:Dataset"
-        ]
+        ],
+        "properties": {}
       }, 
       {
         "id": "3b516b4d-5318-422f-a605-b86b5796d565",
         "labels":[
           "Data", 
           "cr:FileObject"
-        ]
+        ],
+        "properties": {}
       }, 
       {
         "id": "629bed3a-c1f1-421b-858a-f0f685bb8275",
         "labels":[
           "sc:Dataset"
-         ]
+         ],
+          "properties": {}
       }, 
       {
         "id": "7e09b481-0812-4321-8e80-f9dc812f8b71",
         "labels":[
           "Data", 
           "cr:FileObject"
-        ]
+        ],
+        "properties": {}
       }, 
       {
         "id": "6f6e18e2-c61c-4c72-8de8-808b16757166",
         "labels":[
           "Data", 
           "cr:FileObject"
-        ]
+        ],
+        "properties": {}
       },
       {
         "id": "e6e93f40-02a6-4335-97db-4f7c02d5da89",
         "labels":[
           "dg:DatabaseConnection"
-        ]
+        ],
+        "properties": {}
       }
     ]
   }
