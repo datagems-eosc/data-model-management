@@ -14,7 +14,14 @@ from sqlglot import expressions as exp
 
 
 
-from dmm_api.tools.AP.log_AP import Grafeo_to_AP, store_AP_in_grafeo
+from dmm_api.tools.AP.log_AP import (
+    Grafeo_to_AP,
+    store_AP_in_grafeo,
+    grafeo_begin,
+    grafeo_execute,
+    grafeo_commit,
+    grafeo_rollback,
+)
 import duckdb
 import structlog
 from fastapi import (
@@ -99,6 +106,13 @@ class DatasetsSuccessEnvelope(BaseModel):
     count: Optional[int] = None
     total: Optional[int] = None
 
+class APlogSuccessEnvelope(BaseModel):
+    code: int
+    message: str
+    aplogs: List[Dict[str, Any]]
+    count: Optional[int] = None
+    total: Optional[int] = None
+
 
 class ErrorEnvelope(BaseModel):
     code: int
@@ -147,7 +161,12 @@ class MimeType(str, Enum):
     text_markdown = "text/markdown"
     text_plain = "text/plain"
     
-
+class OPERATOR_LABELS(str, Enum):
+    SQL_OPERATOR = "SQL_Operator"
+    NLQ_OPERATOR = "NLQ_Operator"
+    QUERY_OPERATOR = "Query_Operator"
+    CDD_OPERATOR = "CDD_Operator"
+    QUERY_DISAMBIGUATION_OPERATOR = "Query_Disambiguation_Operator"
 
 
 class DatasetProperty(str, Enum):
@@ -322,7 +341,7 @@ async def data_workflow(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Failed to upload dataset to scratchpad: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     return DatasetSuccessEnvelope(
@@ -498,7 +517,7 @@ async def search_datasets(
                             "moma_status_code": e.response.status_code,
                             "moma_response": e.response.text,
                         },
-                    ).model_dump(),
+                    ).model_dump(exclude_none=True),
                 )
 
             raise HTTPException(
@@ -510,7 +529,7 @@ async def search_datasets(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -528,7 +547,7 @@ async def search_datasets(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
 # This endpoint for now does not support filtering
@@ -563,7 +582,7 @@ async def get_dataset(
                     detail=ErrorEnvelope(
                         code=status.HTTP_404_NOT_FOUND,
                         error=f"Dataset with ID {dataset_id} not found in Neo4j",
-                    ).model_dump(),
+                    ).model_dump(exclude_none=True),
                 )
 
             response.raise_for_status()
@@ -598,7 +617,7 @@ async def get_dataset(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -617,7 +636,7 @@ async def get_dataset(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception:
             raise HTTPException(
@@ -625,7 +644,7 @@ async def get_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error="Unexpected Internal Server error",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
 
@@ -662,7 +681,7 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error="No Dataset node found in AP",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         if len(filtered_nodes) != 1:
@@ -671,7 +690,7 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error="Register AP must contain exactly one Dataset node.",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         dataset_node = filtered_nodes[0]
@@ -690,7 +709,7 @@ async def register_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Unexpected error during the dataset extraction: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     async with httpx.AsyncClient(
@@ -707,7 +726,7 @@ async def register_dataset(
                     detail=ErrorEnvelope(
                         code=status.HTTP_409_CONFLICT,
                         error=f"Dataset with ID {dataset_id} already exists in Neo4j",
-                    ).model_dump(),
+                    ).model_dump(exclude_none=True),
                 )
         except HTTPException:
             raise
@@ -728,7 +747,7 @@ async def register_dataset(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -748,7 +767,7 @@ async def register_dataset(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception as e:
             raise HTTPException(
@@ -756,7 +775,7 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error=f"Unexpected error while checking dataset existence: {type(e).__name__}: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         # Create the dataset node via POST /datasets
@@ -811,7 +830,7 @@ async def register_dataset(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -831,7 +850,7 @@ async def register_dataset(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception as e:
             logger.error(
@@ -846,7 +865,7 @@ async def register_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error=f"Unexpected error: {type(e).__name__}: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
@@ -879,7 +898,7 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error="No Dataset node found in AP",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         if len(filtered_nodes) != 1:
@@ -888,7 +907,7 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Expected exactly 1 Dataset node, found {len(filtered_nodes)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         dataset_node = filtered_nodes[0]
@@ -914,7 +933,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Unexpected error during dataset extraction: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     # Pre-check: Verify dataset exists in Neo4j with the provided status (fallback to 'staged')
@@ -947,7 +966,7 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_404_NOT_FOUND,
                     error=msg,
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
     except HTTPException:
         raise
@@ -968,7 +987,7 @@ async def load_dataset(
                     "moma_status_code": e.response.status_code,
                     "moma_response": e.response.text,
                 },
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     except httpx.RequestError as e:
         logger.error(
@@ -988,7 +1007,7 @@ async def load_dataset(
                     "request_error_type": type(e).__name__,
                     "request_error": str(e),
                 },
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     except Exception as e:
         raise HTTPException(
@@ -996,7 +1015,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Failed to verify dataset existence in Neo4j: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     # Validate and move the dataset files
@@ -1033,7 +1052,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_404_NOT_FOUND,
                 error=f"{str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     except FileExistsError as e:
         raise HTTPException(
@@ -1041,7 +1060,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_409_CONFLICT,
                 error=f"{str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     except ValueError as e:
         raise HTTPException(
@@ -1049,7 +1068,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
                 error=f"Invalid input format: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     except Exception as e:
         raise HTTPException(
@@ -1057,7 +1076,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     # Update the dataset metadata in Neo4j via PATCH /nodes/{id}
@@ -1128,7 +1147,7 @@ async def load_dataset(
                         "moma_response": e.response.text,
                         "rollback_failed": rollback_error is not None,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             rollback_error = None
@@ -1162,7 +1181,7 @@ async def load_dataset(
                         "request_error": str(e),
                         "rollback_failed": rollback_error is not None,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception as e:
             # Rollback: Move file back to original location
@@ -1191,7 +1210,7 @@ async def load_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
     # Upload dataset to catalogue
@@ -1216,7 +1235,7 @@ async def load_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Dataset updated in Neo4j but failed to upload to catalogue: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     return APSuccessEnvelope(
@@ -1258,7 +1277,7 @@ async def update_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error="No Dataset/FileObject/RecordSet nodes found in AP",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         # Get Dataset node IDs for existence check
@@ -1274,7 +1293,7 @@ async def update_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error="No Dataset nodes found in AP",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
         logger.info(
@@ -1292,7 +1311,7 @@ async def update_dataset(
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 error=f"Failed to parse AP: {type(e).__name__}: {str(e)}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     async with httpx.AsyncClient(
@@ -1335,7 +1354,7 @@ async def update_dataset(
                                 f"Dataset with ID {dataset_id} not found in Neo4j. "
                                 "Please register it first using /dataset/register."
                             ),
-                        ).model_dump(),
+                        ).model_dump(exclude_none=True),
                     )
                     
         except HTTPException:
@@ -1357,7 +1376,7 @@ async def update_dataset(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -1377,7 +1396,7 @@ async def update_dataset(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception as e:
             raise HTTPException(
@@ -1385,7 +1404,7 @@ async def update_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error=f"Failed to verify dataset existence: {type(e).__name__}: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         
         # Step 2: Ensure every node has a properties field (required by MoMa)
@@ -1444,7 +1463,7 @@ async def update_dataset(
                         "moma_status_code": e.response.status_code,
                         "moma_response": e.response.text,
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except httpx.RequestError as e:
             logger.error(
@@ -1464,7 +1483,7 @@ async def update_dataset(
                         "request_error_type": type(e).__name__,
                         "request_error": str(e),
                     },
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
         except Exception as e:
             logger.error(
@@ -1479,7 +1498,7 @@ async def update_dataset(
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     error=f"Unexpected error during upsert: {type(e).__name__}: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
 
     return APSuccessEnvelope(
@@ -1513,7 +1532,7 @@ async def execute_and_store(
             detail=ErrorEnvelope(
                 code=status.HTTP_404_NOT_FOUND,
                 error=f"Unknown endpoint: {route_path}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     service = EXTERNAL_SERVICES[route_path]
 
@@ -1531,11 +1550,11 @@ async def execute_and_store(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Invalid JSON in uploaded file: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {"ap": body.ap.model_dump()}
+        payload_data = {"ap": body.ap.model_dump(exclude_none=True)}
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
@@ -1551,7 +1570,7 @@ async def execute_and_store(
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     async with httpx.AsyncClient(
         timeout=CDD_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -1610,7 +1629,7 @@ async def execute_and_store(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     return APResponseSuccessEnvelope(
@@ -1645,7 +1664,7 @@ async def execute_and_store_dataset_recommendations(
             detail=ErrorEnvelope(
                 code=status.HTTP_404_NOT_FOUND,
                 error=f"Unknown endpoint: {route_path}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     service = EXTERNAL_SERVICES[route_path]
 
@@ -1663,11 +1682,11 @@ async def execute_and_store_dataset_recommendations(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Invalid JSON in uploaded file: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {"ap": body.ap.model_dump()}
+        payload_data = {"ap": body.ap.model_dump(exclude_none=True)}
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
@@ -1683,7 +1702,7 @@ async def execute_and_store_dataset_recommendations(
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     
     async with httpx.AsyncClient(
@@ -1743,7 +1762,7 @@ async def execute_and_store_dataset_recommendations(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     return APResponseSuccessEnvelope(
@@ -2244,7 +2263,7 @@ async def execute_and_store_idd(
             detail=ErrorEnvelope(
                 code=status.HTTP_404_NOT_FOUND,
                 error=f"Unknown endpoint: {route_path}",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     service = EXTERNAL_SERVICES[route_path]
 
@@ -2262,11 +2281,11 @@ async def execute_and_store_idd(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Invalid JSON in uploaded file: {str(e)}",
-                ).model_dump(),
+                ).model_dump(exclude_none=True),
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {"ap": body.ap.model_dump()}
+        payload_data = {"ap": body.ap.model_dump(exclude_none=True)}
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
@@ -2282,7 +2301,7 @@ async def execute_and_store_idd(
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
 
     # Extract ap and metadata from the uploaded file to store only ap
@@ -2357,7 +2376,7 @@ async def execute_and_store_idd(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
-            ).model_dump(),
+            ).model_dump(exclude_none=True),
         )
     else:
         ## Query execution
@@ -2396,6 +2415,14 @@ def run_grafeo_query(query: str):
     else:
         return data.get("rows", data)
 
+
+def _run_grafeo_query_in_tx(txId, query: str):
+    """Run a Cypher query inside an existing transaction and parse the columnar result."""
+    data = grafeo_execute(txId, query)
+    if "columns" in data and "rows" in data:
+        return [dict(zip(data["columns"], row)) for row in data["rows"]]
+    return data.get("rows", data)
+
 @router.post("/grafeo/query")
 async def grafeo_query(
     body: dict,
@@ -2414,174 +2441,298 @@ async def ap_storage(
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
     
 ):
+    parsed_request: Optional[WrappedAPRequest] = None
+
     # Ensure at least one input is provided
     if body is None and file is None:
         raise HTTPException(
-            status_code=400,
-            detail="You must provide either 'body' or 'file'."
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="You must provide either 'body' or 'file'.",
+            ).model_dump(exclude_none=True),
         )
+
     if body is not None:
         try:
             ap_dict = json.loads(body)
-            body = WrappedAPRequest(**ap_dict)
+            parsed_request = WrappedAPRequest.model_validate(ap_dict)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid JSON: {e}")
-
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid JSON: {e}",
+                ).model_dump(exclude_none=True),
+            )
     elif file is not None:
         content = await file.read()
         try:
             ap_dict = json.loads(content)
-            body = WrappedAPRequest(**ap_dict)
+            parsed_request = WrappedAPRequest.model_validate(ap_dict)
         except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Invalid file content: {e}")
-    
-    payload_data = body.ap
-    try: 
-        store_AP_in_grafeo(payload_data)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid file content: {e}",
+                ).model_dump(exclude_none=True),
+            )
 
+    if parsed_request is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="Unable to parse request payload.",
+            ).model_dump(exclude_none=True),
+        )
+
+    payload_data = parsed_request.ap
+    try:
+        store_AP_in_grafeo(payload_data)
         return {
-            "message": "AP successfully stored in Grafeo"
+            "code": status.HTTP_201_CREATED,
+            "message": "AP successfully stored in Grafeo",
         }
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error=str(e),
+            ).model_dump(exclude_none=True),
         )
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to store AP in Grafeo: {str(e)}"
+            detail=ErrorEnvelope(
+                code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                error=f"Failed to store AP in Grafeo: {str(e)}",
+            ).model_dump(exclude_none=True),
         )
 
     
 @router.get("/aplog/get/{ap_id}")
-async def get_aplog(ap_id: str, token: str = Depends(security.oauth2_scheme)):
-    gql_query = f"""
-    MATCH (ap:Analytical_Pattern {{id: '{ap_id}'}})-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
-    OPTIONAL MATCH (a)-[r]-(b)
-    WHERE a IN collect(DISTINCT n) AND b IN collect(DISTINCT n)
-    RETURN ap, collect(DISTINCT n) AS all_nodes, collect(DISTINCT r) AS all_rels
-    """
-    rows = run_grafeo_query(gql_query)
-    if not rows:
-        raise HTTPException(status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo.")
-    
-    row = rows[0]
-    node_ids = row["all_nodes"]
-    rel_ids  = row["all_rels"]
+async def get_aplog(
+    ap_id: str, 
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)):
 
-    nodes_dict = fetch_nodes_by_ids(node_ids)
-    edges_dict = fetch_rels_by_ids(rel_ids)
+    ap_graph = get_full_aplog(ap_id, token=token)
+    return APResponseSuccessEnvelope(
+        code=200,
+        message="success",
+        content=ap_graph
+    )
+
+def get_full_aplog(ap_id: str, token, txId=None):
+    gql_query = f"""
+            MATCH (ap:Analytical_Pattern)
+            WHERE ap.id = '{ap_id}'
+
+            MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
+
+            WITH ap,
+            COLLECT(DISTINCT u) AS users,
+            COLLECT(DISTINCT t) AS tasks
+
+            OPTIONAL MATCH (ap)-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
+            WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
+
+            WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
+            UNWIND all_nodes_raw AS n
+            WITH ap, COLLECT(DISTINCT n) AS all_nodes
+
+            OPTIONAL MATCH (a)-[r]-(b)
+            WHERE a IN all_nodes AND b IN all_nodes
+
+            RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
+    """
+    if txId is None:
+        txId = grafeo_begin()
+    try:
+        rows = _run_grafeo_query_in_tx(txId, gql_query)
+
+        if not rows:
+            raise HTTPException(status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo.")
+
+        row = rows[0]
+        node_ids = row["all_nodes"]
+        rel_ids  = row["all_rels"]
+
+        nodes_dict = fetch_nodes_by_ids(node_ids, txId=txId)
+        edges_dict = fetch_rels_by_ids(rel_ids, txId=txId)
+
+        grafeo_commit(txId)
+        txId = None
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve AP log '{ap_id}' from Grafeo: {str(e)}",
+        )
+    finally:
+        if txId is not None:
+            grafeo_rollback(txId)
 
     ap_graph = Grafeo_to_AP(
         {"ap": {"nodes": nodes_dict, "edges": edges_dict}}
     )
-
-    return APResponseSuccessEnvelope(data=ap_graph)
+    return ap_graph
 
 @router.get("/aplog/search")
 async def search_APs(
-        apId:Optional[List[str]] = Query(None),
         userId:Optional[List[str]] = Query(None),
-        property:Optional[List[str]] = Query(None),
+        startDate:Optional[List[str]] = Query(None),
+        endDate:Optional[List[str]] = Query(None),
+        operator:Optional[List[str]] = Query(None),
+        datasetId:Optional[List[str]] = Query(None),
+        fileObjectId:Optional[List[str]] = Query(None),
+        limit: Optional[int] = Query(20),
         token: str = Depends(security.oauth2_scheme),
         token_payload: dict[str, Any] = Depends(security.require_app_scope),
     ):
-    gql_query = get_full_ap_subgraph(apId=apId, userId=userId)
-    logger.info(f"Generated Grafeo query for AP search: {gql_query}")
-    rows = run_grafeo_query(gql_query)   # now rows is a list of dicts
-    results = []
-    for row in rows:
-        # Extract IDs from Grafeo objects
-        node_ids = row["all_nodes"]
-        rel_ids  = row["all_rels"]
 
+    ## Check of the parameters added 
+    if startDate and len(startDate) > 1:
+        raise HTTPException(status_code=400, detail="Only one startDate value is allowed")
+    if endDate and len(endDate) > 1:
+        raise HTTPException(status_code=400, detail="Only one endDate value is allowed")
+    if operator:
+        allowed = [e.value for e in OPERATOR_LABELS]
 
-        nodes_dict = fetch_nodes_by_ids(node_ids)
-        edges_dict = fetch_rels_by_ids(rel_ids)
+        for op in operator:
+            if op not in allowed:
+                raise HTTPException(
+                    status_code=400,
+                    detail={
+                        "code": 400,
+                        "message": f"Invalid operator value: '{op}'",
+                        "allowed_values": allowed
+                    }
+                )
+    gql_query = get_aps(userId=userId, startDate=startDate, endDate=endDate, operator=operator, datasetId=datasetId, fileObjectId=fileObjectId)
+    txId = grafeo_begin()
+    rows = _run_grafeo_query_in_tx(txId, gql_query)
+    total = len(rows)
+    nb = 0
+    if any([operator, datasetId, fileObjectId]):
+        ## Get the full AP log
+        response = []
+        for row in rows: 
+            nb += 1
+            if nb > limit:
+                break
+            response.append(get_full_aplog(row["ap"]["id"], token=token, txId=txId))
+    if txId is not None:
+        grafeo_rollback(txId)
+    else:
+        ## Return only User -> Task -> AP
+        response = []
+        for row in rows:
+            nb += 1
+            if nb > limit:
+                break
+            edges = []
+            nodes = [ row["ap"], row["u"], row["t"]]
+            edges.append({"from": row["u"].get("id"), "to": row["t"].get("id"), "type": "request"})
+            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "type": "is_accomplished"})
+            ap_graph = {"ap": {"nodes": nodes, "edges": edges}}
+            response.append(ap_graph)
 
-        ap_graph = Grafeo_to_AP(
-            {"aps": {"nodes": nodes_dict, "edges": edges_dict}},
-            property_filter=property
-        )
+    if len(response) == 0 :
+        raise HTTPException(status_code=404, detail=f"No AP logs found with the input parameters.")
+    return APlogSuccessEnvelope(
+        code=200,
+        message=f"APlogs retrieved successfully with the input parameters.", 
+        aplogs= response,
+        count= len(response),
+        total=total
 
-        results.append(ap_graph)
+    )
 
-    return results
 
     # return Grafeo_to_AP(result)
 
         
-def get_full_ap_subgraph(
-    apId: Optional[List[str]] = None,
+def get_aps(
     userId: Optional[List[str]] = None,
+    startDate: Optional[List[str]] = None,
+    endDate: Optional[List[str]] = None,
+    operator: Optional[List[str]] = None,
+    datasetId: Optional[List[str]] = None,
+    fileObjectId: Optional[List[str]] = None,
+    limit: Optional[int] = 20,
     max_depth: int = 5
 ) -> str:
     """
     Return a Grafeo-compatible Cypher query that:
-      - matches Analytical_Pattern nodes (optionally filtered by apId)
-      - optionally matches upstream User->Task->AP chains (optionally filtered by userId)
-      - collects downstream nodes via the listed relationship types up to max_depth
-      - builds the node set and then re-matches all relationships between those nodes
-      - returns ap, all_nodes, and all_rels
+      - matches upstream User->Task->AP chains (optionally filtered by userId, startDate and endDate)
+      - 
     """
 
-    # 1. Match APs only (apply apId filter here)
-    match_ap = "MATCH (ap:Analytical_Pattern) "
     where_clauses = []
-    if apId:
-        where_clauses.append(f"ap.id IN [{', '.join(repr(x) for x in apId)}]")
-    if where_clauses:
-        match_ap += "WHERE " + " AND ".join(where_clauses) + " "
-    match_ap += "WITH ap "
+    extended_query = []
+    cypher = """ MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern) """
+    if userId: 
+        where_clauses.append("u.id IN [" + ", ".join(repr(x) for x in userId) + "]")
+    if startDate:
+        where_clauses.append(f"t.startTime >= date('{startDate[0]}')")
+    if endDate:
+        where_clauses.append(f"t.startTime <= date('{endDate[0]}')")
+    if operator:
+        extended_query.append(f"""
+            MATCH (ap)-[:consist_of]->(op:Operator)
+            WHERE ANY(label IN labels(op) WHERE label IN {operator})
+        """)
 
-    # relationship types for downstream traversal (kept as a string for readability)
-    downstream_rels = "consist_of|distribution|input|output|follows|contained_in"
+    if fileObjectId:
+        ## A FileObject is an input or an output of an Operator
+        extended_query.append(f"""
+            MATCH (ap)-[:consist_of]->()-[:input|output]->(fo:FileObject)
+            WHERE fo.id IN {fileObjectId}
+        """)
 
-    # Build optional user filter to apply after the OPTIONAL MATCH that binds `u`
-    user_filter_after_optional = ""
-    if userId:
-        user_filter_after_optional = "WHERE u.id IN [" + ", ".join(repr(x) for x in userId) + "]"
+    if datasetId:
+        ## A Dataset is an input/output of an Operator, or it's connected to a FileObject that is an input/output of an Operator
+        extended_query.append(f"""
+            MATCH (ap)-[:consist_of]->(op:Operator)
+            WHERE 
+                EXISTS {{
+                    MATCH (op)-[:input|output]->(ds:Dataset)
+                    WHERE ds.id IN {datasetId}
+                }}
+                OR EXISTS {{
+                    MATCH (op)-[:input|output]->(fo:FileObject)<-[:distribution]-(ds:Dataset)
+                    WHERE ds.id IN {datasetId}
+                }}
+        """)
 
-    query = f"""
-{match_ap}
-OPTIONAL MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap)
-{user_filter_after_optional}
-WITH ap,
-     COLLECT(DISTINCT u) AS users,
-     COLLECT(DISTINCT t) AS tasks
+    cypher = cypher + "WHERE " + " AND ".join(where_clauses) + " " if where_clauses else cypher
+    cypher = cypher + " ".join(extended_query) + " " if extended_query else cypher
+    cypher = cypher + "WITH ap, u, t " + " ".join(extended_query) + " "
+    cypher = cypher + "ORDER BY ap.startTime DESC "
+    cypher = cypher + "RETURN ap, u, t"
 
-OPTIONAL MATCH (ap)-[:{downstream_rels}*0..{max_depth}]-(n)
-WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
-
-WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
-UNWIND all_nodes_raw AS n
-WITH ap, COLLECT(DISTINCT n) AS all_nodes
-
-OPTIONAL MATCH (a)-[r]-(b)
-WHERE a IN all_nodes AND b IN all_nodes
-
-RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
-""".strip()
-
-    return query
-
+    return cypher 
 
 
-def fetch_nodes_by_ids(node_ids: List[int]) -> Dict[int, dict]:
+def fetch_nodes_by_ids(node_ids: List[int], txId=None) -> Dict[int, dict]:
     if not node_ids:
         return {}
     ids_str = ', '.join(str(i) for i in node_ids)
     query = f"MATCH (n) WHERE id(n) IN [{ids_str}] RETURN id(n) AS internal_id, n"
-    result = run_grafeo_query(query)   # returns list of dicts: [{"internal_id": 15, "n": {...}}, ...]
+    result = _run_grafeo_query_in_tx(txId, query) if txId is not None else run_grafeo_query(query)
     return {row["internal_id"]: row["n"] for row in result}
 
-def fetch_rels_by_ids(rel_ids: List[int]) -> Dict[int, dict]:
+def fetch_rels_by_ids(rel_ids: List[int], txId=None) -> Dict[int, dict]:
     if not rel_ids:
         return {}
     ids_str = ', '.join(str(i) for i in rel_ids)
     query = f"MATCH ()-[r]-() WHERE id(r) IN [{ids_str}] RETURN id(r) AS internal_id, r"
-    result = run_grafeo_query(query)
+    result = _run_grafeo_query_in_tx(txId, query) if txId is not None else run_grafeo_query(query)
     return {row["internal_id"]: row["r"] for row in result}
 
 def extract_alias(sql, args_map):
@@ -2684,3 +2835,71 @@ def split_conditions(expr):
         yield from split_conditions(expr.right)
     else:
         yield expr
+
+@router.delete("/aplog/delete/{ap_id}", status_code=status.HTTP_200_OK)
+async def delete_aplog(
+    ap_id: str,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope)
+):
+    fetch_query = f"""
+        MATCH (ap:Analytical_Pattern)
+        WHERE ap.id = '{ap_id}'
+        MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
+        WITH ap, COLLECT(DISTINCT u) AS users, COLLECT(DISTINCT t) AS tasks
+        OPTIONAL MATCH (ap)-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
+        WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
+        WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
+        UNWIND all_nodes_raw AS n
+        WITH ap, COLLECT(DISTINCT n) AS all_nodes
+        OPTIONAL MATCH (a)-[r]-(b) WHERE a IN all_nodes AND b IN all_nodes
+        RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
+    """
+    PROTECTED = {"User", "sc__Dataset", "cr__FileObject", "dg__DatabaseConnection"}  
+    txId = grafeo_begin()
+    try:
+        rows = _run_grafeo_query_in_tx(txId, fetch_query)
+        if not rows:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"AP with id '{ap_id}' not found in Grafeo.",
+            )
+
+        row = rows[0]
+
+        # --- Delete relationships first to avoid constraint violations ---
+        for rel_id in row["all_rels"]:
+            _run_grafeo_query_in_tx(
+                txId, f"MATCH ()-[r]-() WHERE id(r) = {rel_id} DELETE r"
+            )
+
+        # --- Delete non-protected nodes ---
+        for node_id in row["all_nodes"]:
+            label_result = _run_grafeo_query_in_tx(
+                txId, f"MATCH (n) WHERE id(n) = {node_id} RETURN labels(n) AS labels"
+            )
+            labels = set(label_result[0]["labels"]) if label_result else set()
+            if labels & PROTECTED:
+                continue
+            _run_grafeo_query_in_tx(
+                txId, f"MATCH (n) WHERE id(n) = {node_id} DETACH DELETE n"
+            )
+
+        grafeo_commit(txId)
+        txId = None
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete AP log with id '{ap_id}': {str(e)}",
+        )
+    finally:
+        if txId is not None:
+            grafeo_rollback(txId)
+
+    return {
+        "code": 200,
+        "message": f"AP log with id '{ap_id}' deleted successfully.",
+    }
