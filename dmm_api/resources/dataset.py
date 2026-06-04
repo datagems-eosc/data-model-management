@@ -16,6 +16,7 @@ from sqlglot import expressions as exp
 
 from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
+    Grafeo_to_AP_node,
     store_AP_in_grafeo,
     grafeo_begin,
     grafeo_execute,
@@ -2636,12 +2637,12 @@ async def search_APs(
             if nb > limit:
                 break
             edges = []
-            nodes = [ row["ap"], row["u"], row["t"]]
-            edges.append({"from": row["u"].get("id"), "to": row["t"].get("id"), "type": "request"})
-            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "type": "is_accomplished"})
+            
+            nodes = [ Grafeo_to_AP_node(row["ap"]), Grafeo_to_AP_node(row["u"]), Grafeo_to_AP_node(row["t"]) ]
+            edges.append({"from": row["u"].get("id"), "to": row["t"].get("id"), "labels": ["request"]})
+            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "labels": ["is_accomplished"]})
             ap_graph = {"ap": {"nodes": nodes, "edges": edges}}
             response.append(ap_graph)
-
     if len(response) == 0 :
         raise HTTPException(status_code=404, detail=f"No AP logs found with the input parameters.")
     return APlogSuccessEnvelope(

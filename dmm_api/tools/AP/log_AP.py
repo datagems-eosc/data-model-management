@@ -104,7 +104,6 @@ def AP_to_Grafeo(AP_payload: APRequest) -> dict:
             if set_clause:
                 q += f" SET {set_clause}"
             grafeo_queries.append(q)
-    logger.info("Generated Grafeo queries for AP storage", grafeo_queries=grafeo_queries)
     return check_queries, grafeo_queries
 
 def normalize_label(label: str) -> str:
@@ -256,3 +255,21 @@ def store_AP_in_grafeo(ap: APRequest):
             grafeo_rollback(txId)
         raise 
         
+
+def Grafeo_to_AP_node(grafeo_node: dict) -> dict:
+    labels = grafeo_node.get("_labels", [])
+    for i, label in enumerate(labels):
+        labels[i] = label.replace("__", ":")
+    node_id = grafeo_node.get("id")
+    if not node_id:
+        raise ValueError("Node is missing 'id' property")
+
+    properties = {k.replace("__", ":"): v for k, v in grafeo_node.items() if k not in ("_id", "_labels", "id")}
+
+    node_entry = {
+        "labels": labels,
+        "id": node_id
+    }
+    if properties:
+        node_entry["properties"] = properties
+    return node_entry
