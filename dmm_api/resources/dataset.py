@@ -1596,9 +1596,9 @@ async def execute_and_store(
         response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
         try: 
-            store_AP_in_grafeo(response_payload.get("ap", {}))
+            store_AP_in_grafeo(ap_obj)
         except Exception as e:
-            print(f"[{service['name']}] AP Storage failed: {e}")
+            logger.info(f"[{service['name']}] AP Storage failed: {e}")
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -1729,7 +1729,7 @@ async def execute_and_store_dataset_recommendations(
         response_payload = response.json()
         ## AP storage in Grafeo
         try: 
-            store_AP_in_grafeo(response_payload.get("ap", {}))
+            store_AP_in_grafeo(APRequest.model_validate(response_payload.get("ap", {})))
         except Exception as e:
             print(f"[{service['name']}] AP Storage failed: {e}")
     except ValueError:
@@ -2157,7 +2157,7 @@ async def polyglot_query(
         
         executed_ap, upload_path = await execute_query(wrapped, token=token)
         try: 
-            store_AP_in_grafeo(executed_ap.model_dump(by_alias=True, exclude_defaults=True))
+            store_AP_in_grafeo(executed_ap)
         except Exception as e:
             print(f"AP Storage failed: {e}")
         return APSuccessEnvelope(
@@ -2330,7 +2330,7 @@ async def execute_and_store_idd(
     payload_data["ap"] = ap.model_dump(by_alias=True, exclude_defaults=True)
 
     try:
-        store_AP_in_grafeo(payload_data["ap"])
+        store_AP_in_grafeo(ap)
     except Exception as e:
         print(f"[{service['name']}] AP Storage failed: {e}")
 
