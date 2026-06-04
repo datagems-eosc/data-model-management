@@ -250,7 +250,7 @@ The API returns:
 
 ## 3) Store an AP
 
-The endpoint allow to store an AP in the database Grafeo. This endpoint is only used for testing, the AP logs are stored after they are executed. 
+This endpoint is only used for tests. The AP logs should be stored after they are executed. The endpoint allows to store an AP in the database Grafeo. 
 
 ```bash
 curl -X 'POST' \
@@ -281,7 +281,7 @@ When the AP already exist in Grafeo, the API returns :
 
 ## 4) Delete an AP
 
-The endpoint allow to delete an AP in the database Grafeo.
+The endpoint allows to delete an AP in the database Grafeo.
 
 ```bash
 curl -X 'DELETE' \
