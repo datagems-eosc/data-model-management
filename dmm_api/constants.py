@@ -2,6 +2,7 @@
 CROISSANT_CONTEXT = {
     "@language": "en",
     "@vocab": "https://schema.org/",
+    "@base": "http://datagems.eu/example/",
     "access": "dg:access",
     "citeAs": "cr:citeAs",
     "column": "cr:column",
