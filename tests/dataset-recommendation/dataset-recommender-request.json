@@ -53,7 +53,7 @@
       {
         "from": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
         "to": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
-        "labels": ["is_accomplished"]
+        "labels": ["is_accomplished_by"]
       },
       {
         "from": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",

@@ -11,7 +11,7 @@
       {
         "from": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
         "labels": [
-          "is_accomplished"
+          "is_accomplished_by"
         ],
         "to": "99154e4e-acc8-4d07-95a7-f19c6f582f44"
       },

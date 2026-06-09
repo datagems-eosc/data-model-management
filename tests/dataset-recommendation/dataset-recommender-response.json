@@ -11,7 +11,7 @@
       {
         "from": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
         "labels": [
-          "is_accomplished"
+          "is_accomplished_by"
         ],
         "to": "fe00ff20-07fe-4cb9-ac99-16a161d95280"
       },
@@ -110,14 +110,16 @@
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "sc:Dataset"
-        ]
+        ], 
+        "properties":{}
       },
       {
         "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
         "labels": [
           "dg:DatabaseConnection",
           "RelationalDatabase"
-        ]
+        ], 
+        "properties":{}
       },
       {
         "id": "b15f0dda-d963-44db-8d49-07a11332a042", 
