@@ -1506,7 +1506,75 @@ Example payload file: [tests/in-dataset/request.json](tests/cross-dataset/cdd-se
 
 This endpoint forwards the JSON file to the `in-dataset-discovery/search` endpoint, and store the AP log. The API returns:
 ```json
-
+{
+    "code": 200,
+    "message": "In-Dataset text2sql and query executed successfully, results stored at /s3/data-model-management/results/cf2b3214-e229-4584-a8a7-9b8b7425c2b4",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "id": "08a139fe-dfab-40c7-a5b2-864a7e8107b4",
+                    "labels": [
+                        "Query_Operator",
+                        "SQL_Operator",
+                        "Operator"
+                    ],
+                    "properties": {
+                        "description": "",
+                        "name": "DuckDB Query Operator",
+                        "query": "SELECT\n  AVG(tmean - 273.15) AS mean_daily_temperature_celsius\nFROM {{arg1}} AS meteo_tmean\nWHERE\n  ROUND(CAST(latitude AS DECIMAL), 1) = 47.4\n  AND ROUND(CAST(longitude AS DECIMAL), 1) = 8.4\n  AND EXTRACT(YEAR FROM time) = 2020",
+                        "startTime": "2026-06-10T13:42:46.333837Z",
+                        "endTime": "2026-06-10T13:43:46.333837Z"
+                    }
+                },
+                {
+                    "id": "0a367485-14f2-449f-b76d-e76eecf247c5",
+                    "labels": [
+                        "Table",
+                        "Data",
+                        "cr:FileObject"
+                    ]
+                },
+                {
+                    "id": "cf2b3214-e229-4584-a8a7-9b8b7425c2b4",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "archivedAt": "s3://data-model-management/results/cf2b3214-e229-4584-a8a7-9b8b7425c2b4"
+                    }
+                }, ...
+            ],
+            "edges": [
+                {
+                    "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                    "to": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                    "labels": [
+                        "request"
+                    ]
+                },
+                {
+                    "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                    "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                    "labels": [
+                        "is_accomplished_by"
+                    ]
+                },
+                {
+                    "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                    "to": "69ce4693-e71e-4616-9320-037c90a88859",
+                    "labels": [
+                        "consist_of"
+                    ]
+                },
+                ...
+            ]
+        },
+        "metadata": {
+            ...
+        }
+    }
+}
 ```
 
 ## 11) Query Disambiguation
