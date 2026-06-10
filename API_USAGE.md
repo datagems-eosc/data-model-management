@@ -1587,7 +1587,7 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/query-disambi
 -H "Authorization: Bearer $TOKEN" \
 -F "file=@query-disambiguation/query-disambiguation-request.json" | python3 -m json.tool
 ```
-Example payload file: [tests/in-dataset/request.json](tests/query-disambiguation/query-disambiguation-request.json) (command path when running from `tests`: `query-disambiguation/query-disambiguation-request.json`).
+Example payload file: [tests/query-disambiguation/query-disambiguation-request.json](tests/query-disambiguation/query-disambiguation-request.json) (command path when running from `tests`: `query-disambiguation/query-disambiguation-request.json`).
 
 This forwards the JSON file to the `query-disambiguation` endpoint, and store the AP log. The API returns:
 ```json
