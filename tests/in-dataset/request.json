@@ -11,7 +11,7 @@
             {
                 "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
                 "labels": [
-                    "is_accomplished"
+                    "is_accomplished_by"
                 ],
                 "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
             },
@@ -77,7 +77,8 @@
                 "id": "69ce4693-e71e-4616-9320-037c90a88859",
                 "labels": [
                     "Query_Operator",
-                    "NLQ_Operator"
+                    "NLQ_Operator", 
+                    "Operator"
                 ],
                 "properties": {
                     "description": "Translate text to SQL",
@@ -91,21 +92,24 @@
                 "id": "da70868b-9464-4415-8a11-e1af8f919179",
                 "labels": [
                     "sc:Dataset"
-                ]
+                ], 
+                "properties":{}
             },
             {
                 "id": "a40057d2-0144-4a96-9b35-df55dd88811d",
                 "labels": [
                     "dg:DatabaseConnection",
                     "RelationalDatabase"
-                ]
+                ], 
+                "properties":{}
             },
             {
                 "id": "01624723-6b74-4719-a985-ceb70c623932",
                 "labels": [
                     "cr:FileObject",
                     "Data"
-                ]
+                ], 
+                "properties":{}
             }
         ]
     }
