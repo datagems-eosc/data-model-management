@@ -2530,17 +2530,18 @@ async def execute_and_store_idd(
             )
             return APResponseSuccessEnvelope(
                 code=status.HTTP_200_OK,
-                message=f"Query executed successfully, results stored at {upload_path}",
-                content=executed_ap.model_dump(by_alias=True, exclude_defaults=True),
+                message=f"In-Dataset text2sql and query executed successfully, results stored at {upload_path}",
+                content={"ap": executed_ap.model_dump(by_alias=True, exclude_defaults=True), "metadata": response_payload.get("metadata", {})},
             )
 
         except Exception as e:
             # Build a partial success envelope
             return APResponseSuccessEnvelope(
                 code=status.HTTP_207_MULTI_STATUS,   # or 200 if you prefer
-                message=f"AP stored successfully, but query execution failed: {str(e)}",
+                message=f"In-Dataset text2sql executed successfully, but query execution failed: {str(e)}",
                 content={
                     "ap": response_payload.get("ap", {}),
+                    "metadata": response_payload.get("metadata", {}),
                     "query_error": str(e),
                 },
             )
