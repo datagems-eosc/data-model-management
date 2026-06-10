@@ -2468,7 +2468,7 @@ async def execute_and_store_idd(
         print(f"[{service['name']}] AP Storage failed: {e}")
 
     async with httpx.AsyncClient(
-        timeout=IDD_TIMEOUT_SECONDS, follow_redirects=True
+        timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
         response = await client.post(
             service["url"],
