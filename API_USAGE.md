@@ -23,7 +23,8 @@ cd tests
 - [8) Converter](#8-converter)
 - [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
 - [10) In-dataset Discovery text2sql](#10-in-dataset-discovery-text2sql)
-- [11) Get Query Result](#11-get-query-result)
+- [11) Query Disambiguation](#11-query-disambiguation)
+- [12) Get Query Result](#12-get-query-result)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1353,7 +1354,7 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/cross-dataset
 ```
 Example payload file: [tests/cross-dataset/cdd-search-ap-request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `cross-dataset/cdd-search-ap-request.json`).
 
-This stores the AP in MoMa and forwards the JSON file to the `cross-dataset-discovery/search` endpoint. The API returns:
+This endpoint forwards the JSON file to the `cross-dataset-discovery/search` endpoint, and store the AP logs. The API returns:
 ```json
 {
     "code": 200,
@@ -1503,12 +1504,97 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/in-dataset-di
 ```
 Example payload file: [tests/in-dataset/request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `in-dataset/request.json`).
 
-This stores the AP in MoMa and forwards the JSON file to the `in-dataset-discovery/search` endpoint. Then, the SQL_Operators is executed. The API returns:
+This endpoint forwards the JSON file to the `in-dataset-discovery/search` endpoint, and store the AP log. The API returns:
 ```json
 
 ```
 
-## 11) Get Query Result
+## 11) Query Disambiguation
+
+
+The `POST /query-disambiguation` endpoint requires a valid bearer token.
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/query-disambiguation" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@query-disambiguation/query-disambiguation-request.json" | python3 -m json.tool
+```
+Example payload file: [tests/in-dataset/request.json](tests/query-disambiguation/query-disambiguation-request.json) (command path when running from `tests`: `query-disambiguation/query-disambiguation-request.json`).
+
+This forwards the JSON file to the `query-disambiguation` endpoint, and store the AP log. The API returns:
+```json
+{
+    "code": 200,
+    "message": "Query Disambiguation completed successfully",
+    "content": {
+        "ap": {
+            "nodes": [
+
+                {
+                    "id": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "properties": {
+                        "description": "Analytical Pattern about disambiguation of a heatwave in Europe recently?",
+                        "name": "Disambiguation heatwave europe recently",
+                        "startTime": "2026-03-17T10:43:17.829Z",
+                        "endTime": "2026-06-10T12:44:32.622973Z"
+                    }
+                },
+                {
+                    "id": "69ce4693-e71e-4616-9320-037c90a88859",
+                    "labels": [
+                        "Query_Disambiguation_Operator",
+                        "Operator"
+                    ],
+                    "properties": {
+                        "description": "Disambiguation of the NL query",
+                        "name": "Query-Disambiguation",
+                        "process": "Query Disambiguation",
+                        "query": "Was there a heatwave in Europe recently?",
+                        "startTime": "2026-03-17T10:43:17.829Z",
+                        "endTime": "2026-06-10T12:44:32.622973Z"
+                    }
+                },
+                {
+                    "id": "aaa0e474-dec0-4c72-a8e8-3b96f876609f",
+                    "labels": [
+                        "ResultType"
+                    ],
+                    "properties": {
+                        "suggested_query": "Was there a heatwave in Switzerland 2026-03-11 to 2026-03-17?"
+                    },
+                    ...
+                }
+            ],
+            "edges": [
+                {
+                    "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                    "to": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+                    "labels": [
+                        "request"
+                    ]
+                },
+                {
+                    "from": "c16253f9-9189-4a6c-bd96-d7818548dc4b",
+                    "to": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
+                    "labels": [
+                        "is_accomplished_by"
+                    ]
+                },
+                ...
+            ]
+        },
+        "metadata": {
+            ...
+        }
+    }
+}
+
+```
+
+## 12) Get Query Result
 
 The polyglot/query/results/{dataset-uuid} endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
 
