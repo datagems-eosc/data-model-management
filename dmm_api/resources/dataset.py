@@ -1721,7 +1721,7 @@ async def execute_and_store(
     ) as client:
         response = await client.post(
             service["url"],
-            #headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": f"Bearer {token}"},
             json=payload_data,
         )
 
