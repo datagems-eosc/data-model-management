@@ -1593,7 +1593,6 @@ async def execute_and_store(
     try:
         response_payload = response.json()
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
-        ap_obj = update_endTime(ap_obj)
         response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
         try: 
@@ -1728,7 +1727,6 @@ async def execute_and_store(
     try:
         response_payload = response.json()
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
-        ap_obj = update_endTime(ap_obj)
         response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
         try: 
