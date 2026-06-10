@@ -101,6 +101,11 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/in-dataset-discovery/text2sql",
             },
+            "query-disambiguation": {
+                "description": "Forward AP to query disambiguation endpoint using exchanged token",
+                "methods": ["POST"],
+                "url": "/api/v1/query-disambiguation",
+            },
             "dataset-recsys/recommend": {
                 "description": "Forward AP to REC_SYS recommendation endpoint using exchanged token",
                 "methods": ["POST"],
