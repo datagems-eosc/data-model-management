@@ -2524,11 +2524,15 @@ async def execute_and_store_idd(
     else:
         ## Query execution
         try:
-            execute_query_response = await execute_query(
+            executed_ap, upload_path = await execute_query(
                 WrappedAPRequest(ap=APRequest.model_validate(response_payload.get("ap", {}))),
                 token=token,
             )
-            return execute_query_response
+            return APResponseSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Query executed successfully, results stored at {upload_path}",
+                content=executed_ap.model_dump(by_alias=True, exclude_defaults=True),
+            )
 
         except Exception as e:
             # Build a partial success envelope
