@@ -42,6 +42,11 @@
         "properties": {
           "description": "The seed dataset used as the basis for recommendations."
         }
+      }, 
+      {
+        "id": "56dfb50e-ae65-4a37-ad48-c150cc17303e", 
+        "labels": ["sc:Dataset"], 
+        "properties": {}      
       }
     ],
     "edges": [
@@ -64,6 +69,11 @@
         "from": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
         "to": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
         "labels": ["input"]
+      }, 
+      {
+        "from": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "to": "56dfb50e-ae65-4a37-ad48-c150cc17303e",
+        "labels": ["output"]
       }
     ]
   }

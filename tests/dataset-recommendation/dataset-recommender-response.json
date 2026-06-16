@@ -1,203 +1,100 @@
 {
   "ap": {
-    "edges": [
-      {
-        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-        "labels": [
-          "request"
-        ],
-        "to": "bd2bb468-9999-4c09-b9af-fc836c2f6c73"
-      },
-      {
-        "from": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
-        "labels": [
-          "is_accomplished_by"
-        ],
-        "to": "fe00ff20-07fe-4cb9-ac99-16a161d95280"
-      },
-      {
-        "from": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
-        "labels": [
-          "consist_of"
-        ],
-        "to": "505580d9-4147-49a3-b0df-e103593388be"
-      },
-      {
-        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
-        "labels": [
-          "distribution"
-        ],
-        "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
-      }, 
-      {
-        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
-        "labels": [
-            "input"
-        ],
-        "to": "505580d9-4147-49a3-b0df-e103593388be"
-      }, 
-      {
-          "from": "505580d9-4147-49a3-b0df-e103593388be",
-          "labels": [
-              "output"
-          ],
-          "to": "b15f0dda-d963-44db-8d49-07a11332a042"
-      }, 
-      {
-          "from": "505580d9-4147-49a3-b0df-e103593388be",
-          "labels": [
-              "output"
-          ],
-          "to": "de8fbec3-f23a-46cc-ac07-e63150054389"
-      }, 
-      {
-          "from": "505580d9-4147-49a3-b0df-e103593388be",
-          "labels": [
-              "output"
-          ],
-          "to": "bbe2a117-23e4-4b18-8162-4d12e5de353d"
-      }
-      
-    ],
     "nodes": [
       {
-        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-        "labels": [
-          "User"
-        ],
+        "id": "c5a1c4b1-65a0-4a07-9d2f-9f7b6a0c1c1e",
+        "labels": ["User"], 
         "properties": {}
       },
       {
-        "id": "bd2bb468-9999-4c09-b9af-fc836c2f6c73",
-        "labels": [
-          "Task"
-        ],
+        "id": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+        "labels": ["Task"],
         "properties": {
-          "description": "Task to disambiguate was there a heatwave in Europe recently?",
-          "name": "Disambiguation heatwave europe recently Task"
+          "name": "Get recommendations",
+          "description": "Retrieve the top-N recommendations for a given dataset."
         }
       },
       {
-        "id": "fe00ff20-07fe-4cb9-ac99-16a161d95280",
-        "labels": [
-          "Analytical_Pattern"
-        ],
+        "id": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+        "labels": ["Analytical_Pattern"],
         "properties": {
-          "description": "Analytical Pattern about disambiguation of a heatwave in Europe recently?",
-          "name": "Disambiguation heatwave europe recently",
-          "startTime": "2026-03-17T10:43:17.829Z", 
-          "endTime": "2026-03-17T10:44:17.829Z"
+          "name": "Dataset-to-Dataset Recommendations AP",
+          "description": "Retrieve top-N recommendations for a given dataset.",
+          "process": "recommend",
+          "publishedDate": "2026-01-21",
+          "startTime": "2026-06-29T10:43:17.829Z", 
+          "endTime": "2026-06-29T10:44:17.829Z"
+        }
+      },
+      {
+        "id": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "labels": ["DatasetRecommender_Operator", "Operator"],
+        "properties": {
+          "name": "GetRecommendations Operator",
+          "description": "Dataset-to-Dataset recommender operator.",
+          "command": "get_recommendations",
+          "n": 2, 
+          "startTime": "2026-06-29T10:43:17.829Z",
+          "endTime": "2026-06-29T10:44:17.829Z"
 
         }
       },
       {
-        "id": "505580d9-4147-49a3-b0df-e103593388be",
-        "labels": [
-          "Query_Disambiguation_Operator",
-          "Operator"
-        ],
+        "id": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+        "labels": ["sc:Dataset"],
         "properties": {
-          "description": "Disambiguation of the NL query",
-          "name": "Query-Disambiguation",
-          "process": "Query Disambiguation",
-          "query": "Was there a heatwave in Europe recently?",
-          "startTime": "2026-03-17T10:43:17.829Z",
-          "endTime": "2026-03-17T10:44:17.829Z"
-
+          "description": "The seed dataset used as the basis for recommendations."
+        }
+      }, 
+      {
+        "id": "73196869-437a-4386-80b3-08519a98d8f2", 
+        "labels": ["sc:Dataset"], 
+        "properties": {}      
+      },
+      {
+        "id": "e35fbad6-4dc4-4260-9bbc-de6526c3f528", 
+        "labels": ["sc:Dataset"], 
+        "properties": {}      
+      }
+    ],
+    "edges": [
+      {
+        "from": "c5a1c4b1-65a0-4a07-9d2f-9f7b6a0c1c1e",
+        "to": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+        "labels": ["request"]
+      },
+      {
+        "from": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+        "to": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+        "labels": ["is_accomplished_by"]
+      },
+      {
+        "from": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+        "to": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "labels": ["consist_of"]
+      },
+      {
+        "from": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+        "to": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "labels": ["input"]
+      }, 
+      {
+        "from": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "to": "73196869-437a-4386-80b3-08519a98d8f2",
+        "labels": ["output"], 
+        "properties":{
+          "rank": 1
         }
       },
       {
-        "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
-        "labels": [
-          "sc:Dataset"
-        ], 
-        "properties":{}
-      },
-      {
-        "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
-        "labels": [
-          "dg:DatabaseConnection",
-          "RelationalDatabase"
-        ], 
-        "properties":{}
-      },
-      {
-        "id": "b15f0dda-d963-44db-8d49-07a11332a042", 
-        "labels":[
-            "ResultType"
-        ], 
-        "properties": {
-            "suggested_query" :
-                "Was there a heatwave in Greece 2025-05-21 to 2025-05-27?"  
-        }
-      },
-      {
-        "id": "de8fbec3-f23a-46cc-ac07-e63150054389", 
-        "labels":[
-            "ResultType"
-        ], 
-        "properties": {
-            "suggested_query" : "Was there a heatwave in Greece 2025-04-28 to 2025-05-27?"
-        }
-      },
-      {
-        "id": "bbe2a117-23e4-4b18-8162-4d12e5de353d", 
-        "labels":[
-            "ResultType"
-        ], 
-        "properties": {
-            "suggested_query" : "Was there a heatwave in Switzerland 2025-05-21 to 2025-05-27?"
+        "from": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+        "to": "e35fbad6-4dc4-4260-9bbc-de6526c3f528",
+        "labels": ["output"], 
+        "properties":{
+          "rank": 2
         }
       }
     ]
   }, 
-  "metadata": {
-    "provider": "scayle",
-    "reference_datetime": "2025-05-27T12:00:00",
-    "query": "Was there a heatwave in Europe recently?",
-    "result": {
-        "general_notes": [
-        {
-            "aspect": "spatial",
-            "description": "The query refers to 'Europe', which is a macro-region. The system's data coverage is limited to Greece, Switzerland, Portugal, and Spain. The query needs to be restricted to one or more of these countries.",
-            "severity": "high"
-        },
-        {
-            "aspect": "temporal",
-            "description": "The term 'recently' is a relative time reference and lacks a specific time frame. It needs to be converted to an exact date or period.",
-            "severity": "high"
-        },
-        {
-            "aspect": "spatial",
-            "description": "'Europe' is outside supported country-level data coverage. Use one of: Greece, Switzerland, Portugal, Spain.",
-            "severity": "high"
-        }
-        ],
-        "ambiguous_parts": [
-        {
-            "original_text": "Europe",
-            "ambiguity_type": "spatial",
-            "reason": "The query refers to 'Europe', which is a macro-region. The system's data coverage is limited to Greece, Switzerland, Portugal, and Spain. The query needs to be restricted to one or more of these countries.",
-            "rephrased_options": [
-            "Greece",
-            "Switzerland",
-            "Portugal",
-            "Spain",
-            "Greece and Spain",
-            "Portugal and Switzerland"
-            ]
-        },
-        {
-            "original_text": "recently",
-            "ambiguity_type": "temporal",
-            "reason": "The term 'recently' is a relative time reference and lacks a specific time frame. It needs to be converted to an exact date or period.",
-            "rephrased_options": [
-            "2025-05-21 to 2025-05-27",
-            "2025-04-28 to 2025-05-27"
-            ]
-        }
-        ],
-        "overall_clarity": "low"
-    }   
-  }
+  "metadata": {}
 }
