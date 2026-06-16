@@ -12,6 +12,38 @@
             }
         },
         {
+            "id": "4dc3a994-89ce-4ebc-a163-4821a556cc66", 
+            "labels": [
+                "FileObjectLinkingElement"
+            ],
+            "properties": {
+                "date": "2026-05-16",
+                "combinedSimilarity": "85.07",
+                "usesMetrics": "avg"
+            }
+        },
+
+        {
+            "id": "65514e66-2557-463a-9759-dd5dd1abb9ce",
+            "labels": [
+                 "FileObjectComparison"
+            ],
+            "properties": {
+                "matchingProperty": "filename", 
+                "similarity":100
+            }
+        },
+        {
+            "id": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb",
+            "labels": [
+                "FileObjectComparison"
+            ],
+            "properties": {
+                "matchingProperty": "filename", 
+                "similarity":100
+            }
+        },
+        {
             "id": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "labels": [
                 "TextEvidence"
@@ -109,9 +141,62 @@
                 "metricValue": "50.86",
                 "usesMetrics": "all-mpnet-base-v2"
             }
+        },
+        {
+            "id": "95205249-96b5-43f5-b724-04691f25e2b5",
+            "labels": [
+                "cr:FileObject"
+            ],
+            "properties": {
+                "name": "137.pdf",
+                "type": "cr:FileObject",
+                "sc:encodingFormat": "application/pdf",
+                "sc:contentUrl": "/s3/dataset/9b25bc46-8bd3-4f7f-94b4-52dbc38c130f/pdfs/137.pdf"
+            }
+        },
+        {
+            "id": "e1b26038-41fd-404c-a9b8-96a11f5e0686",
+            "labels": [
+                "cr:FileObject"
+            ],
+            "properties": {
+                "name": "137.pdf",
+                "type": "cr:FileObject",
+                "sc:encodingFormat": "application/pdf",
+                "sc:contentUrl": "/s3/dataset/a36dde9d-7f95-40ff-8a9b-f687d0a72318/PDF/137.pdf"
+            }
+        },
+        {
+            "id": "fc34f7fc-815b-4c32-8425-8654581de81e",
+            "labels": [
+                "cr:FileObject"
+            ],
+            "properties": {
+                "name": "138.pdf",
+                "type": "cr:FileObject",
+                "sc:encodingFormat": "application/pdf",
+                "sc:contentUrl": "/s3/dataset/9b25bc46-8bd3-4f7f-94b4-52dbc38c130f/pdfs/138.pdf"
+            }
+        },
+        {
+            "id": "f48a5b4f-9c4b-40a0-8b1a-603b312ff639",
+            "labels": [
+                "cr:FileObject"
+            ],
+            "properties": {
+                "name": "138.pdf",
+                "type": "cr:FileObject",
+                "sc:encodingFormat": "application/pdf",
+                "sc:contentUrl": "/s3/dataset/a36dde9d-7f95-40ff-8a9b-f687d0a72318/PDF/138.pdf"
+            }
         }
     ],
     "edges": [
+        {
+            "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8", 
+            "to": "4dc3a994-89ce-4ebc-a163-4821a556cc66", 
+            "labels": ["hasDetail"]
+        },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
@@ -205,6 +290,62 @@
             ]
         },
         {
+            "from": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+            "to": "95205249-96b5-43f5-b724-04691f25e2b5",
+            "labels": [
+                "distribution"
+            ]
+        },
+        {
+            "from": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
+            "to": "e1b26038-41fd-404c-a9b8-96a11f5e0686",
+            "labels": [
+                "distribution"
+            ]
+        },
+        {
+            "from": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+            "to": "fc34f7fc-815b-4c32-8425-8654581de81e",
+            "labels": [
+                "distribution"
+            ]
+        },
+        {
+            "from": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
+            "to": "f48a5b4f-9c4b-40a0-8b1a-603b312ff639",
+            "labels": [
+                "distribution"
+            ]
+        },
+        {
+            "from": "65514e66-2557-463a-9759-dd5dd1abb9ce",
+            "to": "e1b26038-41fd-404c-a9b8-96a11f5e0686",
+            "labels": [
+                "hasTargetFileObject"
+            ]
+        },
+        {
+            "from": "65514e66-2557-463a-9759-dd5dd1abb9ce",
+            "to": "95205249-96b5-43f5-b724-04691f25e2b5",
+            "labels": [
+                "hasTargetFileObject"
+            ]
+        },
+        {
+            "from": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb",
+            "to": "fc34f7fc-815b-4c32-8425-8654581de81e",
+            "labels": [
+                "hasTargetFileObject"
+            ]
+        },
+        {
+            "from": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb",
+            "to": "f48a5b4f-9c4b-40a0-8b1a-603b312ff639",
+            "labels": [
+                "hasTargetFileObject"
+            ]
+        },
+        {
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "labels": [
@@ -295,6 +436,20 @@
             "properties": {
                 "chunk": "The dataset is organised as follows"
             }
+        }, 
+        {
+            "from": "4dc3a994-89ce-4ebc-a163-4821a556cc66", 
+            "to": "65514e66-2557-463a-9759-dd5dd1abb9ce", 
+            "labels":[
+                "hasComparison"
+            ]
+        }, 
+        {
+            "from": "4dc3a994-89ce-4ebc-a163-4821a556cc66", 
+            "to": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb", 
+            "labels":[
+                "hasComparison"
+            ]
         }
     ]
 }

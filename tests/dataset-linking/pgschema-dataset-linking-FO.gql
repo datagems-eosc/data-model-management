@@ -5,14 +5,20 @@
 
 (TextEvidenceType: TextEvidence {REQUIRED rank INT, REQUIRED similarity FLOAT, REQUIRED usesMetrics STRING })
 
+(:FileObjectComparisonType :FileObjectComparison {REQUIRED matchingProperty STRING, REQUIRED similarity FLOAT})
+
+(:FileObjectLinkingElementType :FileObjectLinkingElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING, REQUIRED date DATE})
+
 # Edges
 
 (:BasicDLElement) -[hasComparisonType: hasComparison {REQUIRED weight FLOAT }] -> (:PropertyComparison)
 
+(:FileObjectLinkingElement) -[hasComparisonType: hasComparison] -> (:FileObjectComparison)
+
 (:PropertyComparison) -[hasEvidenceType: hasEvidence {REQUIRED rank FLOAT }] -> (:TextEvidence)
 
-(:TextEvidence | :PropertyComparison) -[:hasTargetDatasetType :hasTargetDataset {OPTIONAL chunk STRING}] -> (:sc_Dataset)
+(:TextEvidence | :PropertyComparison) -[:hasTargetDatasetType :hasTargetDataset {OPTIONAL chunk STRING, OPTIONAL uniqueKeywords LIST}] -> (:sc_Dataset)
 
 (:FileObjectComparison) -[:hasTargetFileObject] -> (:cr_FileObject)
 
-(:BasicDLElement) -[hasDetailType: hasDetail] -> (:FileObjectComparison)
+(:BasicDLElement) -[hasDetailType: hasDetail] -> (:FileObjectLinkingElement)
