@@ -201,14 +201,14 @@
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
@@ -225,7 +225,7 @@
             "from": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "uniqueKeywords": []
@@ -235,7 +235,7 @@
             "from": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "uniqueKeywords": []
@@ -255,14 +255,14 @@
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
@@ -279,14 +279,14 @@
             "from": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
             "from": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ]
         },
         {
@@ -321,28 +321,28 @@
             "from": "65514e66-2557-463a-9759-dd5dd1abb9ce",
             "to": "e1b26038-41fd-404c-a9b8-96a11f5e0686",
             "labels": [
-                "hasTargetFileObject"
+                "hasTarget"
             ]
         },
         {
             "from": "65514e66-2557-463a-9759-dd5dd1abb9ce",
             "to": "95205249-96b5-43f5-b724-04691f25e2b5",
             "labels": [
-                "hasTargetFileObject"
+                "hasTarget"
             ]
         },
         {
             "from": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb",
             "to": "fc34f7fc-815b-4c32-8425-8654581de81e",
             "labels": [
-                "hasTargetFileObject"
+                "hasTarget"
             ]
         },
         {
             "from": "99f351b1-b9d1-4cd4-82c2-63c1c980d6cb",
             "to": "f48a5b4f-9c4b-40a0-8b1a-603b312ff639",
             "labels": [
-                "hasTargetFileObject"
+                "hasTarget"
             ]
         },
         {
@@ -379,7 +379,7 @@
             "from": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "MathE is a mathematical platform developed under the MathE project (mathe"
@@ -389,7 +389,7 @@
             "from": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "MathE is a mathematical platform developed under the MathE project (mathe"
@@ -400,7 +400,7 @@
             "from": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "pt) for higher education"
@@ -410,7 +410,7 @@
             "from": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "pt) for higher education"
@@ -421,7 +421,7 @@
             "from": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "The dataset is based on the 410 pdf documents organized by keywords in a cvs file"
@@ -431,7 +431,7 @@
             "from": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "hasTargetDataset"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "The dataset is organised as follows"

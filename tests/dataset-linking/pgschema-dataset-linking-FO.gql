@@ -17,8 +17,8 @@
 
 (:PropertyComparison) -[hasEvidenceType: hasEvidence {REQUIRED rank FLOAT }] -> (:TextEvidence)
 
-(:TextEvidence | :PropertyComparison) -[:hasTargetDatasetType :hasTargetDataset {OPTIONAL chunk STRING, OPTIONAL uniqueKeywords LIST}] -> (:sc_Dataset)
+(:TextEvidence | :PropertyComparison) -[:hasTargetType :hasTarget {OPTIONAL chunk STRING}] -> (:sc_Dataset)
 
-(:FileObjectComparison) -[:hasTargetFileObject] -> (:cr_FileObject)
+(:FileObjectComparison) -[:hasTarget] -> (:cr_FileObject)
 
 (:BasicDLElement) -[hasDetailType: hasDetail] -> (:FileObjectLinkingElement)

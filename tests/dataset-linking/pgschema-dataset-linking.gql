@@ -1,14 +1,36 @@
-# Nodes
-(BasicDLElementType: BasicDLElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING, REQUIRED date DATE})
+(:BasicDLElement => {
+    id :: STRING NOT NULL, 
+    date :: OFFSET DATETIME, 
+    combinedSimilarity :: FLOAT, 
+    usesMetrics :: STRING
+}),
 
-(PropertyComparisonType: PropertyComparison { REQUIRED metricValue FLOAT , REQUIRED targetProperty STRING, REQUIRED usesMetrics STRING, OPTIONAL relevantWords LIST })
+CONSTRAINT basicdlelement_pk 
+FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY 
 
-(TextEvidenceType: TextEvidence {REQUIRED rank INT, REQUIRED similarity FLOAT, REQUIRED usesMetrics STRING })
+(:PropertyComparison => {
+    id :: STRING NOT NULL,  
+    targetProperty :: STRING,
+    metricValue :: FLOAT, 
+    usesMetrics :: STRING, 
+    relevantWords :: STRING 
+}),
 
-# Edges
+CONSTRAINT propertycomparison_pk 
+FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY 
 
-(:BasicDLElement) -[hasComparisonType: hasComparison {REQUIRED weight FLOAT }] -> (:PropertyComparison)
+(:TextEvidence => {
+    id :: STRING NOT NULL,  
+    similarity :: FLOAT
+})
 
-(:PropertyComparison) -[hasEvidenceType: hasEvidence {REQUIRED rank FLOAT }] -> (:TextEvidence)
+CONSTRAINT textevidence_pk 
+FOR (n:TextEvidence) REQUIRE (n.id) IS KEY 
 
-(:TextEvidence | :PropertyComparison) -[:hasTargetDatasetType :hasTargetDataset {OPTIONAL chunk STRING, OPTIONAL uniqueKeywords LIST}] -> (:sc_Dataset)
+(:BasicDLElement)-[:hasComparison { weight :: FLOAT }]->(:PropertyComparison)
+
+(:PropertyComparison)-[:hasEvidence { rank :: UINT64 }]->(:TextEvidence)
+
+(:TextEvidence)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
+
+(:PropertyComparison)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
