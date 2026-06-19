@@ -13,7 +13,7 @@ FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY
     targetProperty :: STRING,
     metricValue :: FLOAT, 
     usesMetrics :: STRING, 
-    relevantWords :: STRING 
+    relevantWords :: LIST<STRING> 
 }),
 
 CONSTRAINT propertycomparison_pk 
