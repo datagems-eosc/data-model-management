@@ -7,7 +7,7 @@
             ],
             "properties": {
                 "date": "2026-05-16",
-                "combinedSimilarity": "85.07",
+                "similarityScore": 85.07,
                 "usesMetrics": "avg"
             }
         },
@@ -18,7 +18,7 @@
             ],
             "properties": {
                 "date": "2026-05-16",
-                "combinedSimilarity": "85.07",
+                "similarityScore": 85.07,
                 "usesMetrics": "avg"
             }
         },
@@ -29,8 +29,8 @@
                  "FileObjectComparison"
             ],
             "properties": {
-                "matchingProperty": "filename", 
-                "similarity":100
+                "targetProperty": "filename", 
+                "similarityScore": 100.0
             }
         },
         {
@@ -39,8 +39,8 @@
                 "FileObjectComparison"
             ],
             "properties": {
-                "matchingProperty": "filename", 
-                "similarity":100
+                "targetProperty": "filename", 
+                "similarityScore": 100.0
             }
         },
         {
@@ -49,7 +49,7 @@
                 "TextEvidence"
             ],
             "properties": {
-                "similarity": 100
+                "similarityScore": 100.0
             }
         },
         {
@@ -58,7 +58,7 @@
                 "TextEvidence"
             ],
             "properties": {
-                "similarity": 100
+                "similarityScore": 100.0
             }
         },
         {
@@ -67,7 +67,7 @@
                 "TextEvidence"
             ],
             "properties": {
-                "similarity": 34.78
+                "similarityScore": 34.78
             }
         },
         {
@@ -111,7 +111,7 @@
             ],
             "properties": {
                 "targetProperty": "keywords",
-                "metricValue": "100.0",
+                "similarityScore": 100.0,
                 "relevantWords": [
                     "math",
                     "student",
@@ -127,7 +127,7 @@
             ],
             "properties": {
                 "targetProperty": "descriptions",
-                "metricValue": "66.6",
+                "similarityScore": 66.6,
                 "usesMetrics": "all-mpnet-base-v2"
             }
         },
@@ -138,7 +138,7 @@
             ],
             "properties": {
                 "targetProperty": "headlines",
-                "metricValue": "50.86",
+                "similarityScore": 50.86,
                 "usesMetrics": "all-mpnet-base-v2"
             }
         },
@@ -218,7 +218,7 @@
                 "hasComparison"
             ],
             "properties": {
-                "weight": "0.6"
+                "weight": 0.6
             }
         },
         {
@@ -226,20 +226,14 @@
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
                 "hasTarget"
-            ],
-            "properties": {
-                "uniqueKeywords": []
-            }
+            ]
         },
         {
             "from": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
                 "hasTarget"
-            ],
-            "properties": {
-                "uniqueKeywords": []
-            }
+            ]
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
@@ -248,7 +242,7 @@
                 "hasComparison"
             ],
             "properties": {
-                "weight": "0.3"
+                "weight": 0.3
             }
         },
         {
@@ -272,7 +266,7 @@
                 "hasComparison"
             ],
             "properties": {
-                "weight": "0.1"
+                "weight": 0.1
             }
         },
         {
@@ -352,7 +346,7 @@
                 "hasEvidence"
             ],
             "properties": {
-            "rank": "1"
+            "rank": 1
         }
         },
         {
@@ -362,7 +356,7 @@
                 "hasEvidence"
             ],
             "properties": {
-                "rank": "2"
+                "rank": 2
             }
         },
         {
@@ -372,7 +366,7 @@
                 "hasEvidence"
             ],
             "properties": {
-                "rank": "3"
+                "rank": 3
             }
         },
         {

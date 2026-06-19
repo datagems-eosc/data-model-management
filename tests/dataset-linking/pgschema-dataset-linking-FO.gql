@@ -1,24 +1,62 @@
-# Nodes
-(BasicDLElementType: BasicDLElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING, REQUIRED date DATE})
+(:BasicDLElement => {
+    id :: STRING NOT NULL, 
+    date :: OFFSET DATETIME, 
+    similarityScore :: FLOAT, 
+    usesMetrics :: STRING
+}),
 
-(PropertyComparisonType: PropertyComparison { REQUIRED metricValue FLOAT , REQUIRED targetProperty STRING, REQUIRED usesMetrics STRING, OPTIONAL relevantWords LIST })
+CONSTRAINT basicdlelement_pk 
+FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY 
 
-(TextEvidenceType: TextEvidence {REQUIRED rank INT, REQUIRED similarity FLOAT, REQUIRED usesMetrics STRING })
+(:PropertyComparison => {
+    id :: STRING NOT NULL,  
+    targetProperty :: STRING,
+    metricValue :: FLOAT, 
+    similarityScore :: STRING, 
+    relevantWords :: LIST<STRING> 
+}),
 
-(:FileObjectComparisonType :FileObjectComparison {REQUIRED matchingProperty STRING, REQUIRED similarity FLOAT})
+CONSTRAINT propertycomparison_pk 
+FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY 
 
-(:FileObjectLinkingElementType :FileObjectLinkingElement { REQUIRED combinedSimilarity FLOAT , REQUIRED usesMetrics STRING, REQUIRED date DATE})
+(:TextEvidence => {
+    id :: STRING NOT NULL,  
+    similarityScore :: FLOAT
+})
 
-# Edges
+CONSTRAINT textevidence_pk 
+FOR (n:TextEvidence) REQUIRE (n.id) IS KEY 
 
-(:BasicDLElement) -[hasComparisonType: hasComparison {REQUIRED weight FLOAT }] -> (:PropertyComparison)
+(:FileObjectLinkingElement => {
+    id :: STRING NOT NULL, 
+    date :: OFFSET DATETIME, 
+    similarityScore :: FLOAT, 
+    usesMetrics :: STRING
+}),
 
-(:FileObjectLinkingElement) -[hasComparisonType: hasComparison] -> (:FileObjectComparison)
+CONSTRAINT fileobjectlinkinelement_pk 
+FOR (n:FileObjectLinkingElement) REQUIRE (n.id) IS KEY 
 
-(:PropertyComparison) -[hasEvidenceType: hasEvidence {REQUIRED rank FLOAT }] -> (:TextEvidence)
+(:FileObjectComparison => {
+    id :: STRING NOT NULL,  
+    targetProperty :: STRING,
+    similarityScore :: FLOAT, 
+}),
 
-(:TextEvidence | :PropertyComparison) -[:hasTargetType :hasTarget {OPTIONAL chunk STRING}] -> (:sc_Dataset)
+CONSTRAINT fileobjectcomparison_pk 
+FOR (n:FileObjectComparison) REQUIRE (n.id) IS KEY 
 
-(:FileObjectComparison) -[:hasTarget] -> (:cr_FileObject)
+(:BasicDLElement)-[:hasComparison { weight :: FLOAT }]->(:PropertyComparison)
 
-(:BasicDLElement) -[hasDetailType: hasDetail] -> (:FileObjectLinkingElement)
+(:PropertyComparison)-[:hasEvidence { rank :: UINT64 }]->(:TextEvidence)
+
+(:TextEvidence)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
+
+(:PropertyComparison)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
+
+(:BasicDLElement)-[:hasDetail]->(:FileObjectLinkingElement)
+
+(:FileObjectLinkingElement)-[:hasComparison { weight :: FLOAT }]->(:FileObjectComparison)
+
+(:FileObjectComparison)-[:hasTarget]->(:cr_FileObject)
+

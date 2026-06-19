@@ -3,39 +3,39 @@
         {
             "id": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "labels": [
-                "Basic_DL_Element"
+                "BasicDLElement"
             ],
             "properties": {
                 "date": "2026-05-16",
-                "combinedSimilarity": 85.07,
+                "similarityScore": 85.07,
                 "usesMetrics": "avg"
             }
         },
         {
             "id": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "labels": [
-                "Text_Evidence"
+                "TextEvidence"
             ],
             "properties": {
-                "similarity": 100.0
+                "similarityScore": 100.0
             }
         },
         {
             "id": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "labels": [
-                "Text_Evidence"
+                "TextEvidence"
             ],
             "properties": {
-                "similarity": 100.0
+                "similarityScore": 100.0
             }
         },
         {
             "id": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "labels": [
-                "Text_Evidence"
+                "TextEvidence"
             ],
             "properties": {
-                "similarity": 34.78
+                "similarityScore": 34.78
             }
         },
         {
@@ -75,11 +75,11 @@
         {
             "id": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "labels": [
-                "Property_Comparison"
+                "PropertyComparison"
             ],
             "properties": {
                 "targetProperty": "keywords",
-                "metricValue": 100.0,
+                "similarityScore": 100.0,
                 "relevantWords": [
                     "math",
                     "student",
@@ -95,18 +95,18 @@
             ],
             "properties": {
                 "targetProperty": "descriptions",
-                "metricValue": 66.6,
+                "similarityScore": 66.6,
                 "usesMetrics": "all-mpnet-base-v2"
             }
         },
         {
             "id": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "labels": [
-                "Property_Comparison"
+                "PropertyComparison"
             ],
             "properties": {
                 "targetProperty": "headlines",
-                "metricValue": 50.86,
+                "similarityScore": 50.86,
                 "usesMetrics": "all-mpnet-base-v2"
             }
         }
@@ -116,21 +116,21 @@
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "labels": [
-                "has_comparison"
+                "hasComparison"
             ],
             "properties": {
                 "weight": 0.6
@@ -140,25 +140,27 @@
             "from": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
+                "similarityScore": 100.0
             }
         },
         {
             "from": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
+                "similarityScore": 100.0
             }
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "labels": [
-                "has_comparison"
+                "hasComparison"
             ],
             "properties": {
                 "weight": 0.3
@@ -168,21 +170,21 @@
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "to": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "labels": [
-                "has_comparison"
+                "hasComparison"
             ],
             "properties": {
                 "weight": 0.1
@@ -192,21 +194,21 @@
             "from": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ]
         },
         {
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "labels": [
-                "has_evidence"
+                "hasEvidence"
             ],
             "properties": {
             "rank": 1
@@ -216,7 +218,7 @@
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "labels": [
-                "has_evidence"
+                "hasEvidence"
             ],
             "properties": {
                 "rank": 2
@@ -226,7 +228,7 @@
             "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
             "to": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "labels": [
-                "has_evidence"
+                "hasEvidence"
             ],
             "properties": {
                 "rank": 3
@@ -236,7 +238,7 @@
             "from": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "MathE is a mathematical platform developed under the MathE project (mathe"
@@ -246,7 +248,7 @@
             "from": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "MathE is a mathematical platform developed under the MathE project (mathe"
@@ -257,7 +259,7 @@
             "from": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "pt) for higher education"
@@ -267,7 +269,7 @@
             "from": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "pt) for higher education"
@@ -278,7 +280,7 @@
             "from": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "to": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "The dataset is based on the 410 pdf documents organized by keywords in a cvs file"
@@ -288,7 +290,7 @@
             "from": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
             "labels": [
-                "has_target"
+                "hasTarget"
             ],
             "properties": {
                 "chunk": "The dataset is organised as follows"
