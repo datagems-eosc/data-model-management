@@ -3,7 +3,7 @@
         {
             "id": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
             "labels": [
-                "BasicDLElement"
+                "Basic_DL_Element"
             ],
             "properties": {
                 "date": "2026-05-16",
@@ -14,7 +14,7 @@
         {
             "id": "5399d73b-b106-4eef-b5dd-ff5246061770",
             "labels": [
-                "TextEvidence"
+                "Text_Evidence"
             ],
             "properties": {
                 "similarity": 100.0
@@ -23,7 +23,7 @@
         {
             "id": "6e457d84-ac49-40cb-bc88-68d79f6257d3",
             "labels": [
-                "TextEvidence"
+                "Text_Evidence"
             ],
             "properties": {
                 "similarity": 100.0
@@ -32,7 +32,7 @@
         {
             "id": "9bfbf354-7388-46dc-9b73-148c862c369b",
             "labels": [
-                "TextEvidence"
+                "Text_Evidence"
             ],
             "properties": {
                 "similarity": 34.78
@@ -75,7 +75,7 @@
         {
             "id": "982f612d-a17f-4f1b-9340-04d7ced20f13",
             "labels": [
-                "PropertyComparison"
+                "Property_Comparison"
             ],
             "properties": {
                 "targetProperty": "keywords",
@@ -102,7 +102,7 @@
         {
             "id": "762b51e2-0db7-4e4e-a9a6-a0fec2fb3d0d",
             "labels": [
-                "PropertyComparison"
+                "Property_Comparison"
             ],
             "properties": {
                 "targetProperty": "headlines",

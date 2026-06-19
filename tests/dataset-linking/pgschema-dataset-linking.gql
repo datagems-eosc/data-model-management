@@ -1,4 +1,4 @@
-(:BasicDLElement => {
+(:Basic_DL_Element => {
     id :: STRING NOT NULL, 
     date :: OFFSET DATETIME, 
     combinedSimilarity :: FLOAT, 
@@ -8,7 +8,7 @@
 CONSTRAINT basicdlelement_pk 
 FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY 
 
-(:PropertyComparison => {
+(:Property_Comparison => {
     id :: STRING NOT NULL,  
     targetProperty :: STRING,
     metricValue :: FLOAT, 
@@ -19,7 +19,7 @@ FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY
 CONSTRAINT propertycomparison_pk 
 FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY 
 
-(:TextEvidence => {
+(:Text_Evidence => {
     id :: STRING NOT NULL,  
     similarity :: FLOAT
 })
@@ -27,10 +27,10 @@ FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY
 CONSTRAINT textevidence_pk 
 FOR (n:TextEvidence) REQUIRE (n.id) IS KEY 
 
-(:BasicDLElement)-[:has_comparison { weight :: FLOAT }]->(:PropertyComparison)
+(:Basic_DL_Element)-[:has_comparison { weight :: FLOAT }]->(:Property_Comparison)
 
-(:PropertyComparison)-[:has_evidence { rank :: UINT64 }]->(:TextEvidence)
+(:Property_Comparison)-[:has_evidence { rank :: UINT64 }]->(:Text_Evidence)
 
-(:TextEvidence)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
+(:Text_Evidence)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
 
-(:PropertyComparison)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
+(:Property_Comparison)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
