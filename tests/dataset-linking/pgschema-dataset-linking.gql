@@ -27,10 +27,10 @@ FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY
 CONSTRAINT textevidence_pk 
 FOR (n:TextEvidence) REQUIRE (n.id) IS KEY 
 
-(:BasicDLElement)-[:hasComparison { weight :: FLOAT }]->(:PropertyComparison)
+(:BasicDLElement)-[:has_comparison { weight :: FLOAT }]->(:PropertyComparison)
 
-(:PropertyComparison)-[:hasEvidence { rank :: UINT64 }]->(:TextEvidence)
+(:PropertyComparison)-[:has_evidence { rank :: UINT64 }]->(:TextEvidence)
 
-(:TextEvidence)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
+(:TextEvidence)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
 
-(:PropertyComparison)-[:hasTarget { chunk :: STRING }]->(:sc_Dataset)
+(:PropertyComparison)-[:has_target { chunk :: STRING }]->(:sc_Dataset)
