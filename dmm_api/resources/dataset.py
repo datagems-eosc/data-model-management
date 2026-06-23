@@ -1958,7 +1958,6 @@ def execute_query_postgres(query_builder):
         connection_string = (
             f"dbname={db_name} user={db_user} password={db_password} "
             f"host={db_host} port={db_port}"
-            f"options=\"-c default_transaction_read_only=on\""
         )
         logger.info(f"[TIMER] DuckDB connection: {time.perf_counter() - t0:.4f}s")
 
@@ -2051,7 +2050,6 @@ def execute_query_mixed(query_builder):
                 connection_string = (
                     f"dbname={db_name} user={db_user} password={db_password} "
                     f"host={db_host} port={db_port}"
-                    f"options=\"-c default_transaction_read_only=on\""
                 )
                 con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
 
