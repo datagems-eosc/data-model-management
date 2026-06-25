@@ -11,8 +11,8 @@ FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY
 (:PropertyComparison => {
     id :: STRING NOT NULL,  
     targetProperty :: STRING,
-    metricValue :: FLOAT, 
-    similarityScore :: STRING, 
+    similarityScore :: FLOAT, 
+    usesMetrics :: STRING, 
     relevantWords :: LIST<STRING> 
 }),
 
