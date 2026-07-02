@@ -24,7 +24,8 @@ cd tests
 - [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
 - [10) In-dataset Discovery text2sql](#10-in-dataset-discovery-text2sql)
 - [11) Query Disambiguation](#11-query-disambiguation)
-- [12) Get Query Result](#12-get-query-result)
+- [12) Dataset Recommender](#12-dataset-recommender)
+- [13) Get Query Result](#13-get-query-result)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1662,7 +1663,149 @@ This forwards the JSON file to the `query-disambiguation` endpoint, and store th
 
 ```
 
-## 12) Get Query Result
+## 11) Dataset Recommender
+
+The `POST /dataset-recsys/recommend` endpoint requires a valid bearer token.
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-recsys/recommend" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@dataset-recommendation/dataset-recommender-request.json" | python3 -m json.tool
+```
+Example payload file: [tests/dataset-recommendation/dataset-recommender-request.json](tests/dataset-recommendation/dataset-recommender-request.json) (command path when running from `tests`: `dataset-recommendation/dataset-recommender-request.json`).
+
+This forwards the JSON file to the `/dataset-recsys/recommend` endpoint, and store the AP log. The API returns:
+```json
+{
+    "code": 200,
+    "message": "Dataset Recommendation System completed successfully",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "id": "c5a1c4b1-65a0-4a07-9d2f-9f7b6a0c1c1e",
+                    "labels": [
+                        "User"
+                    ],
+                    "properties": {}
+                },
+                {
+                    "id": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+                    "labels": [
+                        "Task"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+                    "labels": [
+                        "DatasetRecommender_Operator",
+                        "Operator"
+                    ],
+                    "properties": {
+                        "name": "GetRecommendations Operator",
+                        "description": "Dataset-to-Dataset recommender operator.",
+                        "command": "get_recommendations",
+                        "n": 2,
+                        ...
+                    }
+                },
+                {
+                    "id": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "description": "The seed dataset used as the basis for recommendations."
+                    }
+                },
+                {
+                    "id": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "name": "Recommended Entity 1"
+                    }
+                },
+                {
+                    "id": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "name": "Recommended Entity 2"
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "from": "c5a1c4b1-65a0-4a07-9d2f-9f7b6a0c1c1e",
+                    "to": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+                    "labels": [
+                        "request"
+                    ]
+                },
+                {
+                    "from": "a2a7d7a7-47e2-4b0e-9e3a-9b2e9c1a5b20",
+                    "to": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+                    "labels": [
+                        "is_accomplished_by"
+                    ]
+                },
+                {
+                    "from": "0d7c4d9c-2c18-4c6d-9b7b-48b5fdf7c9a7",
+                    "to": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+                    "labels": [
+                        "consist_of"
+                    ]
+                },
+                {
+                    "from": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+                    "to": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+                    "labels": [
+                        "input"
+                    ]
+                },
+                {
+                    "from": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+                    "to": "8930240b-a0e8-46e7-ace8-aab2b42fcc01",
+                    "labels": [
+                        "output"
+                    ],
+                    "properties": {
+                        "rank": 1
+                    }
+                },
+                {
+                    "from": "4b3a8f2e-5d7a-4a0b-9fb1-3c4c0f3a8f10",
+                    "to": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+                    "labels": [
+                        "output"
+                    ],
+                    "properties": {
+                        "rank": 2
+                    }
+                }
+            ]
+        }
+    }
+}
+
+```
+
+## 13) Get Query Result
 
 The polyglot/query/results/{dataset-uuid} endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
 
