@@ -226,19 +226,19 @@ GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
 
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
-        "url": f"{CDD_URL}/search-ap/",
+        "url": f"{CDD_URL}search-ap/",
         "name": "Cross-Dataset Discovery",
     },
     "/in-dataset-discovery/text2sql": {
-        "url": f"{IDD_URL}/text2sql4ap",
+        "url": f"{IDD_URL}text2sql4ap",
         "name": "In-Dataset Discovery (text2sql)",
     },
     "/dataset-recsys/recommend": {
-        "url": f"{REC_SYS_URL}/recommend/ap",
+        "url": f"{REC_SYS_URL}recommend/ap",
         "name": "Dataset Recommendation System",
     }, 
     "/query-disambiguation": {
-        "url": f"{QD_URL}/query_disambiguation4ap",
+        "url": f"{QD_URL}query_disambiguation4ap",
         "name": "Query Disambiguation",
     }
 
@@ -265,7 +265,7 @@ async def get_dataset_metadata(
     Returns:
         Tuple of (exists: bool, metadata: dict with 'nodes' and 'edges')
     """
-    url = f"{MOMA_URL}/datasets/{dataset_id}"
+    url = f"{MOMA_URL}datasets/{dataset_id}"
     params = {"status": dataset_status} if dataset_status else {}
     logger.info(
         "Requesting dataset metadata from MoMa",
@@ -416,7 +416,7 @@ async def search_datasets(
     """
     Search datasets using MoMa API.
     """
-    url = f"{MOMA_URL}/datasets/"
+    url = f"{MOMA_URL}datasets/"
 
     # Build params as list of tuples to correctly handle repeated keys (e.g. nodeIds)
     params: list[tuple[str, Any]] = []
@@ -579,7 +579,7 @@ async def get_dataset(
     ) as client:
         try:
             response = await client.get(
-                f"{MOMA_URL}/datasets/{dataset_id}",
+                f"{MOMA_URL}datasets/{dataset_id}",
                 headers={"Authorization": f"Bearer {token}"},
             )
 
@@ -787,7 +787,7 @@ async def register_dataset(
 
         # Create the dataset node via POST /datasets
         try:
-            post_url = f"{MOMA_URL}/datasets/"
+            post_url = f"{MOMA_URL}datasets/"
             post_data = {"nodes": filtered_nodes, "edges": filtered_edges}
             logger.info(
                 "Creating dataset in MoMa",
@@ -1099,7 +1099,7 @@ async def load_dataset(
                 new_status=DatasetState.Loaded.value,
             )
             response = await client.patch(
-                f"{MOMA_URL}/nodes/{dataset_id}",
+                f"{MOMA_URL}nodes/{dataset_id}",
                 json={
                     "archivedAt": new_path,
                     "status": DatasetState.Loaded.value,
@@ -1328,7 +1328,7 @@ async def update_dataset(
         # Step 1: Check if each Dataset exists (lightweight search)
         try:
             for dataset_id in dataset_ids:
-                search_url = f"{MOMA_URL}/datasets/"
+                search_url = f"{MOMA_URL}datasets/"
                 search_params = {
                     "nodeIds": dataset_id,
                     "pageSize": 1,
@@ -1439,7 +1439,7 @@ async def update_dataset(
             )
             
             response = await client.post(
-                f"{MOMA_URL}/datasets/",
+                f"{MOMA_URL}datasets/",
                 json={"nodes": filtered_nodes, "edges": filtered_edges},
                 headers={"Authorization": f"Bearer {token}"},
             )
