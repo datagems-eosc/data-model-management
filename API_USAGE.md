@@ -1663,7 +1663,7 @@ This forwards the JSON file to the `query-disambiguation` endpoint, and store th
 
 ```
 
-## 11) Dataset Recommender
+## 12) Dataset Recommender
 
 The `POST /dataset-recsys/recommend` endpoint requires a valid bearer token.
 
