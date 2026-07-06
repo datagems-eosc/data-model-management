@@ -233,6 +233,10 @@ EXTERNAL_SERVICES = {
         "url": f"{IDD_URL}text2sql4ap",
         "name": "In-Dataset Discovery (text2sql)",
     },
+    "/in-dataset-discovery/explore": {
+        "url": f"{IDD_URL}explore4ap",
+        "name": "In-Dataset Discovery (explore)",
+    },
     "/dataset-recsys/recommend": {
         "url": f"{REC_SYS_URL}recommend/ap",
         "name": "Dataset Recommendation System",
@@ -2396,6 +2400,7 @@ async def get_query_result(
 
 
 @router.post("/in-dataset-discovery/text2sql", response_model=APResponseSuccessEnvelope)
+@router.post("/in-dataset-discovery/explore", response_model=APResponseSuccessEnvelope)
 async def execute_and_store_idd(
     request: Request,
     file: Optional[UploadFile] = File(None),

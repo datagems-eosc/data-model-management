@@ -92,22 +92,27 @@ async def api_home():
                 "url": "/api/v1/swagger",
             },
             "cross-dataset-discovery/search": {
-                "description": "Forward AP to CDD search endpoint using exchanged token",
+                "description": "Forward AP to CDD search endpoint using",
                 "methods": ["POST"],
                 "url": "/api/v1/cross-dataset-discovery/search",
             },
             "in-dataset-discovery/text2sql": {
-                "description": "Forward AP to IDD text2sql endpoint using exchanged token",
+                "description": "Forward AP to IDD text2sql endpoint",
                 "methods": ["POST"],
                 "url": "/api/v1/in-dataset-discovery/text2sql",
             },
+            "in-dataset-discovery/explore": {
+                "description": "Forward AP to IDD explore endpoint",
+                "methods": ["POST"],
+                "url": "/api/v1/in-dataset-discovery/explore",
+            },
             "query-disambiguation": {
-                "description": "Forward AP to query disambiguation endpoint using exchanged token",
+                "description": "Forward AP to query disambiguation endpoint",
                 "methods": ["POST"],
                 "url": "/api/v1/query-disambiguation",
             },
             "dataset-recsys/recommend": {
-                "description": "Forward AP to REC_SYS recommendation endpoint using exchanged token",
+                "description": "Forward AP to REC_SYS recommendation endpoint",
                 "methods": ["POST"],
                 "url": "/api/v1/dataset-recsys/recommend",
             },
