@@ -2404,7 +2404,7 @@ async def get_query_result(
 async def execute_and_store_idd(
     request: Request,
     file: Optional[UploadFile] = File(None),
-    body: Optional[WrappedAPRequest] = Body(None),
+    body: Optional[Dict[str, Any]] = Body(None),
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ) -> APResponseSuccessEnvelope:
@@ -2442,8 +2442,8 @@ async def execute_and_store_idd(
                 ).model_dump(exclude_none=True),
             )
     elif body:
-        # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {"ap": body.ap.model_dump(exclude_none=True)}
+        # Keep full JSON body so we preserve optional metadata keys if present.
+        payload_data = body
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
@@ -2453,27 +2453,53 @@ async def execute_and_store_idd(
         except (json.JSONDecodeError, ValueError):
             pass
 
-    if not payload_data or "ap" not in payload_data:
+    if not isinstance(payload_data, dict) or not payload_data:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=ErrorEnvelope(
                 code=status.HTTP_400_BAD_REQUEST,
-                error="Request must include either a JSON file upload or JSON body with 'ap' field",
+                error="Request must include a valid JSON payload as file upload or request body.",
             ).model_dump(exclude_none=True),
         )
 
-    # Extract ap and metadata from the uploaded file to store only ap
-    ap = payload_data.get("ap", {})
+    # Accept both wrapped payloads ({"ap": {...}}) and raw AP JSON payloads.
+    has_ap_wrapper = "ap" in payload_data
+    ap_payload = payload_data.get("ap") if has_ap_wrapper else payload_data
+    if not isinstance(ap_payload, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="The AP payload must be a JSON object.",
+            ).model_dump(exclude_none=True),
+        )
+
     logger.info(
         f"Received AP for {service['name']}",
-        ap=ap,
+        ap=ap_payload,
     )
-    ap = add_sql_operators_to_ap(ap)
+
+    try:
+        APRequest.model_validate(ap_payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error=f"Invalid AP payload: {str(e)}",
+            ).model_dump(exclude_none=True),
+        )
+
+    ap = add_sql_operators_to_ap(ap_payload)
     logger.info(
         f"Updated AP",
         ap=ap,
     )
-    payload_data["ap"] = ap.model_dump(by_alias=True, exclude_defaults=True)
+    normalized_ap = ap.model_dump(by_alias=True, exclude_defaults=True)
+    if has_ap_wrapper:
+        payload_data["ap"] = normalized_ap
+    else:
+        payload_data = {"ap": normalized_ap}
 
     try:
         store_AP_in_grafeo(ap)
