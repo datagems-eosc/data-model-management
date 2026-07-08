@@ -2569,7 +2569,7 @@ async def execute_and_store_idd(
             )
             return APResponseSuccessEnvelope(
                 code=status.HTTP_200_OK,
-                message=f"In-Dataset text2sql and query executed successfully, results stored at {upload_path}",
+                message=f"In-Dataset and query executed successfully, results stored at {upload_path}",
                 content={"ap": executed_ap.model_dump(by_alias=True, exclude_defaults=True), "metadata": response_payload.get("metadata", {})},
             )
 
@@ -2577,7 +2577,7 @@ async def execute_and_store_idd(
             # Build a partial success envelope
             return APResponseSuccessEnvelope(
                 code=status.HTTP_207_MULTI_STATUS,   # or 200 if you prefer
-                message=f"In-Dataset text2sql executed successfully, but query execution failed: {str(e)}",
+                message=f"In-Dataset executed successfully, but query execution failed: {str(e)}",
                 content={
                     "ap": response_payload.get("ap", {}),
                     "metadata": response_payload.get("metadata", {}),
@@ -2718,7 +2718,7 @@ def get_full_aplog(ap_id: str, token, txId=None):
             MATCH (ap:Analytical_Pattern)
             WHERE ap.id = '{ap_id}'
 
-            MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
+            MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished_by]->(ap)
 
             WITH ap,
             COLLECT(DISTINCT u) AS users,
@@ -2825,7 +2825,7 @@ async def search_APs(
             
             nodes = [ Grafeo_to_AP_node(row["ap"]), Grafeo_to_AP_node(row["u"]), Grafeo_to_AP_node(row["t"]) ]
             edges.append({"from": row["u"].get("id"), "to": row["t"].get("id"), "labels": ["request"]})
-            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "labels": ["is_accomplished"]})
+            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "labels": ["is_accomplished_by"]})
             ap_graph = {"ap": {"nodes": nodes, "edges": edges}}
             response.append(ap_graph)
     if txId is not None:
@@ -2863,7 +2863,7 @@ def get_aps(
 
     where_clauses = []
     extended_query = []
-    cypher = """ MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished]->(ap:Analytical_Pattern) """
+    cypher = """ MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished_by]->(ap:Analytical_Pattern) """
     if userId: 
         where_clauses.append("u.id IN [" + ", ".join(repr(x) for x in userId) + "]")
     if startDate:
@@ -3033,7 +3033,7 @@ async def delete_aplog(
     fetch_query = f"""
         MATCH (ap:Analytical_Pattern)
         WHERE ap.id = '{ap_id}'
-        MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished]->(ap)
+        MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished_by]->(ap)
         WITH ap, COLLECT(DISTINCT u) AS users, COLLECT(DISTINCT t) AS tasks
         OPTIONAL MATCH (ap)-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
         WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
