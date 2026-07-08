@@ -6,21 +6,21 @@
                 "labels": [
                     "request"
                 ],
-                "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
+                "to": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c"
             },
             {
-                "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                "from": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
                 "labels": [
                     "is_accomplished_by"
                 ],
-                "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
+                "to": "9593a87a-b361-4f56-aed5-df53e0fb5a3f"
             },
             {
-                "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
                 "labels": [
                     "consist_of"
                 ],
-                "to": "69ce4693-e71e-4616-9320-037c90a88859"
+                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
             },
             {
                 "from": "da70868b-9464-4415-8a11-e1af8f919179",
@@ -34,10 +34,10 @@
                 "labels": [
                     "input"
                 ],
-                "to": "69ce4693-e71e-4616-9320-037c90a88859"
+                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
             },
             {
-                "from": "69ce4693-e71e-4616-9320-037c90a88859",
+                "from": "d62e1c6c-5350-4153-834b-3af34d80f943",
                 "labels": [
                     "output"
                 ],
@@ -53,7 +53,7 @@
                 "properties": {}
             },
             {
-                "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
+                "id": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
                 "labels": [
                     "Task"
                 ],
@@ -63,7 +63,7 @@
                 }
             },
             {
-                "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
+                "id": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
                 "labels": [
                     "Analytical_Pattern"
                 ],
@@ -74,7 +74,7 @@
                 }
             },
             {
-                "id": "69ce4693-e71e-4616-9320-037c90a88859",
+                "id": "d62e1c6c-5350-4153-834b-3af34d80f943",
                 "labels": [
                     "Query_Operator",
                     "NLQ_Operator", 
@@ -84,7 +84,7 @@
                     "description": "Translate text to SQL",
                     "name": "Text-to-SQL",
                     "process": "In-Dataset Discovery",
-                    "query": "What is mean daily temperature in Zurich (latitude: 47.4, longitude: 8.4) in the year 2020?",
+                    "query": "What is mean daily temperature in Zurich in the year 2020?",
                     "startTime": "2026-03-17T10:43:17.829Z"
                 }
             },

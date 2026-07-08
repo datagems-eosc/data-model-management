@@ -220,7 +220,7 @@ IDD_URL = os.getenv("IDD_URL", "https://datagems-dev.scayle.es/in-dataset-discov
 QD_URL = os.getenv("QD_URL", "https://datagems-dev.scayle.es/query-disambiguation")
 REC_SYS_URL = os.getenv("REC_SYS_URL", "https://datagems-dev.scayle.es/dataset-recsys")
 MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
-REQUEST_TIMEOUT_SECONDS = 30.0
+REQUEST_TIMEOUT_SECONDS = 300.0
 GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
 
 
