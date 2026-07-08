@@ -1,131 +1,140 @@
 {
-  "ap": {
-    "edges": [
-      {
-        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-        "labels": [
-          "request"
+    "ap": {
+        "edges": [
+            {
+                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "request"
+                ],
+                "to": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c"
+            },
+            {
+                "from": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+                "labels": [
+                    "is_accomplished_by"
+                ],
+                "to": "9593a87a-b361-4f56-aed5-df53e0fb5a3f"
+            },
+            {
+                "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                "labels": [
+                    "consist_of"
+                ],
+                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
+            },
+            {
+                "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                "labels": [
+                    "consist_of"
+                ],
+                "to": " 80838cc7-2e4d-4c1c-a156-8df28769cf84 "
+            },
+            {
+                "from": "80838cc7-2e4d-4c1c-a156-8df28769cf84",
+                "labels": [
+                    "follows"
+                ],
+                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
+            },
+            {
+                "from": "da70868b-9464-4415-8a11-e1af8f919179",
+                "labels": [
+                    "distribution"
+                ],
+                "to": "a40057d2-0144-4a96-9b35-df55dd88811d"
+            },
+            {
+                "from": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                "labels": [
+                    "input"
+                ],
+                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
+            },
+            {
+                "from": "80838cc7-2e4d-4c1c-a156-8df28769cf84",
+                "labels": [
+                    "output"
+                ],
+                "to": "01624723-6b74-4719-a985-ceb70c623932"
+            }
         ],
-        "to": "dca293c0-e20c-47de-be58-acad8b8c423c"
-      },
-      {
-        "from": "dca293c0-e20c-47de-be58-acad8b8c423c",
-        "labels": [
-          "is_accomplished_by"
-        ],
-        "to": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd"
-      },
-      {
-        "from": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-        "labels": [
-          "consist_of"
-        ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      },
-      {
-        "from": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
-        "labels": [
-          "distribution"
-        ],
-        "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
-      }, 
-      {
-        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
-        "labels": [
-            "input"
-        ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      }, 
-      {
-        "from": "29a79838-adae-43e4-8e20-8d08c523445d",
-        "labels": [
-            "output"
-        ],
-        "to": "01624723-6b74-4719-a985-ceb70c623932"
-      },
-      {
-        "from": "29a79838-adae-43e4-8e20-8d08c523445d",
-        "labels": [
-            "follows"
-        ],
-        "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      }
-    ],
-    "nodes": [
-      {
-        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-        "labels": [
-          "User"
-        ],
-        "properties": {}
-      },
-      {
-        "id": "dca293c0-e20c-47de-be58-acad8b8c423c",
-        "labels": [
-          "Task"
-        ],
-        "properties": {
-          "description": "Task to find the the mean daily temperature in Zurich for 2020",
-          "name": "Temperature Task"
-        }
-      },
-      {
-        "id": "4ecb7e5b-eb82-4ae6-8354-5a2943702fcd",
-        "labels": [
-          "Analytical_Pattern"
-        ],
-        "properties": {
-          "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
-          "name": "In-Dataset Discovery Temperature",
-          "startTime": "2026-03-17T10:43:17.829Z"
-        }
-      },
-      {
-        "id": "69ce4693-e71e-4616-9320-037c90a88859",
-        "labels": [
-          "Query_Operator",
-          "NLQ_Operator", 
-          "Operator"
-        ],
-        "properties": {
-          "description": "Translate text to SQL",
-          "name": "Text-to-SQL",
-          "process": "In-Dataset Discovery",
-          "query": "What is mean daily temperature in Zurich in the year 2020?",
-          "startTime": "2026-03-17T10:43:17.829Z"
-        }
-      },
-      {
-        "id": "29a79838-adae-43e4-8e20-8d08c523445d",
-        "labels": [
-          "Query_Operator",
-          "SQL_Operator", 
-          "Operator"
+        "nodes": [
+            {
+                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                "labels": [
+                    "User"
+                ],
+                "properties": {}
+            },
+            {
+                "id": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+                "labels": [
+                    "Task"
+                ],
+                "properties": {
+                    "description": "Task to find the the mean daily temperature in Zurich for 2020",
+                    "name": "Temperature Task"
+                }
+            },
+            {
+                "id": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                "labels": [
+                    "Analytical_Pattern"
+                ],
+                "properties": {
+                    "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
+                    "name": "In-Dataset Discovery Temperature",
+                    "startTime": "2026-03-17T10:43:17.829Z"
+                }
+            },
+            {
+                "id": "d62e1c6c-5350-4153-834b-3af34d80f943",
+                "labels": [
+                    "Query_Operator",
+                    "NLQ_Operator", 
+                    "Operator"
+                ],
+                "properties": {
+                    "description": "Translate text to SQL",
+                    "name": "Text-to-SQL",
+                    "process": "In-Dataset Discovery",
+                    "query": "What is mean daily temperature in Zurich in the year 2020?",
+                    "startTime": "2026-03-17T10:43:17.829Z"
+                }
+            },
+            {
+                "id": "80838cc7-2e4d-4c1c-a156-8df28769cf84",
+                "labels": [
+                    "Query_Operator",
+                    "SQL_Operator", 
+                    "Operator"
+                ],
+                "properties": {
+                }
+            },
+            {
+                "id": "da70868b-9464-4415-8a11-e1af8f919179",
+                "labels": [
+                    "sc:Dataset"
+                ], 
+                "properties":{}
+            },
+            {
+                "id": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                "labels": [
+                    "dg:DatabaseConnection",
+                    "RelationalDatabase"
+                ], 
+                "properties":{}
+            },
+            {
+                "id": "01624723-6b74-4719-a985-ceb70c623932",
+                "labels": [
+                    "cr:FileObject",
+                    "Data"
+                ], 
+                "properties":{}
+            }
         ]
-      },
-      {
-        "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
-        "labels": [
-          "sc:Dataset"
-        ], 
-        "properties": {}
-      },
-      {
-        "id": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
-        "labels": [
-          "dg:DatabaseConnection",
-          "RelationalDatabase"
-        ],
-        "properties": {}
-      },
-      {
-        "id": "01624723-6b74-4719-a985-ceb70c623932",
-        "labels": [
-          "cr:FileObject",
-          "Data"
-        ],
-        "properties": {}
-      }
-    ]
-  }
+    }
 }
