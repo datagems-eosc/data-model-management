@@ -23,9 +23,10 @@ cd tests
 - [8) Converter](#8-converter)
 - [9) Cross-dataset Discovery Search](#9-cross-dataset-discovery-search)
 - [10) In-dataset Discovery text2sql](#10-in-dataset-discovery-text2sql)
-- [11) Query Disambiguation](#11-query-disambiguation)
-- [12) Dataset Recommender](#12-dataset-recommender)
-- [13) Get Query Result](#13-get-query-result)
+- [11) In-dataset Discovery explore](#11-in-dataset-discovery-explore)
+- [12) Query Disambiguation](#12-query-disambiguation)
+- [13) Dataset Recommender](#13-dataset-recommender)
+- [14) Get Query Result](#14-get-query-result)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -1578,7 +1579,217 @@ This endpoint forwards the JSON file to the `in-dataset-discovery/search` endpoi
 }
 ```
 
-## 11) Query Disambiguation
+## 11) In-dataset Discovery explore
+
+
+The `POST /in-dataset-discovery/explore` endpoint requires a valid bearer token.
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/in-dataset-discovery/explore" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@in-dataset/request.json" | python3 -m json.tool
+```
+Example payload file: [tests/in-dataset/request.json](tests/cross-dataset/cdd-search-ap-request.json) (command path when running from `tests`: `in-dataset/request.json`).
+
+This endpoint forwards the JSON file to the `in-dataset-discovery/search` endpoint, and store the AP log. The API returns:
+```json
+{
+    "code": 200,
+    "message": "In-Dataset and query executed successfully, results stored at /s3/data-model-management/results/f1806fe7-7ed3-4a71-898b-6df8bb917d20",
+    "content": {
+        "ap": {
+            "nodes": [
+                {
+                    "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                    "labels": [
+                        "User"
+                    ]
+                },
+                {
+                    "id": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+                    "labels": [
+                        "Task"
+                    ],
+                    "properties": {
+                        "description": "Task to find the the mean daily temperature in Zurich for 2020",
+                        "name": "Temperature Task"
+                    }
+                },
+                {
+                    "id": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                    "labels": [
+                        "Analytical_Pattern"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "d62e1c6c-5350-4153-834b-3af34d80f943",
+                    "labels": [
+                        "Query_Operator",
+                        "NLQ_Operator",
+                        "Operator"
+                    ],
+                    "properties": {
+                        ...
+                    }
+                },
+                {
+                    "id": "da70868b-9464-4415-8a11-e1af8f919179",
+                    "labels": [
+                        "sc:Dataset"
+                    ]
+                },
+                {
+                    "id": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                    "labels": [
+                        "dg:DatabaseConnection",
+                        "RelationalDatabase"
+                    ]
+                },
+                {
+                    "id": "f50e8195-cac9-4e07-85cc-a376eae20062",
+                    "labels": [
+                        "cr:FileObject",
+                        "Data"
+                    ],
+                    "properties": {
+                        "contentUrl": "s3://data-model-management/results/f1806fe7-7ed3-4a71-898b-6df8bb917d20/output.csv",
+                        ...
+                    }
+                },
+                {
+                    "id": "baf1f7c5-7558-4441-bb75-fa2382fb9712",
+                    "labels": [
+                        "Query_Operator",
+                        "SQL_Operator",
+                        "Operator"
+                    ],
+                    "properties": {
+                        "description": "",
+                        "name": "DuckDB Query Operator",
+                        "query": "SELECT\n  AVG(tmean - 273.15) AS mean_daily_temperature_celsius\nFROM {{arg1}} AS meteo_tmean\nWHERE\n  (ROUND(CAST(longitude AS DECIMAL), 1), ROUND(CAST(latitude AS DECIMAL), 1)) IN ((8.5, 47.4))\n  AND EXTRACT(YEAR FROM time) = 2020",
+                        "startTime": "2026-07-08T14:21:41.587252Z",
+                        "endTime": "2026-07-08T14:22:41.587252Z"
+                    }
+                },
+                {
+                    "id": "0a367485-14f2-449f-b76d-e76eecf247c5",
+                    "labels": [
+                        "Table",
+                        "Data",
+                        "cr:FileObject"
+                    ]
+                },
+                {
+                    "id": "f1806fe7-7ed3-4a71-898b-6df8bb917d20",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {
+                        "archivedAt": "s3://data-model-management/results/f1806fe7-7ed3-4a71-898b-6df8bb917d20"
+                    }
+                }
+            ],
+            "edges": [
+                {
+                    "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+                    "to": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+                    "labels": [
+                        "request"
+                    ]
+                },
+                {
+                    "from": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+                    "to": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                    "labels": [
+                        "is_accomplished_by"
+                    ]
+                },
+                {
+                    "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                    "to": "d62e1c6c-5350-4153-834b-3af34d80f943",
+                    "labels": [
+                        "consist_of"
+                    ]
+                },
+                {
+                    "from": "da70868b-9464-4415-8a11-e1af8f919179",
+                    "to": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                    "labels": [
+                        "distribution"
+                    ]
+                },
+                {
+                    "from": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                    "to": "d62e1c6c-5350-4153-834b-3af34d80f943",
+                    "labels": [
+                        "input"
+                    ]
+                },
+                {
+                    "from": "baf1f7c5-7558-4441-bb75-fa2382fb9712",
+                    "to": "f50e8195-cac9-4e07-85cc-a376eae20062",
+                    "labels": [
+                        "output"
+                    ]
+                },
+                {
+                    "from": "baf1f7c5-7558-4441-bb75-fa2382fb9712",
+                    "to": "d62e1c6c-5350-4153-834b-3af34d80f943",
+                    "labels": [
+                        "follows"
+                    ]
+                },
+                {
+                    "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+                    "to": "baf1f7c5-7558-4441-bb75-fa2382fb9712",
+                    "labels": [
+                        "consist_of"
+                    ]
+                },
+                {
+                    "from": "da70868b-9464-4415-8a11-e1af8f919179",
+                    "to": "0a367485-14f2-449f-b76d-e76eecf247c5",
+                    "labels": [
+                        "distribution"
+                    ]
+                },
+                {
+                    "from": "0a367485-14f2-449f-b76d-e76eecf247c5",
+                    "to": "a40057d2-0144-4a96-9b35-df55dd88811d",
+                    "labels": [
+                        "contained_in"
+                    ]
+                },
+                {
+                    "from": "0a367485-14f2-449f-b76d-e76eecf247c5",
+                    "to": "baf1f7c5-7558-4441-bb75-fa2382fb9712",
+                    "labels": [
+                        "input"
+                    ],
+                    "properties": {
+                        "argname": "arg1"
+                    }
+                },
+                {
+                    "from": "f1806fe7-7ed3-4a71-898b-6df8bb917d20",
+                    "to": "f50e8195-cac9-4e07-85cc-a376eae20062",
+                    "labels": [
+                        "distribution"
+                    ]
+                }
+            ]
+        },
+        "metadata": {
+            ...
+        }
+    }
+}
+```
+
+## 12) Query Disambiguation
 
 
 The `POST /query-disambiguation` endpoint requires a valid bearer token.
@@ -1663,7 +1874,7 @@ This forwards the JSON file to the `query-disambiguation` endpoint, and store th
 
 ```
 
-## 12) Dataset Recommender
+## 13) Dataset Recommender
 
 The `POST /dataset-recsys/recommend` endpoint requires a valid bearer token.
 
@@ -1805,7 +2016,7 @@ This forwards the JSON file to the `/dataset-recsys/recommend` endpoint, and sto
 
 ```
 
-## 13) Get Query Result
+## 14) Get Query Result
 
 The polyglot/query/results/{dataset-uuid} endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
 
