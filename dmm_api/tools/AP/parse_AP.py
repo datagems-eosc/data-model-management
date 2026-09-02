@@ -234,6 +234,8 @@ def extract_from_AP(
             "cr:Field",
             "dg:ColumnStatistics",
             "dg:DatabaseConnection",
+            "dg:DataQuality",
+            "dg:DataQualityError"
         }
 
     # Find nodes that have any of the target labels
