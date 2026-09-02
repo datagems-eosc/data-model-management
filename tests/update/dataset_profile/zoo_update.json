@@ -1,0 +1,94 @@
+{
+  "ap": {
+    "edges": [
+      {
+        "from": "73c4d4bc-5d3c-415f-87dc-a27a2822c9e7",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "b12ee83b-f775-4471-a98d-4c6e9c9ca5d6"
+      },
+      {
+        "from": "c893daaf-680f-4947-88e5-03fd61900795",
+        "labels": [
+          "input"
+        ],
+        "to": "b12ee83b-f775-4471-a98d-4c6e9c9ca5d6"
+      },
+      {
+        "from": "321543a9-bce8-4ea2-9fd9-2cb6d42fa4c8",
+        "labels": [
+          "is_accomplished"
+        ],
+        "to": "73c4d4bc-5d3c-415f-87dc-a27a2822c9e7"
+      },
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
+        ],
+        "to": "321543a9-bce8-4ea2-9fd9-2cb6d42fa4c8"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "73c4d4bc-5d3c-415f-87dc-a27a2822c9e7",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern to update a dataset",
+          "name": "Update Dataset AP",
+          "process": "update",
+          "publishedDate": "2025-12-09",
+          "startTime": "10:00:00"
+        }
+      },
+      {
+        "id": "b12ee83b-f775-4471-a98d-4c6e9c9ca5d6",
+        "labels": [
+          "DataModelManagement_Operator"
+        ],
+        "properties": {
+          "command": "update",
+          "description": "An operator to update a dataset into DataGEMS",
+          "name": "Update Operator",
+          "publishedDate": "2025-12-09",
+          "startTime": "10:00:00",
+          "step": 1
+        }
+      },
+      {
+        "id": "c893daaf-680f-4947-88e5-03fd61900795",
+        "labels": [
+          "sc:Dataset"
+        ],
+        "properties": {
+          "description": "Zoo animal species data - updated version",
+          "keywords": [
+            "zoo",
+            "animals",
+            "species",
+            "fauna"
+          ]
+        }
+      },
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ]
+      },
+      {
+        "id": "321543a9-bce8-4ea2-9fd9-2cb6d42fa4c8",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to register a dataset",
+          "name": "Dataset Registering Task"
+        }
+      }
+    ]
+  }
+}
