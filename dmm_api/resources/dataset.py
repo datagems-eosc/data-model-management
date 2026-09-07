@@ -12,8 +12,6 @@ import sqlglot
 from sqlglot.optimizer import optimize
 from sqlglot import expressions as exp
 
-
-
 from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
     Grafeo_to_AP_node,
@@ -2840,8 +2838,6 @@ async def search_APs(
         total=total
 
     )
-
-
     # return Grafeo_to_AP(result)
 
         
@@ -3091,3 +3087,108 @@ async def delete_aplog(
         "code": 200,
         "message": f"AP log with id '{ap_id}' deleted successfully.",
     }
+
+@router.post("/dataset-linking/register", response_model=APRequest)
+async def register_dataset_linking(
+        request: Request,
+        file: Optional[UploadFile] = File(None),
+        body: Optional[WrappedAPRequest] = Body(None),
+        token: str = Depends(security.oauth2_scheme),
+        token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    ) -> APRequest:
+    """
+    Register Dataset Linking elements in MoMa.
+    """
+    url = f"{MOMA_URL}datasets/relationships"
+    payload_data = None
+    
+    if file:
+        # Read and parse the uploaded JSON file
+        content = await file.read()
+        try:
+            payload_data = json.loads(content)
+        except json.JSONDecodeError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error=f"Invalid JSON in uploaded file: {str(e)}",
+                ).model_dump(exclude_none=True),
+            )
+    elif body:
+        # Use JSON body directly (automatic FastAPI parsing)
+        payload_data = {body.ap.model_dump(exclude_none=True)}
+    else:
+        # Fallback: manually try to parse JSON body if automatic parsing didn't work
+        try:
+            body_content = await request.body()
+            if body_content:
+                payload_data = json.loads(body_content)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    ap_obj = APRequest.model_validate(payload_data)
+    payload_data = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
+    async with httpx.AsyncClient(
+        timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
+        response = await client.post(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+            json=payload_data,
+        )
+    try:
+        response_payload = response.json()
+        ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
+        response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
+        
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+
+    # If response is not successful, raise an error with context-aware messages
+    if response.status_code >= 400:
+        logger.error(
+            f"Error from MoMa",
+            status_code=response.status_code,
+            response_text=response.text,
+        )
+
+        # Extract error message and format it with service name and status code
+        if isinstance(response_payload, dict):
+            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
+        else:
+            cdd_error_msg = response.text
+
+        # Build context-specific error messages based on status code
+        status_messages = {
+            status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
+            status.HTTP_403_FORBIDDEN: "Authorization failed. You lack the required role to perform this action.",
+            status.HTTP_424_FAILED_DEPENDENCY: "The service failed to communicate with a required dependency (OIDC provider, database, etc.).",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "An unexpected error occurred in the service while processing the request.",
+            status.HTTP_503_SERVICE_UNAVAILABLE: "The service is not ready. A core component may have failed during initialization.",
+        }
+
+        context_msg = status_messages.get(response.status_code, "")
+        error_message = (
+            f"MoMa returned error {response.status_code}: {cdd_error_msg}"
+        )
+        if context_msg:
+            error_message = f"{error_message} — {context_msg}"
+
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=ErrorEnvelope(
+                code=response.status_code,
+                error=error_message,
+            ).model_dump(exclude_none=True),
+        )
+
+    return APResponseSuccessEnvelope(
+        code=response.status_code,
+        message=f"Dataset linking elements storage completed successfully",
+        content=response_payload,
+    )
+        

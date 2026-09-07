@@ -160,6 +160,11 @@ async def api_home():
                 "description": "Delete a specific AP by ID",
                 "methods": ["DELETE"],
                 "url": "/api/v1/aplog/delete/{ap_id}",
+            }, 
+            "dataset-linking/register": {
+                "description": "Register a new dataset linking",
+                "methods": ["POST"],
+                "url": "/api/v1/dataset-linking/register",
             }
         },
     }
