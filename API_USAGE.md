@@ -2018,7 +2018,7 @@ This forwards the JSON file to the `/dataset-recsys/recommend` endpoint, and sto
 
 ## 14) Get Query Result
 
-The polyglot/query/results/{dataset-uuid} endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
+The `polyglot/query/results/{dataset-uuid}` endpoint allows you to get results obtain from a query execution giving the generated dataset uuid.
 
 ### GET the result of a query
 ```bash
@@ -2042,7 +2042,22 @@ This will return :
 ```json
 "mean_daily_temperature_celsius\n10.613293907290553\n"
 ```
+## 15) Register dataset linking elements 
 
+The `dataset-linking/register` endpoint allows to register dataset linking elements into MoMa. 
+The relationship's root *BasicDLElement* must directly reference, via *HAS_TARGET* edges, exactly two existing *sc:Dataset* nodes. At most one relationship may exist for a given dataset pair.
+
+Required role: dg_admin / dg_dataset-curator / system.
+
+```bash
+curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-linking/register" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@dataset-linking/dataset-linking.json" | python3 -m json.tool
+```
+
+Example payload file: [tests/dataset-linking/dataset-linking.json](tests/dataset-linking/dataset-linking.json) (command path when running from `tests`: `dataset-linking/dataset-linking.json`).
+
+This register the dataset-linking elements:
 
 ## Auth Test (Bearer token required)
 

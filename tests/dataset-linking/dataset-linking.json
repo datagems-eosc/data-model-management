@@ -44,15 +44,6 @@
                 "sc:Dataset"
             ],
             "properties": {
-                "type": "sc:Dataset",
-                "name": "Pedagogic Resources MathE Database",
-                "dg:description": "MathE is a mathematical platform developed under the MathE project (mathe.ipb.pt) for higher education.  The dataset is based on the 410 pdf documents organized by keywords in a cvs file.",
-                "dg:headline": "Math pedagogical material provided in the MathE platform.",
-                "dg:keywords": [
-                    "math",
-                    "student",
-                    "higher education"
-                ]
             }
         },
         {
@@ -61,15 +52,6 @@
                 "sc:Dataset"
             ],
             "properties": {
-                "type": "sc:Dataset",
-                "name": "Integration Techniques Questions MathE Database",
-                "dg:description": "MathE is a mathematical platform developed under the MathE project (mathe.ipb.pt) for higher education. The dataset associated with the Integration topic and the Integration techniques subtopic has 61 questions, the correct answer and two incorrect answers with common errors made by students, keywords associated and material association. The database is organised as follows: Question ID, topic name; subtopic name; question; Correct answer, Incorrect answer 1, incorrect answer 2, keywords, Videos, Material.",
-                "dg:headline": "Integration Techniques Questions MathE Database.",
-                "dg:keywords": [
-                    "math",
-                    "student",
-                    "higher education"
-                ]
             }
         },
         {

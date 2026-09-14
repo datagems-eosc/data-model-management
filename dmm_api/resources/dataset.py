@@ -3099,7 +3099,7 @@ async def register_dataset_linking(
     """
     Register Dataset Linking elements in MoMa.
     """
-    url = f"{MOMA_URL}datasets/relationships"
+    url = f"{MOMA_URL}datasets/relationships/"
     payload_data = None
     
     if file:
