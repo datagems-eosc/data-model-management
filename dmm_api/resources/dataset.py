@@ -3113,11 +3113,13 @@ async def register_dataset_linking(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Invalid JSON in uploaded file: {str(e)}",
-                ).model_dump(exclude_none=True),
+                ).model_dump(
+                    
+                ),
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {body.ap.model_dump(exclude_none=True)}
+        payload_data = {body.ap.model_dump()}
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
