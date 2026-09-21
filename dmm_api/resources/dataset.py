@@ -3113,13 +3113,11 @@ async def register_dataset_linking(
                 detail=ErrorEnvelope(
                     code=status.HTTP_400_BAD_REQUEST,
                     error=f"Invalid JSON in uploaded file: {str(e)}",
-                ).model_dump(
-                    
-                ),
+                ).model_dump(exclude_none=True),
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {body.ap.model_dump()}
+        payload_data = {body.ap.model_dump(exclude_none=True)}
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
@@ -3130,7 +3128,7 @@ async def register_dataset_linking(
             pass
 
     ap_obj = APRequest.model_validate(payload_data)
-    payload_data = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
+    payload_data = ap_obj.model_dump(by_alias=True)
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -3142,7 +3140,7 @@ async def register_dataset_linking(
     try:
         response_payload = response.json()
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
-        response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
+        response_payload["ap"] = ap_obj.model_dump(by_alias=True)
         
     except ValueError:
         response_payload = {
