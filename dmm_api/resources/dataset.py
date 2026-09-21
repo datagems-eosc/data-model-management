@@ -3088,7 +3088,8 @@ async def delete_aplog(
         "message": f"AP log with id '{ap_id}' deleted successfully.",
     }
 
-@router.post("/dataset-linking/register", response_model=APRequest)
+@router.post("/dataset-linking/register",status_code=status.HTTP_200_OK
+)
 async def register_dataset_linking(
         request: Request,
         file: Optional[UploadFile] = File(None),
