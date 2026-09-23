@@ -3088,7 +3088,10 @@ async def delete_aplog(
         "message": f"AP log with id '{ap_id}' deleted successfully.",
     }
 
-@router.post("/dataset-linking/register",status_code=status.HTTP_200_OK
+@router.post(
+    "/dataset-linking/register",
+    status_code=status.HTTP_200_OK,
+    response_model=APResponseSuccessEnvelope,
 )
 async def register_dataset_linking(
         request: Request,
@@ -3096,7 +3099,7 @@ async def register_dataset_linking(
         body: Optional[WrappedAPRequest] = Body(None),
         token: str = Depends(security.oauth2_scheme),
         token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    ) -> APRequest:
+    ) -> APResponseSuccessEnvelope:
     """
     Register Dataset Linking elements in MoMa.
     """
@@ -3118,7 +3121,7 @@ async def register_dataset_linking(
             )
     elif body:
         # Use JSON body directly (automatic FastAPI parsing)
-        payload_data = {body.ap.model_dump(exclude_none=True)}
+        payload_data = body.ap.model_dump(exclude_none=True)
     else:
         # Fallback: manually try to parse JSON body if automatic parsing didn't work
         try:
