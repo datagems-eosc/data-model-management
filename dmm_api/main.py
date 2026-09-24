@@ -165,7 +165,12 @@ async def api_home():
                 "description": "Register a new dataset linking",
                 "methods": ["POST"],
                 "url": "/api/v1/dataset-linking/register",
-            }
+            }, 
+            "dataset-linking_get": {
+                "description": "Get a specific dataset linking by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset-linking/{id}",
+            },
         },
     }
 

@@ -3195,4 +3195,78 @@ async def register_dataset_linking(
         message=f"Dataset linking elements storage completed successfully",
         content=response_payload,
     )
+
+@router.get(
+    "/dataset-linking/{id}",
+    status_code=status.HTTP_200_OK,
+    response_model=DatasetSuccessEnvelope,
+)
+async def get_dataset_linking(
+        id:str,
+        token: str = Depends(security.oauth2_scheme),
+        token_payload: dict[str, Any] = Depends(security.require_app_scope),
+    ) -> DatasetSuccessEnvelope:
+    """
+    Get Dataset Linking elements in MoMa.
+    """
+    url = f"{MOMA_URL}datasets/relationships/{id}"
+    
+    async with httpx.AsyncClient(
+        timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
+    ) as client:
+        response = await client.get(
+            url,
+            headers={"Authorization": f"Bearer {token}"},
+        )
+    try:
+        response_payload = response.json()
         
+    except ValueError:
+        response_payload = {
+            "status_code": response.status_code,
+            "content": response.text,
+        }
+
+    # If response is not successful, raise an error with context-aware messages
+    if response.status_code >= 400:
+        logger.error(
+            f"Error from MoMa",
+            status_code=response.status_code,
+            response_text=response.text,
+        )
+
+        # Extract error message and format it with service name and status code
+        if isinstance(response_payload, dict):
+            error_msg = response_payload.get("error", json.dumps(response_payload))
+        else:
+            error_msg = response.text
+
+        # Build context-specific error messages based on status code
+        status_messages = {
+            status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
+            status.HTTP_403_FORBIDDEN: "Authorization failed. You lack the required role to perform this action.",
+            status.HTTP_424_FAILED_DEPENDENCY: "The service failed to communicate with a required dependency (OIDC provider, database, etc.).",
+            status.HTTP_500_INTERNAL_SERVER_ERROR: "An unexpected error occurred in the service while processing the request.",
+            status.HTTP_503_SERVICE_UNAVAILABLE: "The service is not ready. A core component may have failed during initialization.",
+        }
+
+        context_msg = status_messages.get(response.status_code, "")
+        error_message = (
+            f"MoMa returned error {response.status_code}: {error_msg}"
+        )
+        if context_msg:
+            error_message = f"{error_message} — {context_msg}"
+
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=ErrorEnvelope(
+                code=response.status_code,
+                error=error_message,
+            ).model_dump(exclude_none=True),
+        )
+
+    return DatasetSuccessEnvelope(
+        code=response.status_code,
+        message=f"Dataset linking elements retrieved successfully",
+        dataset=response_payload,
+    )
