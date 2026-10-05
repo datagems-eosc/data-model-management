@@ -656,7 +656,7 @@ async def get_dataset(
                 ).model_dump(exclude_none=True),
             )
 
-@router.get("/dataset/get/{dataset_id}/dataset-linking", response_model=DatasetSuccessEnvelope)
+@router.get("/dataset/get/{dataset_id}/dataset-linking", response_model=DatasetsSuccessEnvelope)
 async def get_dataset_linking(
     dataset_id: str,
     format: str = Query(None, alias="format"),
@@ -690,18 +690,18 @@ async def get_dataset_linking(
                 )
 
             response.raise_for_status()
-            metadata = response.json()
+            dlelements = response.json()
             logger.info(
                 "Dataset linking fetch completed",
                 dataset_id=dataset_id,
                 status_code=response.status_code,
-                nodes_count=len(metadata.get("nodes", [])) if isinstance(metadata, dict) else None,
+                nodes_count=len(dlelements.get("nodes", [])) if isinstance(dlelements, dict) else None,
             )
 
-            return DatasetSuccessEnvelope(
+            return DatasetsSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message=f"Dataset Linking elements of dataset with ID {dataset_id} retrieved successfully from Neo4j",
-                dataset=metadata,
+                datasets=dlelements,
             )
 
         except HTTPException:
@@ -721,7 +721,7 @@ async def get_dataset_linking(
             )
         except httpx.RequestError as e:
             logger.error(
-                "MoMa API request error during dataset linking fetch",
+                "MoMa API request error during dataset fetch",
                 dataset_id=dataset_id,
                 timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
                 exc_info=True,
