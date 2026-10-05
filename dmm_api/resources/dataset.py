@@ -656,6 +656,97 @@ async def get_dataset(
                 ).model_dump(exclude_none=True),
             )
 
+@router.get("/dataset/get/{dataset_id}/dataset-linking", response_model=DatasetSuccessEnvelope)
+async def get_dataset_linking(
+    dataset_id: str,
+    format: str = Query(None, alias="format"),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
+    """Return dataset linking elements of a dataset with a specific ID from Neo4j via MoMa API"""
+    logger.info(
+        "Fetching dataset linking elements from MoMa",
+        dataset_id=dataset_id,
+        output_format=format,
+        timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
+    )
+    async with httpx.AsyncClient(
+        timeout=MOMA_REQUEST_TIMEOUT_SECONDS,
+        follow_redirects=True,
+    ) as client:
+        try:
+            response = await client.get(
+                f"{MOMA_URL}datasets/{dataset_id}/relationships",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+            if response.status_code == status.HTTP_404_NOT_FOUND:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=ErrorEnvelope(
+                        code=status.HTTP_404_NOT_FOUND,
+                        error=f"Dataset with ID {dataset_id} not found in Neo4j",
+                    ).model_dump(exclude_none=True),
+                )
+
+            response.raise_for_status()
+            metadata = response.json()
+            logger.info(
+                "Dataset linking fetch completed",
+                dataset_id=dataset_id,
+                status_code=response.status_code,
+                nodes_count=len(metadata.get("nodes", [])) if isinstance(metadata, dict) else None,
+            )
+
+            return DatasetSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message=f"Dataset Linking elements of dataset with ID {dataset_id} retrieved successfully from Neo4j",
+                dataset=metadata,
+            )
+
+        except HTTPException:
+            raise
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_502_BAD_GATEWAY,
+                    error=f"Error from MoMa API: {e.response.status_code}",
+                    details={
+                        "dataset_id": dataset_id,
+                        "moma_status_code": e.response.status_code,
+                        "moma_response": e.response.text,
+                    },
+                ).model_dump(exclude_none=True),
+            )
+        except httpx.RequestError as e:
+            logger.error(
+                "MoMa API request error during dataset linking fetch",
+                dataset_id=dataset_id,
+                timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
+                exc_info=True,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    error="Failed to connect to MoMa API",
+                    details={
+                        "dataset_id": dataset_id,
+                        "request_error_type": type(e).__name__,
+                        "request_error": str(e),
+                    },
+                ).model_dump(exclude_none=True),
+            )
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    error="Unexpected Internal Server error",
+                ).model_dump(exclude_none=True),
+            )
+
 
 @router.post(
     "/dataset/register",
