@@ -171,6 +171,11 @@ async def api_home():
                 "methods": ["DELETE"],
                 "url": "/api/v1/dataset-linking/{id}",
             },
+            "dataset_get_dataset-linking": {
+                "description": "Get dataset linking elements for a specific dataset",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset/get/{dataset_id}/dataset-linking",
+            },
         },
     }
 
