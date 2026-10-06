@@ -16,6 +16,7 @@ from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
     Grafeo_to_AP_node,
     store_AP_in_grafeo,
+    escape_cypher_string,
     grafeo_begin,
     grafeo_execute,
     grafeo_commit,
@@ -2802,48 +2803,47 @@ async def get_aplog(
         content=ap_graph
     )
 
+def get_full_aplogs(ap_ids: List[str], txId) -> Dict[str, dict]:
+    """Fetch the full graph of several APs with a few queries anchored on the AP ids."""
+    if not ap_ids:
+        return {}
+    ids = "[" + ", ".join(f'"{escape_cypher_string(i)}"' for i in ap_ids) + "]"
+    anchor = f"WHERE ap.id IN {ids}"
+    queries = [
+        f"MATCH (n:User)-[r:request]->(t:Task)-[:is_accomplished_by]->(ap:Analytical_Pattern) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (u:User)-[:request]->(n:Task)-[r:is_accomplished_by]->(ap:Analytical_Pattern) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (ap:Analytical_Pattern)-[r:consist_of]->(n) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (ap:Analytical_Pattern)-[:consist_of]->(op)-[r:input|output]->(n) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (ap:Analytical_Pattern)-[:consist_of]->(op)-[r:follows]-(n) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (ap:Analytical_Pattern)-[:consist_of]->(op)-[:input|output]->(x)<-[r:distribution]-(n) {anchor} RETURN ap.id AS apId, n, r",
+        f"MATCH (ap:Analytical_Pattern)-[:consist_of]->(op)-[:input|output]->(x)-[r:contained_in]->(n) {anchor} RETURN ap.id AS apId, n, r",
+    ]
+    ap_nodes_q = f"MATCH (ap:Analytical_Pattern) {anchor} RETURN ap.id AS apId, ap AS n"
+
+    graphs: Dict[str, dict] = {i: {"nodes": {}, "edges": {}} for i in ap_ids}
+    for row in _run_grafeo_query_in_tx(txId, ap_nodes_q):
+        graphs[row["apId"]]["nodes"][row["n"]["_id"]] = row["n"]
+    for q in queries:
+        for row in _run_grafeo_query_in_tx(txId, q):
+            g = graphs[row["apId"]]
+            g["nodes"][row["n"]["_id"]] = row["n"]
+            g["edges"][row["r"]["_id"]] = row["r"]
+    return {
+        i: Grafeo_to_AP({"ap": {"nodes": g["nodes"], "edges": g["edges"]}})
+        for i, g in graphs.items()
+    }
+
+
 def get_full_aplog(ap_id: str, token, txId=None):
-    gql_query = f"""
-            MATCH (ap:Analytical_Pattern)
-            WHERE ap.id = '{ap_id}'
-
-            MATCH (u:User)-[req:request]->(t:Task)-[acc:is_accomplished_by]->(ap)
-
-            WITH ap,
-            COLLECT(DISTINCT u) AS users,
-            COLLECT(DISTINCT t) AS tasks
-
-            OPTIONAL MATCH (ap)-[:consist_of|distribution|input|output|follows|contained_in*0..5]-(n)
-            WITH ap, users, tasks, COLLECT(DISTINCT n) AS downstream
-
-            WITH ap, users + tasks + downstream + [ap] AS all_nodes_raw
-            UNWIND all_nodes_raw AS n
-            WITH ap, COLLECT(DISTINCT n) AS all_nodes
-
-            OPTIONAL MATCH (a)-[r]-(b)
-            WHERE a IN all_nodes AND b IN all_nodes
-
-            RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
-    """
     owns_tx = txId is None
     if owns_tx:
         txId = grafeo_begin()
     try:
-        rows = _run_grafeo_query_in_tx(txId, gql_query)
-
-        if not rows:
+        graphs = get_full_aplogs([ap_id], txId)
+        graph = graphs[ap_id]
+        if not graph["ap"]["nodes"]:
             raise HTTPException(status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo.")
-
-        row = rows[0]
-        node_ids = row["all_nodes"]
-        rel_ids  = row["all_rels"]
-
-        nodes_dict = fetch_nodes_by_ids(node_ids, txId=txId)
-        edges_dict = fetch_rels_by_ids(rel_ids, txId=txId)
-
-        if owns_tx:
-            grafeo_commit(txId)
-            txId = None
+        return graph
     except HTTPException:
         raise
     except Exception as e:
@@ -2854,11 +2854,6 @@ def get_full_aplog(ap_id: str, token, txId=None):
     finally:
         if owns_tx and txId is not None:
             grafeo_rollback(txId)
-
-    ap_graph = Grafeo_to_AP(
-        {"ap": {"nodes": nodes_dict, "edges": edges_dict}}
-    )
-    return ap_graph
 
 @router.get("/aplog/search")
 async def search_APs(
@@ -2897,13 +2892,10 @@ async def search_APs(
     total = len(rows)
     nb = 0
     if any([operator, datasetId, fileObjectId]):
-        ## Get the full AP log
-        response = []
-        for row in rows: 
-            nb += 1
-            if nb > limit:
-                break
-            response.append(get_full_aplog(row["ap"]["id"], token=token, txId=txId))
+        ## Get the full AP logs in bulk
+        ap_ids = [row["ap"]["id"] for row in rows[:limit]]
+        graphs = get_full_aplogs(ap_ids, txId)
+        response = [graphs[i] for i in ap_ids]
     
     else:
         ## Return only User -> Task -> AP
