@@ -169,6 +169,7 @@ class OPERATOR_LABELS(str, Enum):
     QUERY_OPERATOR = "Query_Operator"
     CDD_OPERATOR = "CDD_Operator"
     QUERY_DISAMBIGUATION_OPERATOR = "Query_Disambiguation_Operator"
+    DATASET_RECOMMENDER_OPERATOR = "DatasetRecommender_Operator"
 
 
 class DatasetProperty(str, Enum):
