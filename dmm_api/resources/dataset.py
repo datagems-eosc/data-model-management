@@ -2825,7 +2825,8 @@ def get_full_aplog(ap_id: str, token, txId=None):
 
             RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
     """
-    if txId is None:
+    owns_tx = txId is None
+    if owns_tx:
         txId = grafeo_begin()
     try:
         rows = _run_grafeo_query_in_tx(txId, gql_query)
@@ -2840,8 +2841,9 @@ def get_full_aplog(ap_id: str, token, txId=None):
         nodes_dict = fetch_nodes_by_ids(node_ids, txId=txId)
         edges_dict = fetch_rels_by_ids(rel_ids, txId=txId)
 
-        grafeo_commit(txId)
-        txId = None
+        if owns_tx:
+            grafeo_commit(txId)
+            txId = None
     except HTTPException:
         raise
     except Exception as e:
@@ -2850,7 +2852,7 @@ def get_full_aplog(ap_id: str, token, txId=None):
             detail=f"Failed to retrieve AP log '{ap_id}' from Grafeo: {str(e)}",
         )
     finally:
-        if txId is not None:
+        if owns_tx and txId is not None:
             grafeo_rollback(txId)
 
     ap_graph = Grafeo_to_AP(
@@ -2987,9 +2989,7 @@ def get_aps(
 
     cypher = cypher + "WHERE " + " AND ".join(where_clauses) + " " if where_clauses else cypher
     cypher = cypher + " ".join(extended_query) + " " if extended_query else cypher
-    cypher = cypher + "WITH ap, u, t " + " ".join(extended_query) + " "
-    cypher = cypher + "ORDER BY ap.startTime DESC "
-    cypher = cypher + "RETURN ap, u, t"
+    cypher = cypher + "RETURN DISTINCT ap, u, t ORDER BY ap.startTime DESC"
 
     return cypher 
 
