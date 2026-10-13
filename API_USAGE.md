@@ -27,6 +27,7 @@ cd tests
 - [12) Query Disambiguation](#12-query-disambiguation)
 - [13) Dataset Recommender](#13-dataset-recommender)
 - [14) Get Query Result](#14-get-query-result)
+- [15) Dataset Linking](#15-dataset-linking)
 - [Auth Test (Bearer token required)](#auth-test-bearer-token-required)
 
 ## 1) Upload a Dataset to s3
@@ -637,7 +638,7 @@ curl -X 'GET' \
   | python3 -m json.tool
 
 curl -X 'GET' \
-  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795' \
+  'https://datagems-dev.scayle.es/dmm/api/v1/dataset/get/c893daaf-680f-4947-88e5-03fd61900795?properties=name' \
   -H 'accept: application/json' \
   -H "Authorization: Bearer $TOKEN" \
   | python3 -m json.tool
@@ -2042,7 +2043,9 @@ This will return :
 ```json
 "mean_daily_temperature_celsius\n10.613293907290553\n"
 ```
-## 15) Register dataset linking elements 
+## 15) Dataset linking
+
+### 15.1) Register a dataset linking element
 
 The `dataset-linking/register` endpoint allows to register dataset linking elements into MoMa. 
 The relationship's root *BasicDLElement* must directly reference, via *HAS_TARGET* edges, exactly two existing *sc:Dataset* nodes. At most one relationship may exist for a given dataset pair.
@@ -2058,6 +2061,113 @@ curl -X POST --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-linki
 Example payload file: [tests/dataset-linking/dataset-linking.json](tests/dataset-linking/dataset-linking.json) (command path when running from `tests`: `dataset-linking/dataset-linking.json`).
 
 This register the dataset-linking elements:
+
+### 15.2) Get a dataset linking element
+
+The `dataset-linking/get{id}` endpoint allows to get a dataset linking elements from its id. 
+
+```bash
+curl -X GET --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-linking/get/8f8c3a7c-dde6-4906-b253-0f005b261ad8" \
+-H "Authorization: Bearer $TOKEN" \
+-F "file=@dataset-linking/dataset-linking.json" | python3 -m json.tool
+```
+
+The API return: 
+
+```bash
+{
+    "code": 200,
+    "message": "Dataset linking elements retrieved successfully",
+    "dataset": {
+        "nodes": [
+            {
+                "id": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
+                "labels": [
+                    "BasicDLElement"
+                ],
+                "properties": {
+                    "date": "2026-05-16",
+                    "usesMetrics": "avg",
+                    "similarityScore": 85.07
+                }
+            },
+            {
+                "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {}
+            },
+            {
+                "id": "f076fae4-1c5d-4585-b278-42683f4eab47",
+                "labels": [
+                    "PropertyComparison"
+                ],
+                "properties": {
+                    "usesMetrics": "all-mpnet-base-v2",
+                    "targetProperty": "descriptions",
+                    "similarityScore": 66.6
+                }
+            },
+            {
+                "id": "5399d73b-b106-4eef-b5dd-ff5246061770",
+                "labels": [
+                    "TextEvidence"
+                ],
+                "properties": {
+                    "similarityScore": 100.0
+                }
+            },
+            {
+                "id": "9b25bc46-8bd3-4f7f-94b4-52dbc38c130f",
+                "labels": [
+                    "sc:Dataset"
+                ],
+                "properties": {}
+            },
+            [...]
+            
+        ],
+        "edges": [
+            {
+                "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
+                "to": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
+                "labels": [
+                    "HAS_TARGET"
+                ],
+                "properties": {}
+            },
+            {
+                "from": "8f8c3a7c-dde6-4906-b253-0f005b261ad8",
+                "to": "f076fae4-1c5d-4585-b278-42683f4eab47",
+                "labels": [
+                    "HAS_COMPARISON"
+                ],
+                "properties": {
+                    "weight": 0.3
+                }
+            },
+            {
+                "from": "f076fae4-1c5d-4585-b278-42683f4eab47",
+                "to": "5399d73b-b106-4eef-b5dd-ff5246061770",
+                "labels": [
+                    "HAS_EVIDENCE"
+                ],
+                "properties": {
+                    "rank": 1
+                }
+            },
+            [...]
+        ]
+    }
+}
+```
+
+### 15.3) Get dataset linking elements from a dataset uuid
+
+The `dataset-linking/list/{id}` endpoint allows to get a dataset linking elements from its id. 
+
+
 
 ## Auth Test (Bearer token required)
 
