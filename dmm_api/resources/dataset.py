@@ -406,6 +406,24 @@ async def search_datasets(
         description="Optional dataset status to filter on.",
         alias="status"
     ),
+        like: Optional[str] = Query(
+        None,
+        description=(
+            "Free-text search over name, headline, keywords and description. "
+            "All words must match, each as a case-insensitive prefix "
+            "(`clim` matches `Climate`). `*` and `?` are wildcards. "
+            "Results are ordered by relevance unless `orderBy` is set."
+        ),
+    ),
+    license_filter: Optional[str] = Query(
+        None,
+        description="Filter datasets whose license contains this text (case-insensitive).",
+        alias="license",
+    ),
+    fieldsOfScience: Optional[List[str]] = Query(
+        None,
+        description="Filter datasets having at least one of these fields of science (case-insensitive).",
+    ),
     offset: Optional[int] = Query(
         None, description="Number of results to skip for pagination.", ge=0
     ),
@@ -446,6 +464,15 @@ async def search_datasets(
     if dataset_status is not None:
         params.append(("status", dataset_status))
 
+    if like:
+        params.append(("like", like))
+
+    if license_filter:
+        params.append(("license", license_filter))
+
+    if fieldsOfScience:
+        params += [("fieldsOfScience", f) for f in fieldsOfScience]
+
     # Convert offset/count to page/pageSize for MoMa (max pageSize is 100)
     page_size = min(count, 100) if count is not None else 25
     params.append(("pageSize", page_size))
@@ -467,6 +494,9 @@ async def search_datasets(
         page_size=page_size,
         offset=offset,
         dataset_status=dataset_status,
+        like=like,
+        license_filter=license_filter,
+        fieldsOfScience=fieldsOfScience,
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
 
