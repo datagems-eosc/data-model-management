@@ -166,15 +166,20 @@ async def api_home():
                 "methods": ["POST"],
                 "url": "/api/v1/dataset-linking/register",
             }, 
-            "dataset-linking/delete": {
-                "description": "Delete a specific dataset linking by ID",
-                "methods": ["DELETE"],
-                "url": "/api/v1/dataset-linking/{id}",
-            },
-            "dataset_get_dataset-linking": {
+            "dataset-linking/get": {
+                "description": "Get a specific dataset linking by ID",
+                "methods": ["GET"],
+                "url": "/api/v1/dataset-linking/get/{dataset_linking_id}",
+            }, 
+            # "dataset-linking/delete": {
+            #     "description": "Delete a specific dataset linking by ID",
+            #     "methods": ["DELETE"],
+            #     "url": "/api/v1/dataset-linking/{id}",
+            # },
+            "dataset-linking/list": {
                 "description": "Get dataset linking elements for a specific dataset",
                 "methods": ["GET"],
-                "url": "/api/v1/dataset/get/{dataset_id}/dataset-linking",
+                "url": "/api/v1/dataset-linking/list/{dataset_id}",
             },
         },
     }
