@@ -2165,9 +2165,73 @@ The API return:
 
 ### 15.3) Get dataset linking elements from a dataset uuid
 
-The `dataset-linking/list/{id}` endpoint allows to get a dataset linking elements from its id. 
+The `dataset-linking/list/{dataset_id}` endpoint allows to get all the dataset linking elements from its a dataset uuid. 
 
+```bash
+curl -X 'GET'   'https://datagems-dev.scayle.es/dmm/api/v1/dataset-linking/list/d5c34990-9acf-4349-91d4-924f58565922' \
+-H "Authorization: Bearer $TOKEN" | python3 -m json.tool
+```
 
+The API return:
+
+```json
+{
+    "code": 200,
+    "message": "Dataset Linking elements of dataset with ID d5c34990-9acf-4349-91d4-924f58565922 retrieved successfully from Neo4j",
+    "linked_elements": [
+        {
+            "nodes": [
+                {
+                    "id": "a36f97eb-3e79-4aa2-96fb-2a2f589a43d0",
+                    "labels": [
+                        "BasicDLElement"
+                    ],
+                    "properties": {
+                        "date": "2026-10-03T13:32:05.570015+00:00",
+                        "usesMetrics": "avg",
+                        "similarityScore": 85.08
+                    }
+                },
+                {
+                    "id": "86534ab1-1cb7-4d78-b290-9749d6373d4c",
+                    "labels": [
+                        "PropertyComparison"
+                    ],
+                    "properties": {
+                        "usesMetrics": "all-mpnet-base-v2",
+                        "targetProperty": "headlines",
+                        "similarityScore": 55.17
+                    }
+                },
+                {
+                    "id": "d5c34990-9acf-4349-91d4-924f58565922",
+                    "labels": [
+                        "sc:Dataset"
+                    ],
+                    "properties": {}
+                },
+                ...
+            ],
+            "edges": [
+                {
+                    "from": "a36f97eb-3e79-4aa2-96fb-2a2f589a43d0",
+                    "to": "86534ab1-1cb7-4d78-b290-9749d6373d4c",
+                    "labels": [
+                        "HAS_COMPARISON"
+                    ],
+                    "properties": {
+                        "weight": 0.1
+                    }
+                },
+                ...
+            ]
+        }
+    ],
+    "offset": null,
+    "count": null,
+    "total": null
+}
+```
 
 ## Auth Test (Bearer token required)
 
