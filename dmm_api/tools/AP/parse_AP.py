@@ -203,6 +203,30 @@ def extract_dataset_id_from_AP(
     dataset_id = dataset_nodes[0]
     return dataset_id
 
+def extract_user_id_from_ap(
+    ap_payload: APRequest,
+) -> str:
+    try:
+        G = json_to_graph(ap_payload)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Failed to parse the Analytical Pattern: {str(e)}",
+        )
+    user_nodes = []
+    user_label = "User"
+    for node_id, attributes in G.nodes(data=True):
+        if user_label in attributes.get("labels", []):
+            user_nodes.append(node_id)
+
+    if len(user_nodes) != 1:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The Analytical Pattern must contain exactly one '{user_label}' node.",
+        )
+
+    user_id = user_nodes[0]
+    return user_id
 
 def extract_from_AP(
     ap_payload: APRequest,

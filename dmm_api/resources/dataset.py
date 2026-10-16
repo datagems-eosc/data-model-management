@@ -16,12 +16,14 @@ from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
     Grafeo_to_AP_node,
     store_AP_in_grafeo,
+    store_user_dataset_link_in_grafeo,
     escape_cypher_string,
     grafeo_begin,
     grafeo_execute,
     grafeo_commit,
     grafeo_rollback,
 )
+
 import duckdb
 import structlog
 from fastapi import (
@@ -47,6 +49,7 @@ import dmm_api.resources.security as security
 from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
+    extract_user_id_from_ap,
     APRequest,
     group_datasets_by_components,
     json_to_graph,
@@ -1319,6 +1322,7 @@ async def update_dataset(
     try:
         # Extract all nodes and edges
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
+        user_id = extract_user_id_from_ap(ap_payload)
 
         if not filtered_nodes:
             raise HTTPException(
@@ -1470,6 +1474,7 @@ async def update_dataset(
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
+            add_dataset_user_connection(user_id, dataset_ids[0])
 
         # Step 4: Send everything to MoMa (upsert)
         try:
