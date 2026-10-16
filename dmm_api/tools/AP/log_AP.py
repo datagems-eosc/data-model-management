@@ -273,3 +273,70 @@ def Grafeo_to_AP_node(grafeo_node: dict) -> dict:
     if properties:
         node_entry["properties"] = properties
     return node_entry
+
+def add_dataset_user_connection(user_id:str, dataset_id:str):
+    """
+    Add a connection between a user and a dataset in the Grafeo storage.
+
+    Args:
+        user_id (str): The ID of the user.
+        dataset_id (str): The ID of the dataset.
+    """
+    user_label = normalize_label("User")
+    dataset_label = normalize_label("sc:Dataset")
+    user_id_escaped = escape_cypher_string(user_id)
+    dataset_id_escaped = escape_cypher_string(dataset_id)
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+
+    on_create = f' ON CREATE SET n.created_at = "{now_iso}", n.updated_at = "{now_iso}"'
+    on_match = f' ON MATCH SET n.updated_at = "{now_iso}"'
+    grafeo_queries = [
+        f'MERGE (n :{user_label} {{id: "{user_id_escaped}"}})' + on_create + on_match,
+        f'MERGE (n :{dataset_label} {{id: "{dataset_id_escaped}"}})' + on_create + on_match,
+        f'''
+            MATCH (a :{user_label} {{id: "{user_id_escaped}"}}), (b :{dataset_label} {{id: "{dataset_id_escaped}"}})
+            MERGE (a)-[r:OWNED_BY]->(b)
+        ''',
+    ]
+
+    txId = None
+    try:
+        txId = grafeo_begin()
+        for idx, query in enumerate(grafeo_queries, start=1):
+            try:
+                grafeo_execute(txId, query)
+            except Exception as e:
+                raise ValueError(f"Grafeo write query #{idx} failed. Query: {query}. Error: {e}") from e
+        grafeo_commit(txId)
+
+    except Exception:
+        if txId is not None:
+            grafeo_rollback(txId)
+        raise
+
+def get_datasets_by_user(user_id: str) -> list:
+    """
+    Retrieve datasets owned by a specific user from Grafeo storage.
+
+    Returns:
+        list: A list of dataset IDs owned by the user.
+    """
+    user_label = normalize_label("User")
+    dataset_label = normalize_label("sc:Dataset")
+    user_id_escaped = escape_cypher_string(user_id)
+
+    query = f'''
+        MATCH (u :{user_label} {{id: "{user_id_escaped}"}})-[:OWNED_BY]->(d :{dataset_label})
+        RETURN d.id
+    '''
+
+    txId = None
+    try:
+        txId = grafeo_begin()
+        result = grafeo_execute(txId, query)
+        grafeo_commit(txId)
+        return [row[0] for row in result]
+    except Exception:
+        if txId is not None:
+            grafeo_rollback(txId)
+        raise

@@ -16,12 +16,15 @@ from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
     Grafeo_to_AP_node,
     store_AP_in_grafeo,
+    add_dataset_user_connection,
     escape_cypher_string,
     grafeo_begin,
     grafeo_execute,
     grafeo_commit,
     grafeo_rollback,
+    get_datasets_by_user,
 )
+
 import duckdb
 import structlog
 from fastapi import (
@@ -47,6 +50,7 @@ import dmm_api.resources.security as security
 from ..tools.AP.parse_AP import (
     compare_node_properties,
     extract_from_AP,
+    extract_user_id_from_ap,
     APRequest,
     group_datasets_by_components,
     json_to_graph,
@@ -442,7 +446,10 @@ async def search_datasets(
         None,
         description="Filter datasets by file MIME types.",
     ),
-):
+    user_id: Optional[str] = Query(
+        None,
+        description="Filter datasets by the user who owns them.",
+    )):
     """
     Search datasets using MoMa API.
     """
@@ -450,6 +457,21 @@ async def search_datasets(
 
     # Build params as list of tuples to correctly handle repeated keys (e.g. nodeIds)
     params: list[tuple[str, Any]] = []
+    if user_id:
+        if len(user_id) > 1:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=ErrorEnvelope(
+                    code=status.HTTP_400_BAD_REQUEST,
+                    error="Only one user_id is allowed for filtering datasets.",
+                ).model_dump(exclude_none=True),
+            )
+        datasetsUser = get_datasets_by_user(user_id)
+        if nodeIds:
+            # Intersect nodeIds with datasetsUser
+            nodeIds = list(set(nodeIds) & set(datasetsUser))
+        else:
+            nodeIds = datasetsUser
 
     if nodeIds:
         params += [("nodeIds", nid) for nid in nodeIds]
@@ -1319,6 +1341,7 @@ async def update_dataset(
     try:
         # Extract all nodes and edges
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
+        user_id = extract_user_id_from_ap(ap_payload)
 
         if not filtered_nodes:
             raise HTTPException(
@@ -1470,6 +1493,7 @@ async def update_dataset(
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
+            add_dataset_user_connection(user_id, dataset_ids[0])
 
         # Step 4: Send everything to MoMa (upsert)
         try:
