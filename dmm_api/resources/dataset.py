@@ -16,12 +16,13 @@ from dmm_api.tools.AP.log_AP import (
     Grafeo_to_AP,
     Grafeo_to_AP_node,
     store_AP_in_grafeo,
-    store_user_dataset_link_in_grafeo,
+    add_dataset_user_connection,
     escape_cypher_string,
     grafeo_begin,
     grafeo_execute,
     grafeo_commit,
     grafeo_rollback,
+    get_datasets_by_user,
 )
 
 import duckdb
@@ -445,7 +446,10 @@ async def search_datasets(
         None,
         description="Filter datasets by file MIME types.",
     ),
-):
+    user_id: Optional[str] = Query(
+        None,
+        description="Filter datasets by the user who owns them.",
+    )):
     """
     Search datasets using MoMa API.
     """
@@ -453,6 +457,13 @@ async def search_datasets(
 
     # Build params as list of tuples to correctly handle repeated keys (e.g. nodeIds)
     params: list[tuple[str, Any]] = []
+    if user_id:
+        datasetsUser = get_datasets_by_user(user_id)
+        if nodeIds:
+            # Intersect nodeIds with datasetsUser
+            nodeIds = list(set(nodeIds) & set(datasetsUser))
+        else:
+            nodeIds = datasetsUser
 
     if nodeIds:
         params += [("nodeIds", nid) for nid in nodeIds]

@@ -313,3 +313,30 @@ def add_dataset_user_connection(user_id:str, dataset_id:str):
         if txId is not None:
             grafeo_rollback(txId)
         raise
+
+def get_datasets_by_user(user_id: str) -> list:
+    """
+    Retrieve datasets owned by a specific user from Grafeo storage.
+
+    Returns:
+        list: A list of dataset IDs owned by the user.
+    """
+    user_label = normalize_label("User")
+    dataset_label = normalize_label("sc:Dataset")
+    user_id_escaped = escape_cypher_string(user_id)
+
+    query = f'''
+        MATCH (u :{user_label} {{id: "{user_id_escaped}"}})-[:OWNED_BY]->(d :{dataset_label})
+        RETURN d.id
+    '''
+
+    txId = None
+    try:
+        txId = grafeo_begin()
+        result = grafeo_execute(txId, query)
+        grafeo_commit(txId)
+        return [row[0] for row in result]
+    except Exception:
+        if txId is not None:
+            grafeo_rollback(txId)
+        raise
