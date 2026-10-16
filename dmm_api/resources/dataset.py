@@ -42,7 +42,7 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 import httpx
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional, Literal
+from typing import Dict, Any, List, Optional
 
 import dmm_api.resources.security as security
 
@@ -83,10 +83,6 @@ logger = structlog.get_logger(__name__)
 
 class WrappedAPRequest(BaseModel):
     ap: APRequest
-
-
-class UpdateDatasetRequest(WrappedAPRequest):
-    profile_stage: Optional[Literal["light", "heavy"]] = None
 
 
 class APSuccessEnvelope(BaseModel):
@@ -1326,7 +1322,7 @@ async def load_dataset(
     response_model_exclude_none=True,
 )
 async def update_dataset(
-    wrapped: UpdateDatasetRequest,
+    wrapped: WrappedAPRequest,
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
@@ -1335,7 +1331,6 @@ async def update_dataset(
     1. Extracting Dataset nodes from AP
     2. Verifying each Dataset node exists (lightweight check)
     3. Sending everything to MoMa via POST /datasets/ (MoMa handles upsert)
-    4. If profile_stage="heavy", mark the dataset as ready even without RecordSets.
     """
     ap_payload = wrapped.ap
     logger.info(
@@ -1489,24 +1484,12 @@ async def update_dataset(
             if "properties" not in node:
                 node["properties"] = {}
 
-        # Step 3: Decide whether this update completes profiling
-        profile_stage = wrapped.profile_stage
+        # Step 3: Inject 'ready' status if RecordSet is present
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
-        mark_ready = (
-            has_record_set if profile_stage is None else profile_stage == "heavy"
-        )
-
-        logger.info(
-            "Resolved dataset readiness",
-            dataset_ids=dataset_ids,
-            profile_stage=profile_stage,
-            has_record_set=has_record_set,
-            mark_ready=mark_ready,
-        )
-
-        if mark_ready:
+        
+        if has_record_set:
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
