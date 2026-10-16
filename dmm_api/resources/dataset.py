@@ -42,7 +42,7 @@ from fastapi import (
 from fastapi.responses import JSONResponse
 import httpx
 from pydantic import BaseModel
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Literal, Optional
 
 import dmm_api.resources.security as security
 
@@ -1323,6 +1323,14 @@ async def load_dataset(
 )
 async def update_dataset(
     wrapped: WrappedAPRequest,
+    profile_stage: Optional[Literal["light", "heavy"]] = Query(
+        None,
+        description=(
+            "Profiling stage of this update. 'heavy' marks the dataset ready even "
+            "without RecordSets; 'light' never does. If omitted, the dataset is "
+            "marked ready only when the AP contains a cr:RecordSet."
+        ),
+    ),
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
@@ -1484,12 +1492,23 @@ async def update_dataset(
             if "properties" not in node:
                 node["properties"] = {}
 
-        # Step 3: Inject 'ready' status if RecordSet is present
+        # Step 3: Decide whether this update completes profiling
         has_record_set = any(
             "cr:RecordSet" in node.get("labels", []) for node in filtered_nodes
         )
-        
-        if has_record_set:
+        mark_ready = (
+            has_record_set if profile_stage is None else profile_stage == "heavy"
+        )
+
+        logger.info(
+            "Resolved dataset readiness",
+            dataset_ids=dataset_ids,
+            profile_stage=profile_stage,
+            has_record_set=has_record_set,
+            mark_ready=mark_ready,
+        )
+
+        if mark_ready:
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
                     node.setdefault("properties", {})["status"] = DatasetState.Ready.value
