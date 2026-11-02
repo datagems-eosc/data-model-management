@@ -52,7 +52,7 @@ jobs:
           tags: |
             type=ref,event=tag
           labels: |
-            org.opencontainers.image.source=https://github.com/datagems-eosc/web-api-demo
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.version=${{ steps.version.outputs.version }}
 
       - name: Build and push Docker image
