@@ -66,6 +66,14 @@ builds the image and publishes it to the GitHub Container Registry, tagged
 with the version. The workflow stops without publishing if the tag does not
 match the version in `pyproject.toml`.
 
+The image name repeats the organisation: the workflow prefixes
+`datagems-eosc/` to `${{ github.repository }}`, which already contains it, so
+images are published as
+`ghcr.io/datagems-eosc/datagems-eosc/data-model-management:vX.Y.Z`. The
+deployments pull that name, so it is kept as it is. Changing it would make
+the next release publish under a new name while the deployments stay on the
+last image of the old one.
+
 Never move or delete a tag once it is pushed. To fix a release, bump the
 version again.
 
