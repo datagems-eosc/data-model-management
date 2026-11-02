@@ -1,4 +1,5 @@
 import os
+from importlib.metadata import PackageNotFoundError, version
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
@@ -8,10 +9,16 @@ from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 from dmm_api.resources.security import router as security_router
 
+# The release version, from pyproject.toml via the installed package metadata
+try:
+    APP_VERSION = version("dmm-api")
+except PackageNotFoundError:
+    APP_VERSION = "dev"
+
 app = FastAPI(
     title="Dataset API",
     description="API for data and model management",
-    version="1.0.0",
+    version=APP_VERSION,
     openapi_url="/api/v1/openapi.json",
     docs_url="/api/v1/swagger",
     redoc_url="/api/v1/redoc",
@@ -47,9 +54,8 @@ async def home():
 @app.get("/api/v1")
 async def api_home():
     """API root endpoint showing available endpoints"""
-    app_version = os.getenv("APP_VERSION", "dev")
     return {
-        "message": f"API V1 is running (version: {app_version})",
+        "message": f"API V1 is running (version: {APP_VERSION})",
         "endpoints": {
             "dataset": {
                 "description": "Get information about dataset endpoints",
@@ -130,7 +136,7 @@ async def api_home():
                 "description": "Get the result of a polyglot query",
                 "methods": ["GET"],
                 "url": "/api/v1/polyglot/query/result/{dataset_id}",
-            }, 
+            },
             "grafeo/test": {
                 "description": "Test endpoint for Grafeo integration",
                 "methods": ["GET"],
@@ -140,37 +146,37 @@ async def api_home():
                 "description": "Query endpoint for Grafeo integration",
                 "methods": ["POST"],
                 "url": "/api/v1/grafeo/query",
-            }, 
+            },
             "aplog/store": {
                 "description": "Store AP in Grafeo",
                 "methods": ["POST"],
                 "url": "/api/v1/aplog/store",
-            }, 
+            },
             "aplog/search": {
                 "description": "Get APs from Grafeo",
                 "methods": ["GET"],
                 "url": "/api/v1/aplog/search",
-            }, 
+            },
             "aplog/get": {
                 "description": "Get a specific AP by ID",
                 "methods": ["GET"],
                 "url": "/api/v1/aplog/get/{ap_id}",
-            }, 
+            },
             "aplog/delete": {
                 "description": "Delete a specific AP by ID",
                 "methods": ["DELETE"],
                 "url": "/api/v1/aplog/delete/{ap_id}",
-            }, 
+            },
             "dataset-linking/register": {
                 "description": "Register a new dataset linking",
                 "methods": ["POST"],
                 "url": "/api/v1/dataset-linking/register",
-            }, 
+            },
             "dataset-linking/get": {
                 "description": "Get a specific dataset linking by ID",
                 "methods": ["GET"],
                 "url": "/api/v1/dataset-linking/get/{dataset_linking_id}",
-            }, 
+            },
             # "dataset-linking/delete": {
             #     "description": "Delete a specific dataset linking by ID",
             #     "methods": ["DELETE"],
