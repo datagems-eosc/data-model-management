@@ -39,7 +39,6 @@ from fastapi import (
     status,
     Depends,
 )
-from fastapi.responses import JSONResponse
 import httpx
 from pydantic import BaseModel
 from typing import Dict, Any, List, Literal, Optional
@@ -48,11 +47,9 @@ import dmm_api.resources.security as security
 
 # TODO: remove unused imports and functions
 from ..tools.AP.parse_AP import (
-    compare_node_properties,
     extract_from_AP,
     extract_user_id_from_ap,
     APRequest,
-    group_datasets_by_components,
     json_to_graph,
 )
 
@@ -60,22 +57,15 @@ from ..tools.AP.update_AP import (
     update_dataset_archivedAt,
     add_sql_operators_to_ap,
     generate_dataset_node,
-    update_fileObject_id,
-    update_fileObject_properties,
-    update_AP_after_query, 
-    update_endTime, 
-    update_endTime_node,
-
+    update_AP_after_query,
 )
-from ..tools.AP.generate_AP import (
-    generate_update_AP,
-    generate_register_AP_after_query
-) 
-
-from ..tools.AP.generate_AP import generate_update_AP
 from ..tools.S3.scratchpad import upload_dataset_to_scratchpad
 
-from ..tools.S3.results import upload_csv_to_results, upload_ap_to_results, get_results_uuid
+from ..tools.S3.results import (
+    upload_csv_to_results,
+    upload_ap_to_results,
+    get_results_uuid,
+)
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 logger = structlog.get_logger(__name__)
@@ -112,6 +102,7 @@ class DatasetsSuccessEnvelope(BaseModel):
     count: Optional[int] = None
     total: Optional[int] = None
 
+
 class DatasetLinkingSuccessEnvelope(BaseModel):
     code: int
     message: str
@@ -119,6 +110,7 @@ class DatasetLinkingSuccessEnvelope(BaseModel):
     offset: Optional[int] = None
     count: Optional[int] = None
     total: Optional[int] = None
+
 
 class APlogSuccessEnvelope(BaseModel):
     code: int
@@ -161,7 +153,9 @@ class MimeType(str, Enum):
     )
     application_json = "application/json"
     application_jsonl = "application/jsonl"
-    application_pptx_ooxml = "application/vnd.openxmlformats-officedocument.presentationml.presentation", 
+    application_pptx_ooxml = (
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+    )
     application_xml = "application/xml"
     image_jpeg = "image/jpeg"
     image_png = "image/png"
@@ -174,7 +168,8 @@ class MimeType(str, Enum):
     text_html = "text/html"
     text_markdown = "text/markdown"
     text_plain = "text/plain"
-    
+
+
 class OPERATOR_LABELS(str, Enum):
     SQL_OPERATOR = "SQL_Operator"
     NLQ_OPERATOR = "NLQ_Operator"
@@ -252,13 +247,11 @@ EXTERNAL_SERVICES = {
     "/dataset-recsys/recommend": {
         "url": f"{REC_SYS_URL}recommend/ap",
         "name": "Dataset Recommendation System",
-    }, 
+    },
     "/query-disambiguation": {
         "url": f"{QD_URL}query_disambiguation4ap",
         "name": "Query Disambiguation",
-    }
-
-
+    },
 }
 CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
@@ -299,9 +292,7 @@ async def get_dataset_metadata(
 
     try:
         response = await client.get(
-            url,
-            params=params,
-            headers={"Authorization": f"Bearer {token}"}
+            url, params=params, headers={"Authorization": f"Bearer {token}"}
         )
         logger.info(
             "Received dataset metadata response from MoMa",
@@ -402,10 +393,16 @@ async def search_datasets(
         None, description="List of Dataset properties to sort results."
     ),
     publishedDateFrom: Optional[date] = Query(
-        None, description="Minimum published date (YYYY-MM-DD).", alias="publishedFrom", format="YYYY-MM-DD",
+        None,
+        description="Minimum published date (YYYY-MM-DD).",
+        alias="publishedFrom",
+        format="YYYY-MM-DD",
     ),
     publishedDateTo: Optional[date] = Query(
-        None, description="Maximum published date (YYYY-MM-DD).", alias="publishedTo", format="YYYY-MM-DD",
+        None,
+        description="Maximum published date (YYYY-MM-DD).",
+        alias="publishedTo",
+        format="YYYY-MM-DD",
     ),
     direction: int = Query(
         1,
@@ -414,11 +411,9 @@ async def search_datasets(
         le=1,
     ),
     dataset_status: Optional[str] = Query(
-        None,
-        description="Optional dataset status to filter on.",
-        alias="status"
+        None, description="Optional dataset status to filter on.", alias="status"
     ),
-        like: Optional[str] = Query(
+    like: Optional[str] = Query(
         None,
         description=(
             "Free-text search over name, headline, keywords and description. "
@@ -449,7 +444,8 @@ async def search_datasets(
     user_id: Optional[str] = Query(
         None,
         description="Filter datasets by the user who owns them.",
-    )):
+    ),
+):
     """
     Search datasets using MoMa API.
     """
@@ -536,9 +532,7 @@ async def search_datasets(
     ) as client:
         try:
             response = await client.get(
-                url,
-                params=params,
-                headers={"Authorization": f"Bearer {token}"}
+                url, params=params, headers={"Authorization": f"Bearer {token}"}
             )
             response.raise_for_status()
 
@@ -570,7 +564,7 @@ async def search_datasets(
                 count=len(datasets),
                 total=response_total,
             )
-        
+
         except httpx.HTTPStatusError as e:
             logger.error(
                 "MoMa API HTTP error during dataset search",
@@ -621,6 +615,7 @@ async def search_datasets(
                 ).model_dump(exclude_none=True),
             )
 
+
 # This endpoint for now does not support filtering
 # TODO: implement filtering by dataset state
 @router.get("/dataset/get/{dataset_id}", response_model=DatasetSuccessEnvelope)
@@ -662,7 +657,9 @@ async def get_dataset(
                 "Dataset fetch completed",
                 dataset_id=dataset_id,
                 status_code=response.status_code,
-                nodes_count=len(metadata.get("nodes", [])) if isinstance(metadata, dict) else None,
+                nodes_count=len(metadata.get("nodes", []))
+                if isinstance(metadata, dict)
+                else None,
             )
 
             if format == "croissant":
@@ -722,12 +719,13 @@ async def get_dataset(
 @router.post(
     "/dataset/register",
     response_model=APSuccessEnvelope,
-    response_model_exclude_none=True
+    response_model_exclude_none=True,
 )
 async def register_dataset(
     wrapped: WrappedAPRequest,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope)):
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     """
     Register a new dataset in Neo4j by:
     1. Extracting the Dataset node from the AP
@@ -739,7 +737,7 @@ async def register_dataset(
         "Register dataset request received",
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
-    
+
     try:
         # Extract only Dataset nodes
         filtered_nodes, filtered_edges = extract_from_AP(
@@ -789,7 +787,9 @@ async def register_dataset(
     ) as client:
         # Check if dataset already exists
         try:
-            exists, _ = await get_dataset_metadata(dataset_id, token=token, client=client)
+            exists, _ = await get_dataset_metadata(
+                dataset_id, token=token, client=client
+            )
 
             if exists:
                 raise HTTPException(
@@ -861,9 +861,7 @@ async def register_dataset(
             )
 
             response = await client.post(
-                post_url,
-                json=post_data,
-                headers={"Authorization": f"Bearer {token}"}
+                post_url, json=post_data, headers={"Authorization": f"Bearer {token}"}
             )
 
             response.raise_for_status()
@@ -939,6 +937,7 @@ async def register_dataset(
                 ).model_dump(exclude_none=True),
             )
 
+
 # TODO: check if dataset with such ID is already registered and is in "loaded" state
 @router.put(
     "/dataset/load", response_model=APSuccessEnvelope, response_model_exclude_none=True
@@ -959,9 +958,7 @@ async def load_dataset(
     )
 
     try:
-        filtered_nodes, _ = extract_from_AP(
-            ap_payload, target_labels={"sc:Dataset"}
-        )
+        filtered_nodes, _ = extract_from_AP(ap_payload, target_labels={"sc:Dataset"})
 
         if not filtered_nodes:
             raise HTTPException(
@@ -1104,7 +1101,7 @@ async def load_dataset(
             raise FileNotFoundError(
                 f"Source dataset not found at expected location: {source_path}"
             )
-        
+
         if target_path.exists():
             # If force is True and source and target resolve to the same path, skip the move
             if force and source_path.resolve() == target_path.resolve():
@@ -1345,7 +1342,7 @@ async def update_dataset(
         "Update dataset request received",
         timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
     )
-    
+
     try:
         # Extract all nodes and edges
         filtered_nodes, filtered_edges = extract_from_AP(ap_payload)
@@ -1405,26 +1402,26 @@ async def update_dataset(
                 search_params = {
                     "nodeIds": dataset_id,
                     "pageSize": 1,
-                    "properties": "id"
+                    "properties": "id",
                 }
-                
+
                 response = await client.get(
                     search_url,
                     params=search_params,
-                    headers={"Authorization": f"Bearer {token}"}
+                    headers={"Authorization": f"Bearer {token}"},
                 )
                 response.raise_for_status()
-                
+
                 data = response.json()
                 datasets = data.get("datasets", [])
                 exists = len(datasets) > 0
-                
+
                 logger.info(
                     "Verified dataset exists before update",
                     dataset_id=dataset_id,
                     exists=exists,
                 )
-                
+
                 if not exists:
                     raise HTTPException(
                         status_code=status.HTTP_404_NOT_FOUND,
@@ -1436,7 +1433,7 @@ async def update_dataset(
                             ),
                         ).model_dump(exclude_none=True),
                     )
-                    
+
         except HTTPException:
             raise
         except httpx.HTTPStatusError as e:
@@ -1486,7 +1483,7 @@ async def update_dataset(
                     error=f"Failed to verify dataset existence: {type(e).__name__}: {str(e)}",
                 ).model_dump(exclude_none=True),
             )
-        
+
         # Step 2: Ensure every node has a properties field (required by MoMa)
         for node in filtered_nodes:
             if "properties" not in node:
@@ -1511,7 +1508,9 @@ async def update_dataset(
         if mark_ready:
             for node in filtered_nodes:
                 if "sc:Dataset" in node.get("labels", []):
-                    node.setdefault("properties", {})["status"] = DatasetState.Ready.value
+                    node.setdefault("properties", {})["status"] = (
+                        DatasetState.Ready.value
+                    )
             add_dataset_user_connection(user_id, dataset_ids[0])
 
         # Step 4: Send everything to MoMa (upsert)
@@ -1522,14 +1521,14 @@ async def update_dataset(
                 nodes_count=len(filtered_nodes),
                 edges_count=len(filtered_edges),
             )
-            
+
             response = await client.post(
                 f"{MOMA_URL}datasets/",
                 json={"nodes": filtered_nodes, "edges": filtered_edges},
                 headers={"Authorization": f"Bearer {token}"},
             )
             response.raise_for_status()
-            
+
             logger.info(
                 "Datasets upsert completed in MoMa",
                 status_code=response.status_code,
@@ -1598,7 +1597,7 @@ async def update_dataset(
         message="Dataset update completed",
         ap=ap_payload.model_dump(by_alias=True, exclude_defaults=True),
     )
-    
+
 
 @router.post(
     "/cross-dataset-discovery/search", response_model=APResponseSuccessEnvelope
@@ -1680,7 +1679,7 @@ async def execute_and_store(
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
         response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
-        try: 
+        try:
             store_AP_in_grafeo(ap_obj)
         except Exception as e:
             logger.info(f"[{service['name']}] AP Storage failed: {e}")
@@ -1734,10 +1733,9 @@ async def execute_and_store(
         content=response_payload,
     )
 
-@router.post(
-    "/query-disambiguation", response_model=APResponseSuccessEnvelope
-)
-async def execute_and_store(
+
+@router.post("/query-disambiguation", response_model=APResponseSuccessEnvelope)
+async def execute_and_store_query_disambiguation(
     request: Request,
     file: Optional[UploadFile] = File(None),
     body: Optional[WrappedAPRequest] = Body(None),
@@ -1798,7 +1796,7 @@ async def execute_and_store(
             ).model_dump(exclude_none=True),
         )
     ap_obj = APRequest.model_validate(payload_data["ap"])
-    
+
     payload_data["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -1814,7 +1812,7 @@ async def execute_and_store(
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
         response_payload["ap"] = ap_obj.model_dump(by_alias=True, exclude_defaults=True)
         ## AP storage in Grafeo
-        try: 
+        try:
             store_AP_in_grafeo(ap_obj)
         except Exception as e:
             logger.info(f"[{service['name']}] AP Storage failed: {e}")
@@ -1867,12 +1865,9 @@ async def execute_and_store(
         message=f"{service['name']} completed successfully",
         content=response_payload,
     )
-    
-    
 
-@router.post(
-    "/dataset-recsys/recommend", response_model=APResponseSuccessEnvelope
-)
+
+@router.post("/dataset-recsys/recommend", response_model=APResponseSuccessEnvelope)
 async def execute_and_store_dataset_recommendations(
     request: Request,
     file: Optional[UploadFile] = File(None),
@@ -1934,7 +1929,7 @@ async def execute_and_store_dataset_recommendations(
                 error="Request must include either a JSON file upload or JSON body with 'ap' field",
             ).model_dump(exclude_none=True),
         )
-    
+
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -1947,7 +1942,7 @@ async def execute_and_store_dataset_recommendations(
     try:
         response_payload = response.json()
         ## AP storage in Grafeo
-        try: 
+        try:
             store_AP_in_grafeo(APRequest.model_validate(response_payload.get("ap", {})))
         except Exception as e:
             print(f"[{service['name']}] AP Storage failed: {e}")
@@ -2021,7 +2016,6 @@ def execute_query_postgres(query_builder):
         db_port = os.getenv("DATAGEMS_POSTGRES_PORT")
         db_user = os.getenv("DS_READER_USER")
         db_password = os.getenv("DS_READER_PS")
-        
 
         # Check if required environment variables are set
         missing_vars = []
@@ -2050,27 +2044,21 @@ def execute_query_postgres(query_builder):
         query = query_rewriting(query_builder)
         duckdb_connection.sql(f"ATTACH '{connection_string}' AS pg_db (TYPE postgres);")
         t1 = time.perf_counter()
-        try: 
+        try:
             result_df = duckdb_connection.execute(
-                "SELECT * FROM postgres_query('pg_db', ?)",
-                [query]
-            ).fetchdf()  
+                "SELECT * FROM postgres_query('pg_db', ?)", [query]
+            ).fetchdf()
         finally:
-            duckdb_connection.close()      
+            duckdb_connection.close()
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
     except Exception as e:
-        raise Exception(
-            f"PostgreSQL connection failed: {str(e)}."
-        )
-
+        raise Exception(f"PostgreSQL connection failed: {str(e)}.")
 
 
 def execute_query_mixed(query_builder):
     """Execute query with mixed CSV and PostgreSQL sources via DuckDB"""
-    DATASET_DIR = os.getenv("DATASET_DIR", "/s3/dataset")
-
     query = query_builder.get("query", "")
     count = query.lower().count("select")
     if count > 1:
@@ -2078,7 +2066,7 @@ def execute_query_mixed(query_builder):
             f"Query contains multiple SELECT statements ({count}). "
             "Only single SELECT queries are supported for mixed sources."
         )
-    
+
     try:
         con = duckdb.connect(database=":memory:")
         db_connections = []
@@ -2092,19 +2080,22 @@ def execute_query_mixed(query_builder):
                     db_connections.append(db_connection)
                 view_name = f"pg_{argname}"
                 view_map[argname] = view_name
-                arg_info["view_name"] = view_name  
+                arg_info["view_name"] = view_name
             elif arg_info.get("mimeType") == "text/csv":
-                
                 view_name = f"csv_{argname}"
                 view_map[argname] = view_name
                 arg_info["view_name"] = view_name
-                
+
             else:
-                logger.error(f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}")
+                logger.error(
+                    f"Argument '{argname}' has unsupported mimeType: {arg_info.get('mimeType')}"
+                )
 
         processed_query = query_rewriting_views(query_builder["query"], view_map)
         args_map = extract_alias(processed_query, query_builder["args_map"])
-        args_map, query_executable = write_views_minimal_extraction(processed_query, args_map)
+        args_map, query_executable = write_views_minimal_extraction(
+            processed_query, args_map
+        )
 
         if db_connections:
             con.sql("INSTALL postgres;")
@@ -2139,7 +2130,7 @@ def execute_query_mixed(query_builder):
                 con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
 
         for argname, arg_info in query_builder.get("args_map", {}).items():
-            view  = arg_info.get("view")
+            view = arg_info.get("view")
             if view:
                 con.sql(view)
 
@@ -2152,6 +2143,7 @@ def execute_query_mixed(query_builder):
 
     except Exception as e:
         raise Exception(f"{str(e)}")
+
 
 def query_rewriting_views(query, view_map):
     rewritten_query = query
@@ -2168,9 +2160,8 @@ def query_rewriting_views(query, view_map):
         )
     return rewritten_query
 
-def query_rewriting(
-    query_builder: Dict[str, Any]
-) -> str:
+
+def query_rewriting(query_builder: Dict[str, Any]) -> str:
     """
     Rewrite query placeholders with actual values.
     For PostgreSQL tables: {{arg1}} -> table_name (without quotes)
@@ -2180,7 +2171,9 @@ def query_rewriting(
     rewritten_query = query_builder.get("query", "")
     for arg_name, arg_value in query_builder.get("args_map", {}).items():
         if arg_value.get("mimeType") == "text/sql":
-            replacement = arg_value.get("contentUrl", "")  # Extract table name from contentUrl
+            replacement = arg_value.get(
+                "contentUrl", ""
+            )  # Extract table name from contentUrl
             rewritten_query = re.sub(
                 r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
                 replacement,
@@ -2192,7 +2185,7 @@ def query_rewriting(
                 rewritten_query,
             )
         elif arg_value["mimeType"] == "text/csv":
-        # For CSV sources, we expect the arg_value to be the S3 path
+            # For CSV sources, we expect the arg_value to be the S3 path
             replacement = "'" + arg_value.get("contentUrl", "") + "'"
             rewritten_query = re.sub(
                 r"\{\{\s*" + re.escape(arg_name) + r"\s*\}\}",
@@ -2208,8 +2201,7 @@ def query_rewriting(
     return rewritten_query
 
 
-async def extract_query_from_AP(ap_payload, token
-) -> Dict[str, Any]:
+async def extract_query_from_AP(ap_payload, token) -> Dict[str, Any]:
     """
     The query builder returns a dictionary containing:
     - query: the SQL query with placeholders (e.g. {{arg1}})
@@ -2242,9 +2234,16 @@ async def extract_query_from_AP(ap_payload, token
             detail=f"Failed to parse the Analytical Pattern: {str(e)}",
         )
 
-    AP_nodes, operator_nodes, dataset_nodes, file_object_nodes, user_nodes, db_connection_nodes = [], [], [], [], [], []
+    (
+        AP_nodes,
+        operator_nodes,
+        dataset_nodes,
+        file_object_nodes,
+        user_nodes,
+        db_connection_nodes,
+    ) = [], [], [], [], [], []
 
-    ## CHECKS about the AP 
+    ## CHECKS about the AP
     for node_id, attributes in G.nodes(data=True):
         labels = attributes.get("labels", [])
         if "Analytical_Pattern" in labels:
@@ -2260,14 +2259,18 @@ async def extract_query_from_AP(ap_payload, token
         elif "dg:DatabaseConnection" in labels:
             db_connection_nodes.append(node_id)
 
-    ## Get the query 
+    ## Get the query
     query_builder = {}
-    query_builder["query"] = G.nodes[operator_nodes[0]].get("properties", {}).get("query", "")
+    query_builder["query"] = (
+        G.nodes[operator_nodes[0]].get("properties", {}).get("query", "")
+    )
 
-    ## Get the software 
-    query_builder["software"] = G.nodes[operator_nodes[0]].get("properties", {}).get("name", "Unknown Software")
+    ## Get the software
+    query_builder["software"] = (
+        G.nodes[operator_nodes[0]].get("properties", {}).get("name", "Unknown Software")
+    )
 
-    ## Get the arg_map 
+    ## Get the arg_map
     args_map = {
         data.get("properties", {}).get("argname"): u
         for u, v, data in G.edges(data=True)
@@ -2279,16 +2282,18 @@ async def extract_query_from_AP(ap_payload, token
         file_object_properties = await get_node_properties(node_id, token=token)
         mimeType = file_object_properties.get("encodingFormat", "")
         args_map[argname] = {
-            "mimeType" : mimeType,
-            "contentUrl": file_object_properties.get("contentUrl", ""), 
-            "name" : file_object_properties.get("name", "")
+            "mimeType": mimeType,
+            "contentUrl": file_object_properties.get("contentUrl", ""),
+            "name": file_object_properties.get("name", ""),
         }
         mimeTypes.add(mimeType)
         db_connection_properties = None
         for u, v, data in G.edges(node_id, data=True):
             if "contained_in" in data.get("labels", []):
                 db_connection_node_id = v
-                db_connection_properties = await get_node_properties(db_connection_node_id, token=token)
+                db_connection_properties = await get_node_properties(
+                    db_connection_node_id, token=token
+                )
         args_map[argname]["dbConnection"] = db_connection_properties
     query_builder["args_map"] = args_map
     if db_connection_nodes and len(db_connection_nodes) == 1:
@@ -2377,13 +2382,12 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
 async def polyglot_query(
     wrapped: WrappedAPRequest,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope)
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
     """Execute a SQL query on a dataset based on an Analytical Pattern"""
     try:
-        
         executed_ap, upload_path = await execute_query(wrapped, token=token)
-        try: 
+        try:
             store_AP_in_grafeo(executed_ap)
         except Exception as e:
             print(f"AP Storage failed: {e}")
@@ -2400,16 +2404,9 @@ async def polyglot_query(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to execute query: {str(e)}",
         )
-    except httpx.TimeoutException:
-        raise HTTPException(
-            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail=f"MoMa2 API request timed out. Node: {node_id}",
-        )
 
 
 async def execute_query(wrapped: WrappedAPRequest, token: str):
-    from ..resources.dataset import register_dataset
-
     ap_payload = wrapped.ap
     query_builder = await extract_query_from_AP(ap_payload, token=token)
     if query_builder["software"].split(" ")[0].lower() == "duckdb":
@@ -2432,15 +2429,16 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"Unsupported software '{query_builder['software']}'. Only DuckDB-based operators are supported.",
         )
-    
-        
+
     ap_payload, dataset_id = generate_dataset_node(ap_payload)
     t2 = time.perf_counter()
     csv_bytes = result.to_csv(index=False).encode("utf-8")
     upload_path, dataset_id = upload_csv_to_results(csv_bytes, dataset_id)
-    logger.info(f"[TIMER] Results printed in s3: {time.perf_counter() - t2:.4f}s")    
+    logger.info(f"[TIMER] Results printed in s3: {time.perf_counter() - t2:.4f}s")
     AP_query_after = update_AP_after_query(ap_payload, dataset_id, upload_path)
-    logger.info(f"AP updated with new dataset ID and properties after query execution. Dataset ID: {dataset_id}")
+    logger.info(
+        f"AP updated with new dataset ID and properties after query execution. Dataset ID: {dataset_id}"
+    )
     t3 = time.perf_counter()
     upload_ap_to_results(
         json.dumps(
@@ -2453,17 +2451,15 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
     logger.info(f"[TIMER] AP uploaded: {time.perf_counter() - t3:.4f}s")
     logger.info(f"Updated AP uploaded to results storage for dataset ID: {dataset_id}")
 
-
-
     return AP_query_after, upload_path
 
 
 @router.get("/polyglot/query/result/{dataset_id}")
 async def get_query_result(
-        dataset_id: str,
-        token: str = Depends(security.oauth2_scheme),
-        lines: Optional[int] = Query(None, alias="lines")
-    ):
+    dataset_id: str,
+    token: str = Depends(security.oauth2_scheme),
+    lines: Optional[int] = Query(None, alias="lines"),
+):
     """Endpoint to retrieve query results by dataset ID"""
     try:
         results = get_results_uuid(dataset_id, line=lines)
@@ -2573,7 +2569,7 @@ async def execute_and_store_idd(
 
     ap = add_sql_operators_to_ap(ap_payload)
     logger.info(
-        f"Updated AP",
+        "Updated AP",
         ap=ap,
     )
     normalized_ap = ap.model_dump(by_alias=True, exclude_defaults=True)
@@ -2645,19 +2641,24 @@ async def execute_and_store_idd(
         ## Query execution
         try:
             executed_ap, upload_path = await execute_query(
-                WrappedAPRequest(ap=APRequest.model_validate(response_payload.get("ap", {}))),
+                WrappedAPRequest(
+                    ap=APRequest.model_validate(response_payload.get("ap", {}))
+                ),
                 token=token,
             )
             return APResponseSuccessEnvelope(
                 code=status.HTTP_200_OK,
                 message=f"In-Dataset and query executed successfully, results stored at {upload_path}",
-                content={"ap": executed_ap.model_dump(by_alias=True, exclude_defaults=True), "metadata": response_payload.get("metadata", {})},
+                content={
+                    "ap": executed_ap.model_dump(by_alias=True, exclude_defaults=True),
+                    "metadata": response_payload.get("metadata", {}),
+                },
             )
 
         except Exception as e:
             # Build a partial success envelope
             return APResponseSuccessEnvelope(
-                code=status.HTTP_207_MULTI_STATUS,   # or 200 if you prefer
+                code=status.HTTP_207_MULTI_STATUS,  # or 200 if you prefer
                 message=f"In-Dataset executed successfully, but query execution failed: {str(e)}",
                 content={
                     "ap": response_payload.get("ap", {}),
@@ -2671,8 +2672,9 @@ async def execute_and_store_idd(
 async def grafeo_test():
     return run_grafeo_query("RETURN 1 as ok")
 
+
 def run_grafeo_query(query: str):
-    url = "http://grafeo:7474/cypher"   # adjust to your endpoint
+    url = "http://grafeo:7474/cypher"  # adjust to your endpoint
     payload = {"query": query}
     headers = {"Content-Type": "application/json"}
     resp = requests.post(url, json=payload, headers=headers)
@@ -2691,23 +2693,26 @@ def _run_grafeo_query_in_tx(txId, query: str):
         return [dict(zip(data["columns"], row)) for row in data["rows"]]
     return data.get("rows", data)
 
+
 @router.post("/grafeo/query")
 async def grafeo_query(
     body: dict,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope)
-    ):
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     query = body["query"]
     return run_grafeo_query(query)
 
-@router.post("/aplog/store", 
-             status_code=status.HTTP_201_CREATED,)
+
+@router.post(
+    "/aplog/store",
+    status_code=status.HTTP_201_CREATED,
+)
 async def ap_storage(
     body: str | None = Form(None),
     file: UploadFile | None = File(None),
     token: str = Depends(security.oauth2_scheme),
     token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    
 ):
     parsed_request: Optional[WrappedAPRequest] = None
 
@@ -2780,19 +2785,16 @@ async def ap_storage(
             ).model_dump(exclude_none=True),
         )
 
-    
+
 @router.get("/aplog/get/{ap_id}")
 async def get_aplog(
-    ap_id: str, 
+    ap_id: str,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope)):
-
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
     ap_graph = get_full_aplog(ap_id, token=token)
-    return APResponseSuccessEnvelope(
-        code=200,
-        message="success",
-        content=ap_graph
-    )
+    return APResponseSuccessEnvelope(code=200, message="success", content=ap_graph)
+
 
 def get_full_aplogs(ap_ids: List[str], txId) -> Dict[str, dict]:
     """Fetch the full graph of several APs with a few queries anchored on the AP ids."""
@@ -2833,7 +2835,9 @@ def get_full_aplog(ap_id: str, token, txId=None):
         graphs = get_full_aplogs([ap_id], txId)
         graph = graphs[ap_id]
         if not graph["ap"]["nodes"]:
-            raise HTTPException(status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo.")
+            raise HTTPException(
+                status_code=404, detail=f"AP with id '{ap_id}' not found in Grafeo."
+            )
         return graph
     except HTTPException:
         raise
@@ -2846,22 +2850,24 @@ def get_full_aplog(ap_id: str, token, txId=None):
         if owns_tx and txId is not None:
             grafeo_rollback(txId)
 
+
 @router.get("/aplog/search")
 async def search_APs(
-        userId:Optional[List[str]] = Query(None),
-        startDate:Optional[List[str]] = Query(None),
-        endDate:Optional[List[str]] = Query(None),
-        operator:Optional[List[str]] = Query(None),
-        datasetId:Optional[List[str]] = Query(None),
-        fileObjectId:Optional[List[str]] = Query(None),
-        limit: Optional[int] = Query(20),
-        token: str = Depends(security.oauth2_scheme),
-        token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    ):
-
-    ## Check of the parameters added 
+    userId: Optional[List[str]] = Query(None),
+    startDate: Optional[List[str]] = Query(None),
+    endDate: Optional[List[str]] = Query(None),
+    operator: Optional[List[str]] = Query(None),
+    datasetId: Optional[List[str]] = Query(None),
+    fileObjectId: Optional[List[str]] = Query(None),
+    limit: Optional[int] = Query(20),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+):
+    ## Check of the parameters added
     if startDate and len(startDate) > 1:
-        raise HTTPException(status_code=400, detail="Only one startDate value is allowed")
+        raise HTTPException(
+            status_code=400, detail="Only one startDate value is allowed"
+        )
     if endDate and len(endDate) > 1:
         raise HTTPException(status_code=400, detail="Only one endDate value is allowed")
     if operator:
@@ -2874,10 +2880,17 @@ async def search_APs(
                     detail={
                         "code": 400,
                         "message": f"Invalid operator value: '{op}'",
-                        "allowed_values": allowed
-                    }
+                        "allowed_values": allowed,
+                    },
                 )
-    gql_query = get_aps(userId=userId, startDate=startDate, endDate=endDate, operator=operator, datasetId=datasetId, fileObjectId=fileObjectId)
+    gql_query = get_aps(
+        userId=userId,
+        startDate=startDate,
+        endDate=endDate,
+        operator=operator,
+        datasetId=datasetId,
+        fileObjectId=fileObjectId,
+    )
     txId = grafeo_begin()
     rows = _run_grafeo_query_in_tx(txId, gql_query)
     total = len(rows)
@@ -2887,7 +2900,7 @@ async def search_APs(
         ap_ids = [row["ap"]["id"] for row in rows[:limit]]
         graphs = get_full_aplogs(ap_ids, txId)
         response = [graphs[i] for i in ap_ids]
-    
+
     else:
         ## Return only User -> Task -> AP
         response = []
@@ -2896,27 +2909,44 @@ async def search_APs(
             if nb > limit:
                 break
             edges = []
-            
-            nodes = [ Grafeo_to_AP_node(row["ap"]), Grafeo_to_AP_node(row["u"]), Grafeo_to_AP_node(row["t"]) ]
-            edges.append({"from": row["u"].get("id"), "to": row["t"].get("id"), "labels": ["request"]})
-            edges.append({"from": row["t"].get("id"), "to": row["ap"].get("id"), "labels": ["is_accomplished_by"]})
+
+            nodes = [
+                Grafeo_to_AP_node(row["ap"]),
+                Grafeo_to_AP_node(row["u"]),
+                Grafeo_to_AP_node(row["t"]),
+            ]
+            edges.append(
+                {
+                    "from": row["u"].get("id"),
+                    "to": row["t"].get("id"),
+                    "labels": ["request"],
+                }
+            )
+            edges.append(
+                {
+                    "from": row["t"].get("id"),
+                    "to": row["ap"].get("id"),
+                    "labels": ["is_accomplished_by"],
+                }
+            )
             ap_graph = {"ap": {"nodes": nodes, "edges": edges}}
             response.append(ap_graph)
     if txId is not None:
         grafeo_rollback(txId)
-    if len(response) == 0 :
-        raise HTTPException(status_code=404, detail=f"No AP logs found with the input parameters.")
+    if len(response) == 0:
+        raise HTTPException(
+            status_code=404, detail="No AP logs found with the input parameters."
+        )
     return APlogSuccessEnvelope(
         code=200,
-        message=f"APlogs retrieved successfully with the input parameters.", 
-        aplogs= response,
-        count= len(response),
-        total=total
-
+        message="APlogs retrieved successfully with the input parameters.",
+        aplogs=response,
+        count=len(response),
+        total=total,
     )
     # return Grafeo_to_AP(result)
 
-        
+
 def get_aps(
     userId: Optional[List[str]] = None,
     startDate: Optional[List[str]] = None,
@@ -2925,18 +2955,18 @@ def get_aps(
     datasetId: Optional[List[str]] = None,
     fileObjectId: Optional[List[str]] = None,
     limit: Optional[int] = 20,
-    max_depth: int = 5
+    max_depth: int = 5,
 ) -> str:
     """
     Return a Grafeo-compatible Cypher query that:
       - matches upstream User->Task->AP chains (optionally filtered by userId, startDate and endDate)
-      - 
+      -
     """
 
     where_clauses = []
     extended_query = []
     cypher = """ MATCH (u:User)-[:request]->(t:Task)-[:is_accomplished_by]->(ap:Analytical_Pattern) """
-    if userId: 
+    if userId:
         where_clauses.append("u.id IN [" + ", ".join(repr(x) for x in userId) + "]")
     if startDate:
         where_clauses.append(f"t.startTime >= date('{startDate[0]}')")
@@ -2959,7 +2989,7 @@ def get_aps(
         ## A Dataset is an input/output of an Operator, or it's connected to a FileObject that is an input/output of an Operator
         extended_query.append(f"""
             MATCH (ap)-[:consist_of]->(op:Operator)
-            WHERE 
+            WHERE
                 EXISTS {{
                     MATCH (op)-[:input|output]->(ds:Dataset)
                     WHERE ds.id IN {datasetId}
@@ -2970,28 +3000,42 @@ def get_aps(
                 }}
         """)
 
-    cypher = cypher + "WHERE " + " AND ".join(where_clauses) + " " if where_clauses else cypher
+    cypher = (
+        cypher + "WHERE " + " AND ".join(where_clauses) + " "
+        if where_clauses
+        else cypher
+    )
     cypher = cypher + " ".join(extended_query) + " " if extended_query else cypher
     cypher = cypher + "RETURN DISTINCT ap, u, t ORDER BY ap.startTime DESC"
 
-    return cypher 
+    return cypher
 
 
 def fetch_nodes_by_ids(node_ids: List[int], txId=None) -> Dict[int, dict]:
     if not node_ids:
         return {}
-    ids_str = ', '.join(str(i) for i in node_ids)
+    ids_str = ", ".join(str(i) for i in node_ids)
     query = f"MATCH (n) WHERE id(n) IN [{ids_str}] RETURN id(n) AS internal_id, n"
-    result = _run_grafeo_query_in_tx(txId, query) if txId is not None else run_grafeo_query(query)
+    result = (
+        _run_grafeo_query_in_tx(txId, query)
+        if txId is not None
+        else run_grafeo_query(query)
+    )
     return {row["internal_id"]: row["n"] for row in result}
+
 
 def fetch_rels_by_ids(rel_ids: List[int], txId=None) -> Dict[int, dict]:
     if not rel_ids:
         return {}
-    ids_str = ', '.join(str(i) for i in rel_ids)
+    ids_str = ", ".join(str(i) for i in rel_ids)
     query = f"MATCH ()-[r]-() WHERE id(r) IN [{ids_str}] RETURN id(r) AS internal_id, r"
-    result = _run_grafeo_query_in_tx(txId, query) if txId is not None else run_grafeo_query(query)
+    result = (
+        _run_grafeo_query_in_tx(txId, query)
+        if txId is not None
+        else run_grafeo_query(query)
+    )
     return {row["internal_id"]: row["r"] for row in result}
+
 
 def extract_alias(sql, args_map):
     args_map = args_map
@@ -3008,7 +3052,7 @@ def extract_alias(sql, args_map):
     # Find all table references in the SQL
     for table in parsed.find_all(exp.Table):
         view_name = table.name  # e.g. "pg_arg2"
-        alias = table.alias     # e.g. "p"
+        alias = table.alias  # e.g. "p"
 
         if alias and view_name in reverse_view_map:
             argname = reverse_view_map[view_name]
@@ -3016,7 +3060,8 @@ def extract_alias(sql, args_map):
 
     return args_map
 
-def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
+
+def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
     tree = sqlglot.parse_one(query)
     optimized = optimize(tree)
 
@@ -3028,7 +3073,9 @@ def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
         conds = filters_by_table.get(alias, [])
         if not conds:
             if arg_info.get("mimeType") == "text/sql":
-                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                db_connection = arg_info.get("dbConnection", {}).get(
+                    "name", "Unknown DB"
+                )
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')}"
                 pg_sql_escaped = pg_sql.replace("'", "''")
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
@@ -3038,14 +3085,20 @@ def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
                         '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
-                local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
+                local_path = arg_info.get("contentUrl", "").replace(
+                    "s3://dataset/", "/s3/dataset/"
+                )
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM read_csv_auto('{local_path}');"""
-        else:    
-            where_clause = " AND ".join(c for c in conds).replace(f'"{arg_info.get("alias")}".', "")
+        else:
+            where_clause = " AND ".join(c for c in conds).replace(
+                f'"{arg_info.get("alias")}".', ""
+            )
             if arg_info.get("mimeType") == "text/sql":
-                db_connection = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                db_connection = arg_info.get("dbConnection", {}).get(
+                    "name", "Unknown DB"
+                )
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')} WHERE {where_clause}"
                 pg_sql_escaped = pg_sql.replace("'", "''")
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
@@ -3055,13 +3108,16 @@ def write_views_minimal_extraction(query:str, args_maps:dict[str, dict]):
                         '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
-                local_path = arg_info.get("contentUrl", "").replace("s3://dataset/", f"/s3/dataset/")
+                local_path = arg_info.get("contentUrl", "").replace(
+                    "s3://dataset/", "/s3/dataset/"
+                )
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM read_csv_auto('{local_path}')
                     WHERE {where_clause};"""
         args_maps[argname]["view"] = view
     return args_maps, optimized.sql()
+
 
 def extract_filters_per_tables(tree):
     filters = {}
@@ -3087,6 +3143,8 @@ def extract_filters_per_tables(tree):
                         print("Join Condition:", cond.sql(), "Table:", t)
                         filters[t].append(cond.sql())
     return filters
+
+
 def split_conditions(expr):
     if isinstance(expr, exp.And):
         yield from split_conditions(expr.left)
@@ -3094,11 +3152,12 @@ def split_conditions(expr):
     else:
         yield expr
 
+
 @router.delete("/aplog/delete/{ap_id}", status_code=status.HTTP_200_OK)
 async def delete_aplog(
     ap_id: str,
     token: str = Depends(security.oauth2_scheme),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope)
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
     fetch_query = f"""
         MATCH (ap:Analytical_Pattern)
@@ -3113,7 +3172,7 @@ async def delete_aplog(
         OPTIONAL MATCH (a)-[r]-(b) WHERE a IN all_nodes AND b IN all_nodes
         RETURN ap, all_nodes, COLLECT(DISTINCT r) AS all_rels
     """
-    PROTECTED = {"User", "sc__Dataset", "cr__FileObject", "dg__DatabaseConnection"}  
+    PROTECTED = {"User", "sc__Dataset", "cr__FileObject", "dg__DatabaseConnection"}
     txId = grafeo_begin()
     try:
         rows = _run_grafeo_query_in_tx(txId, fetch_query)
@@ -3162,24 +3221,25 @@ async def delete_aplog(
         "message": f"AP log with id '{ap_id}' deleted successfully.",
     }
 
+
 @router.post(
     "/dataset-linking/register",
     status_code=status.HTTP_200_OK,
     response_model=APResponseSuccessEnvelope,
 )
 async def register_dataset_linking(
-        request: Request,
-        file: Optional[UploadFile] = File(None),
-        body: Optional[WrappedAPRequest] = Body(None),
-        token: str = Depends(security.oauth2_scheme),
-        token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    ) -> APResponseSuccessEnvelope:
+    request: Request,
+    file: Optional[UploadFile] = File(None),
+    body: Optional[WrappedAPRequest] = Body(None),
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+) -> APResponseSuccessEnvelope:
     """
     Register Dataset Linking elements in MoMa.
     """
     url = f"{MOMA_URL}datasets/relationships/"
     payload_data = None
-    
+
     if file:
         # Read and parse the uploaded JSON file
         content = await file.read()
@@ -3219,7 +3279,7 @@ async def register_dataset_linking(
         response_payload = response.json()
         ap_obj = APRequest.model_validate(response_payload.get("ap", {}))
         response_payload["ap"] = ap_obj.model_dump(by_alias=True)
-        
+
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -3229,7 +3289,7 @@ async def register_dataset_linking(
     # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
         logger.error(
-            f"Error from MoMa",
+            "Error from MoMa",
             status_code=response.status_code,
             response_text=response.text,
         )
@@ -3250,9 +3310,7 @@ async def register_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"MoMa returned error {response.status_code}: {cdd_error_msg}"
-        )
+        error_message = f"MoMa returned error {response.status_code}: {cdd_error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3266,9 +3324,10 @@ async def register_dataset_linking(
 
     return APResponseSuccessEnvelope(
         code=response.status_code,
-        message=f"Dataset linking elements storage completed successfully",
+        message="Dataset linking elements storage completed successfully",
         content=response_payload,
     )
+
 
 @router.get(
     "/dataset-linking/{id}",
@@ -3276,15 +3335,15 @@ async def register_dataset_linking(
     response_model=DatasetSuccessEnvelope,
 )
 async def get_dataset_linking(
-        id:str,
-        token: str = Depends(security.oauth2_scheme),
-        token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    ) -> DatasetSuccessEnvelope:
+    id: str,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+) -> DatasetSuccessEnvelope:
     """
     Get Dataset Linking elements in MoMa.
     """
     url = f"{MOMA_URL}datasets/relationships/{id}"
-    
+
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -3294,7 +3353,7 @@ async def get_dataset_linking(
         )
     try:
         response_payload = response.json()
-        
+
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -3304,7 +3363,7 @@ async def get_dataset_linking(
     # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
         logger.error(
-            f"Error from MoMa",
+            "Error from MoMa",
             status_code=response.status_code,
             response_text=response.text,
         )
@@ -3325,9 +3384,7 @@ async def get_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"MoMa returned error {response.status_code}: {error_msg}"
-        )
+        error_message = f"MoMa returned error {response.status_code}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3341,9 +3398,10 @@ async def get_dataset_linking(
 
     return DatasetSuccessEnvelope(
         code=response.status_code,
-        message=f"Dataset linking elements retrieved successfully",
+        message="Dataset linking elements retrieved successfully",
         dataset=response_payload,
     )
+
 
 @router.delete(
     "/dataset-linking/{id}",
@@ -3351,15 +3409,15 @@ async def get_dataset_linking(
     response_model=DatasetSuccessEnvelope,
 )
 async def delete_dataset_linking_elt(
-        id:str,
-        token: str = Depends(security.oauth2_scheme),
-        token_payload: dict[str, Any] = Depends(security.require_app_scope),
-    ) -> Dict[str, Any]:
+    id: str,
+    token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
+) -> Dict[str, Any]:
     """
     Delete a Dataset Linking element in MoMa.
     """
     url = f"{MOMA_URL}datasets/relationships/{id}"
-    
+
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
     ) as client:
@@ -3369,7 +3427,7 @@ async def delete_dataset_linking_elt(
         )
     try:
         response_payload = response.json()
-        
+
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -3379,7 +3437,7 @@ async def delete_dataset_linking_elt(
     # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
         logger.error(
-            f"Error from MoMa",
+            "Error from MoMa",
             status_code=response.status_code,
             response_text=response.text,
         )
@@ -3400,9 +3458,7 @@ async def delete_dataset_linking_elt(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"MoMa returned error {response.status_code}: {error_msg}"
-        )
+        error_message = f"MoMa returned error {response.status_code}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3415,12 +3471,15 @@ async def delete_dataset_linking_elt(
         )
 
     return {
-        "code":response.status_code,
-        "message":f"Dataset linking element with ID {id} deleted successfully" }
+        "code": response.status_code,
+        "message": f"Dataset linking element with ID {id} deleted successfully",
+    }
 
 
-@router.get("/dataset-linking/list/{dataset_id}", response_model=DatasetLinkingSuccessEnvelope)
-async def get_dataset_linking(
+@router.get(
+    "/dataset-linking/list/{dataset_id}", response_model=DatasetLinkingSuccessEnvelope
+)
+async def list_dataset_linking(
     dataset_id: str,
     format: str = Query(None, alias="format"),
     token: str = Depends(security.oauth2_scheme),
@@ -3458,7 +3517,9 @@ async def get_dataset_linking(
                 "Dataset linking fetch completed",
                 dataset_id=dataset_id,
                 status_code=response.status_code,
-                nodes_count=len(dlelements.get("nodes", [])) if isinstance(dlelements, dict) else None,
+                nodes_count=len(dlelements.get("nodes", []))
+                if isinstance(dlelements, dict)
+                else None,
             )
 
             return DatasetLinkingSuccessEnvelope(
@@ -3509,4 +3570,3 @@ async def get_dataset_linking(
                     error="Unexpected Internal Server error",
                 ).model_dump(exclude_none=True),
             )
-
