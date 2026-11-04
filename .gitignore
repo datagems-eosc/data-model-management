@@ -146,3 +146,6 @@ tests/deliverable
 # macOS Finder metadata
 .DS_Store
 **/.DS_Store
+
+# Log files from local runs with LOGS_DIR=./logs
+/logs/

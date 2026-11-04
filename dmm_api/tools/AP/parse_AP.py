@@ -5,6 +5,10 @@ from pydantic import BaseModel, Field
 from typing import List, Dict, Any, Optional, Set, Tuple
 import uuid
 
+import structlog
+
+logger = structlog.get_logger(__name__)
+
 
 class Node(BaseModel):
     id: str | int = Field(..., alias="id")
@@ -137,7 +141,7 @@ def extract_query_from_AP(
     query_info["query"] = raw_query
     query_info["software"] = operator_properties.get("name").split(" ")[0]
 
-    print(f"Extracted query info: {query_info}")
+    logger.debug("Extracted query info", query_info=query_info)
 
     if query_info["software"] not in ["DuckDB", "Ontop"]:
         raise HTTPException(
@@ -203,6 +207,7 @@ def extract_dataset_id_from_AP(
     dataset_id = dataset_nodes[0]
     return dataset_id
 
+
 def extract_user_id_from_ap(
     ap_payload: APRequest,
 ) -> str:
@@ -227,6 +232,7 @@ def extract_user_id_from_ap(
 
     user_id = user_nodes[0]
     return user_id
+
 
 def extract_from_AP(
     ap_payload: APRequest,
@@ -259,7 +265,7 @@ def extract_from_AP(
             "dg:ColumnStatistics",
             "dg:DatabaseConnection",
             "dg:DataQuality",
-            "dg:DataQualityError"
+            "dg:DataQualityError",
         }
 
     # Find nodes that have any of the target labels

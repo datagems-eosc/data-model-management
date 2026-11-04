@@ -11,10 +11,10 @@ from fastapi.security import (
 )
 from jose import JWTError, jwt
 from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
-from contextvars import ContextVar
 import structlog
 
 from dmm_api.config import OIDC_ISSUER_URL
+from dmm_api.logging_config import get_correlation_id, set_user_id
 
 
 class FailedDependencyMessage(BaseModel):
@@ -53,7 +53,6 @@ _jwks_keys = None
 _jwks_cache = None
 _jwks_cache_expires_at = 0
 
-correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
 OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
 OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
 OIDC_CONFIG_URL: str = f"{OIDC_ISSUER_URL}/.well-known/openid-configuration"
@@ -229,11 +228,6 @@ async def _exchange_token_for_cdd(user_token: str) -> str | None:
         return None
 
 
-def get_correlation_id() -> str | None:
-    """Returns the current correlation ID."""
-    return correlation_id_var.get()
-
-
 async def require_valid_token(
     credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
 ) -> dict[str, Any]:
@@ -276,6 +270,7 @@ async def require_valid_token(
             detail=f"Could not fetch JWKS: {exc}",
         ) from exc
 
+    set_user_id(payload.get("sub"))
     # Dependency output: route handlers can use these claims directly.
     return payload
 
