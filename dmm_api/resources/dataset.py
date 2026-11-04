@@ -6,6 +6,7 @@ import re
 import time
 from pathlib import Path
 import shutil
+from dmm_api.config import CDD_URL, IDD_URL, MOMA_URL, QD_URL, REC_SYS_URL
 from dmm_api.resources.converter import convertProfile
 import requests
 import sqlglot
@@ -221,11 +222,6 @@ class DatasetState(str, Enum):
 router = APIRouter()
 
 
-MOMA_URL = os.getenv("MOMA_URL", "https://datagems-dev.scayle.es/moma2/v1/api")
-CDD_URL = os.getenv("CDD_URL", "https://datagems-dev.scayle.es/cross-dataset-discovery")
-IDD_URL = os.getenv("IDD_URL", "https://datagems-dev.scayle.es/in-dataset-discovery")
-QD_URL = os.getenv("QD_URL", "https://datagems-dev.scayle.es/query-disambiguation")
-REC_SYS_URL = os.getenv("REC_SYS_URL", "https://datagems-dev.scayle.es/dataset-recsys")
 MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
 REQUEST_TIMEOUT_SECONDS = 300.0
 GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
@@ -2314,10 +2310,7 @@ def execute_query_xml(csv_name, query, software, xml_path):
 # Get the properties of a node from MoMa given its ID. This is needed to get the contentUrl of the datasets, which is required to execute the query
 async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str, Any]:
     """Fetch node properties from MoMa2 API"""
-    moma_api_url = os.getenv(
-        "MOMA_API_URL", "https://datagems-dev.scayle.es/moma2/v1/api"
-    )
-    endpoint = f"{moma_api_url}/nodes/{node_id}"
+    endpoint = f"{MOMA_URL}nodes/{node_id}"
     try:
         async with httpx.AsyncClient(
             timeout=MOMA_REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -2358,7 +2351,7 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
     except httpx.ConnectError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Cannot reach MoMa2 API at {moma_api_url}. Check MOMA_API_URL environment variable.",
+            detail=f"Cannot reach MoMa2 API at {MOMA_URL}. Check the MOMA_URL environment variable.",
         )
     except httpx.TimeoutException:
         raise HTTPException(

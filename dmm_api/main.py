@@ -5,6 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
 import uvicorn
 
+from dmm_api.config import require_configuration
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 from dmm_api.resources.security import router as security_router
@@ -14,6 +15,8 @@ try:
     APP_VERSION = version("dmm-api")
 except PackageNotFoundError:
     APP_VERSION = "dev"
+
+require_configuration()
 
 app = FastAPI(
     title="Dataset API",

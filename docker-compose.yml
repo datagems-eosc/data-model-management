@@ -11,6 +11,7 @@ services:
     build: .
     ports:
       - "5050:5000"
+    env_file: dev.env
     environment:
       GRAFEO_URL: http://grafeo:7474
     depends_on:

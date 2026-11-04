@@ -97,6 +97,16 @@ Primary endpoint URLs (grouped):
 ## Running the API Locally
 You can run the API either directly via Python or using Docker.
 
+The API needs the URLs of the services it calls (see
+[Required service URLs](#required-service-urls)). `dev.env` holds those of the
+DataGEMS dev deployment. `docker compose up` loads it; for any other way of
+running the API, load it into the shell first:
+
+```bash
+set -a; . ./dev.env; set +a
+uv run uvicorn dmm_api.main:app --port 5000
+```
+
 ### Terminal
 
 To start the API server, open your terminal and navigate to the dmm_api directory.
@@ -124,6 +134,22 @@ docker run -d -p 5000:5000 -v /path/to/your/local/results:/app/dmm_api/data/resu
 ```
 Replace `/path/to/your/local/results` with the actual path to your local results directory, e.g., `desktop/repositories/data-model-management/dmm_api/data/results`.
 
+#### Required Service URLs
+
+The API refuses to start, and logs which ones are missing, unless all of these
+are set:
+
+| Variable | Service |
+|---|---|
+| `OIDC_ISSUER_URL` | The login server's realm, used to validate tokens |
+| `MOMA_URL` | MoMa |
+| `CDD_URL` | Cross-dataset discovery |
+| `IDD_URL` | In-dataset discovery |
+| `QD_URL` | Query disambiguation |
+| `REC_SYS_URL` | Dataset recommendation |
+
+A trailing `/` is optional on all of them.
+
 #### Required Environment Variables (No Defaults)
 
 The following environment variables are read by the API **without defaults**.
@@ -131,8 +157,6 @@ The following environment variables are read by the API **without defaults**.
 | Variable | Used by | Required when | Secret |
 |---|---|---|---|
 | `OIDC_CLIENT_SECRET` | Token exchange in `dmm_api/security/auth.py` | Using `POST /api/v1/authtest/cdd-search` (or any token-exchange flow) | Yes |
-| `CDD_URL` | External service mapping in `dmm_api/resources/dataset.py` | Using cross-dataset discovery routes via dataset resource | No |
-| `IDD_URL` | External service mapping in `dmm_api/resources/dataset.py` | Using in-dataset discovery routes via dataset resource | No |
 | `DATASET_DIR` | Dataset load flow in `dmm_api/resources/dataset.py` | Using `PUT /api/v1/dataset/load` | No |
 | `DATAGEMS_POSTGRES_HOST` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
 | `DATAGEMS_POSTGRES_PORT` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
