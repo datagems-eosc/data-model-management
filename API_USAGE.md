@@ -11,6 +11,12 @@ cd tests
 
 > Prerequisite: all steps below require a valid access token. Complete [0) Access Token Setup](#auth-test-bearer-token-required) before running any command.
 
+> Uploaded files (`-F "file=@..."`) are limited to 64 MB, or `MAX_UPLOAD_MB` where the deployment sets it. A larger file gets a `413` response:
+>
+> ```json
+> {"code": 413, "error": "File too large: the limit is 64 MB."}
+> ```
+
 ## Table of Contents
 
 - [1) Upload a Dataset to s3](#1-upload-a-dataset-to-s3)
@@ -991,9 +997,9 @@ The API returns:
 
 ## 7) Query a Dataset
 
-The polyglot/query endpoint allows you to execute SQL queries across different data sources (supported: PostgreSQL tables, CSV files). 
+The polyglot/query endpoint allows you to execute SQL queries across different data sources (supported: PostgreSQL tables, CSV files).
 
-In the following example, the SQL query could reference a CSV file and a PostgreSQL table. It also support querying two CSV files (even if they are not from the same dataset), or two PostgreSQL tables. 
+In the following example, the SQL query could reference a CSV file and a PostgreSQL table. It also support querying two CSV files (even if they are not from the same dataset), or two PostgreSQL tables.
 ```sql
 SELECT t1.a, t2.b FROM {{arg1}} as t1 JOIN {{arg2}} as t2 ON t1.c = t2.d
 ```
@@ -2026,7 +2032,7 @@ The `polyglot/query/results/{dataset-uuid}` endpoint allows you to get results o
 curl -X 'GET' \
   'https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query/result/c0ab5594-58ac-41d3-9c90-dd9d34a659ad' \
   -H 'accept: application/json' \
-  -H "Authorization: Bearer $TOKEN" 
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 Optional query parameter:
@@ -2035,7 +2041,7 @@ Optional query parameter:
 curl -X 'GET' \
   'https://datagems-dev.scayle.es/dmm/api/v1/polyglot/query/result/c0ab5594-58ac-41d3-9c90-dd9d34a659ad?lines=10' \
   -H 'accept: application/json' \
-  -H "Authorization: Bearer $TOKEN" 
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 This will return :
@@ -2047,7 +2053,7 @@ This will return :
 
 ### 15.1) Register a dataset linking element
 
-The `dataset-linking/register` endpoint allows to register dataset linking elements into MoMa. 
+The `dataset-linking/register` endpoint allows to register dataset linking elements into MoMa.
 The relationship's root *BasicDLElement* must directly reference, via *HAS_TARGET* edges, exactly two existing *sc:Dataset* nodes. At most one relationship may exist for a given dataset pair.
 
 Required role: dg_admin / dg_dataset-curator / system.
@@ -2064,7 +2070,7 @@ This register the dataset-linking elements:
 
 ### 15.2) Get a dataset linking element
 
-The `dataset-linking/get{id}` endpoint allows to get a dataset linking elements from its id. 
+The `dataset-linking/get{id}` endpoint allows to get a dataset linking elements from its id.
 
 ```bash
 curl -X GET --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-linking/get/8f8c3a7c-dde6-4906-b253-0f005b261ad8" \
@@ -2072,7 +2078,7 @@ curl -X GET --location "https://datagems-dev.scayle.es/dmm/api/v1/dataset-linkin
 -F "file=@dataset-linking/dataset-linking.json" | python3 -m json.tool
 ```
 
-The API return: 
+The API return:
 
 ```bash
 {
@@ -2126,7 +2132,7 @@ The API return:
                 "properties": {}
             },
             [...]
-            
+
         ],
         "edges": [
             {
@@ -2165,7 +2171,7 @@ The API return:
 
 ### 15.3) Get dataset linking elements from a dataset uuid
 
-The `dataset-linking/list/{dataset_id}` endpoint allows to get all the dataset linking elements from its a dataset uuid. 
+The `dataset-linking/list/{dataset_id}` endpoint allows to get all the dataset linking elements from its a dataset uuid.
 
 ```bash
 curl -X 'GET'   'https://datagems-dev.scayle.es/dmm/api/v1/dataset-linking/list/d5c34990-9acf-4349-91d4-924f58565922' \

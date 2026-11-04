@@ -8,6 +8,7 @@ from pathlib import Path
 import shutil
 from dmm_api.config import CDD_URL, IDD_URL, MOMA_URL, QD_URL, REC_SYS_URL
 from dmm_api.resources.converter import convertProfile
+from dmm_api.uploads import read_upload
 import requests
 import sqlglot
 from sqlglot.optimizer import optimize
@@ -342,8 +343,8 @@ async def data_workflow(
     dataset_id: str = Form(...),
 ):
     """Handle data workflow by uploading files and assigning metadata."""
+    file_bytes = await read_upload(file)
     try:
-        file_bytes = await file.read()
         s3path = upload_dataset_to_scratchpad(file_bytes, file_name, dataset_id)
     except Exception as e:
         raise HTTPException(
@@ -1628,7 +1629,7 @@ async def execute_and_store(
 
     if file:
         # Read and parse the uploaded JSON file
-        content = await file.read()
+        content = await read_upload(file)
         try:
             payload_data = json.loads(content)
         except json.JSONDecodeError as e:
@@ -1760,7 +1761,7 @@ async def execute_and_store_query_disambiguation(
 
     if file:
         # Read and parse the uploaded JSON file
-        content = await file.read()
+        content = await read_upload(file)
         try:
             payload_data = json.loads(content)
         except json.JSONDecodeError as e:
@@ -1894,7 +1895,7 @@ async def execute_and_store_dataset_recommendations(
 
     if file:
         # Read and parse the uploaded JSON file
-        content = await file.read()
+        content = await read_upload(file)
         try:
             payload_data = json.loads(content)
         except json.JSONDecodeError as e:
@@ -2500,7 +2501,7 @@ async def execute_and_store_idd(
 
     if file:
         # Read and parse the uploaded JSON file
-        content = await file.read()
+        content = await read_upload(file)
         try:
             payload_data = json.loads(content)
         except json.JSONDecodeError as e:
@@ -2732,7 +2733,7 @@ async def ap_storage(
                 ).model_dump(exclude_none=True),
             )
     elif file is not None:
-        content = await file.read()
+        content = await read_upload(file)
         try:
             ap_dict = json.loads(content)
             parsed_request = WrappedAPRequest.model_validate(ap_dict)
@@ -3235,7 +3236,7 @@ async def register_dataset_linking(
 
     if file:
         # Read and parse the uploaded JSON file
-        content = await file.read()
+        content = await read_upload(file)
         try:
             payload_data = json.loads(content)
         except json.JSONDecodeError as e:
