@@ -116,6 +116,16 @@ def test_an_exception_comes_last_and_positional_arguments_are_filled_in():
     assert warned["event"] == "JWT validation failed: expired"
 
 
+def test_stdout_gets_the_same_json_entries(capsys):
+    structlog.get_logger("tests.stdout").warning("to stdout", dataset_id="d1")
+    (line,) = [
+        line for line in capsys.readouterr().out.splitlines() if "to stdout" in line
+    ]
+    entry = json.loads(line)
+    assert list(entry) == [*FIXED_FIELDS, "dataset_id"]
+    assert entry["dataset_id"] == "d1"
+
+
 def test_no_log_call_passes_a_reserved_field():
     levels = {"debug", "info", "warning", "error", "critical", "exception"}
     offending = []

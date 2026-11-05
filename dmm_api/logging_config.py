@@ -131,16 +131,6 @@ def _add_fixed_fields(_, method_name: str, event_dict: dict) -> dict:
     return entry
 
 
-def _drop_console_noise(_, __, event_dict: dict) -> dict:
-    """Leave out of stdout what is the same on every line, or empty."""
-    for key in ("app_version", "pod"):
-        event_dict.pop(key, None)
-    for key in ("correlation_id", "user_id"):
-        if event_dict.get(key) is None:
-            event_dict.pop(key, None)
-    return event_dict
-
-
 def _render_json(_, __, event_dict: dict) -> str:
     text = json.dumps(event_dict, default=str, ensure_ascii=False)
     # A lone surrogate, as a JSON body may carry, cannot be encoded as UTF-8.
@@ -154,19 +144,6 @@ def json_formatter() -> logging.Formatter:
             structlog.processors.format_exc_info,
             _add_fixed_fields,
             _render_json,
-        ]
-    )
-
-
-def console_formatter() -> logging.Formatter:
-    return structlog.stdlib.ProcessorFormatter(
-        processors=[
-            structlog.processors.format_exc_info,
-            _add_fixed_fields,
-            _drop_console_noise,
-            structlog.dev.ConsoleRenderer(
-                colors=False, exception_formatter=structlog.dev.plain_traceback
-            ),
         ]
     )
 
@@ -313,7 +290,8 @@ def configure_logging(write_files: bool = True) -> None:
     _handlers.clear()
 
     stdout = _StdoutHandler()
-    stdout.setFormatter(console_formatter())
+    # The platform's log pipeline collects stdout, and parses JSON lines.
+    stdout.setFormatter(json_formatter())
     root.addHandler(stdout)
     _handlers.append(stdout)
     root.setLevel(config.LOG_LEVEL)

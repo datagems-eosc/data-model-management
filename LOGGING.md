@@ -37,8 +37,8 @@ ID is in their header only. So is it for paths that match no route (404).
 
 ## Entries
 
-Each file line is one JSON object. These eight fields come first, in this
-order, on every entry:
+Each line, on stdout and in the files, is one JSON object. These eight
+fields come first, in this order, on every entry:
 
 | Field | Type | Content |
 | - | - | - |
@@ -76,17 +76,13 @@ Analytical Pattern log), and `error` a failure that fails the request.
 
 ### Example
 
-A failed dataset update, as it appears in a file:
+A failed dataset update, as it appears on stdout and in a file:
 
 ```json
 {"timestamp": "2026-11-02T10:15:02.601Z", "level": "info", "event": "Requesting dataset metadata from MoMa", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433"}
 {"timestamp": "2026-11-02T10:15:03.412Z", "level": "error", "event": "MoMa API HTTP error while fetching dataset metadata", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433", "status_code": 502}
 {"timestamp": "2026-11-02T10:15:03.419Z", "level": "error", "event": "request finished", "logger": "dmm_api.main", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "method": "PUT", "path": "/api/v1/dataset/update", "status_code": 424, "duration_ms": 818.2, "outcome": "server_error"}
 ```
-
-stdout carries the same entries as one readable line each, without
-`app_version` and `pod`, and without `correlation_id` and `user_id` when they
-are empty.
 
 ## Files
 
