@@ -14,6 +14,8 @@ from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
 from contextvars import ContextVar
 import structlog
 
+from dmm_api.config import OIDC_ISSUER_URL
+
 
 class FailedDependencyMessage(BaseModel):
     statusCode: int
@@ -54,9 +56,6 @@ _jwks_cache_expires_at = 0
 correlation_id_var: ContextVar[str] = ContextVar("correlation_id", default=None)
 OIDC_CLIENT_ID: str = os.getenv("OIDC_CLIENT_ID", "data-model-management-api")
 OIDC_CLIENT_SECRET = os.getenv("OIDC_CLIENT_SECRET")
-OIDC_ISSUER_URL: str = os.getenv(
-    "OIDC_ISSUER_URL", "https://datagems-dev.scayle.es/oauth/realms/dev"
-)
 OIDC_CONFIG_URL: str = f"{OIDC_ISSUER_URL}/.well-known/openid-configuration"
 
 OIDC_JWKS_URL = os.getenv(

@@ -7,6 +7,7 @@ from fastapi import APIRouter, File, UploadFile, Query, HTTPException
 from fastapi.responses import Response
 from dmm_api.tools.PG2Croissant.parser import parse_profile
 from dmm_api.tools.PG2Croissant.mapper import map_to_croissant
+from dmm_api.uploads import read_upload
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
@@ -52,8 +53,9 @@ async def convert(
     logger.info(f"Saving uploaded file to {pg_json}")
 
     try:
+        content = await read_upload(file)
         with open(pg_json, "wb") as f:
-            f.write(await file.read())
+            f.write(content)
 
         croissant_jsonld = convertProfileFile(pgjson_path=pg_json)
         croissant_dict = json.loads(croissant_jsonld)
