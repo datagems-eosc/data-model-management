@@ -101,6 +101,7 @@ logs/
 | Chunk | `dmm-api_<UTC time of its first entry>_<pod>.log` | by each pod, every `LOG_FLUSH_SECONDS` |
 | Daily | `dmm-api_<day>_<pod>.log` | by each pod, at its first flush after midnight UTC |
 | Weekly archive | `dmm-api_week_<Monday>.log.gz` | by the CronJob, Mondays 01:00 UTC |
+| Archive inputs list | `inputs_week_<Monday>.txt` | by the CronJob, with each archive |
 
 - Every file sits in the folder of its day's month; a weekly archive in the
   folder of its Monday's month. Weeks run Monday to Sunday, UTC.
@@ -154,16 +155,24 @@ current one and still has plain files:
    `dmm-api_week_<Monday>.log.gz`. A chunk whose pod and day also have a daily
    file is left out, since the daily file holds it.
 2. It reads the archive back and checks the line count.
-3. It deletes the week's plain files.
+3. It writes `inputs_week_<Monday>.txt` next to the archive, listing the files
+   it archived.
+4. It deletes the week's plain files.
 
-If a week's archive already exists, the week is left untouched. Any failure
-leaves the plain files in place, and the job exits with status 1, so
-Kubernetes shows the run as failed. A missed run is caught up by the next one.
-The job logs to stdout only.
+Any failure leaves the plain files in place, and the job exits with status 1,
+so Kubernetes shows the run as failed. A missed run is caught up by the next
+one. The job logs to stdout only.
+
+When a week's archive already exists, the job finishes that week instead of
+archiving it again: it deletes the plain files named in the inputs list, and
+keeps and reports any other file, since that file arrived after the archive
+was written and is not in it. It exits with status 1 for as long as any plain
+file of an archived week remains.
 
 The mount must allow deletes (for Mountpoint for S3, `--allow-delete`).
-Without that, the archive is written, the deletes fail, and the plain files
-stay next to it.
+Without that, the archive and its inputs list are written, the deletes fail,
+the plain files stay next to them, and every run exits with status 1 until
+deletes are allowed. The next run after that deletes them.
 
 The CronJob runs the same image as the API, at the same tag, so bump both
 together:

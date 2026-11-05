@@ -278,11 +278,49 @@ def test_the_weekly_archive_merges_every_pod_in_time_order(tmp_path):
     ]
     assert _files(tmp_path) == [
         "2026-10/dmm-api_week_2026-10-26.log.gz",
+        "2026-10/inputs_week_2026-10-26.txt",
         "2026-11/dmm-api_2026-11-03_pod-a.log",
+    ]
+    assert (october / "inputs_week_2026-10-26.txt").read_text().splitlines() == [
+        "2026-10/dmm-api_2026-10-30T10-00-00Z_pod-a.log",
+        "2026-10/dmm-api_2026-10-30_pod-a.log",
+        "2026-10/dmm-api_2026-10-30_pod-b.log",
+        "2026-11/dmm-api_2026-11-01T09-00-00Z_pod-c.log",
     ]
 
 
-def test_an_existing_archive_leaves_the_week_untouched(tmp_path):
+def test_a_week_in_the_next_month_gets_its_mondays_folder(tmp_path):
+    _write(
+        tmp_path / "2026-11/dmm-api_2026-11-01_pod-a.log",
+        _entry("2026-11-01T10:00:00.000Z", "a"),
+    )
+    assert run(tmp_path, date(2026, 11, 4)) == 0
+    assert (tmp_path / "2026-10/dmm-api_week_2026-10-26.log.gz").exists()
+
+
+def test_a_later_run_finishes_failed_deletes(tmp_path, monkeypatch):
+    october = tmp_path / "2026-10"
+    daily = october / "dmm-api_2026-10-30_pod-a.log"
+    _write(daily, _entry("2026-10-30T10:00:00.000Z", "a"))
+
+    def refuse(self, missing_ok=False):
+        raise PermissionError("deletes not allowed")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "unlink", refuse)
+        assert run(tmp_path, date(2026, 11, 4)) == 1
+    assert daily.exists()
+
+    # A file that arrives after the archive is not in it, so it stays.
+    late = october / "dmm-api_2026-10-30T23-00-00Z_pod-b.log"
+    _write(late, _entry("2026-10-30T23:00:00.000Z", "late"))
+    assert run(tmp_path, date(2026, 11, 4)) == 1
+    assert not daily.exists()
+    assert late.exists()
+    assert run(tmp_path, date(2026, 11, 4)) == 1
+
+
+def test_an_archive_without_its_inputs_list_leaves_the_week_untouched(tmp_path):
     october = tmp_path / "2026-10"
     _write(
         october / "dmm-api_2026-10-30_pod-a.log",
