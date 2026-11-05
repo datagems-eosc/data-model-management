@@ -1,30 +1,27 @@
-"""Logging to stdout and to log files on the S3 mount.
+"""Logging to stdout and to log files on a disk claim.
 
-The pod's own filesystem is lost when the pod goes, so log files go to the S3
-mount. A file there cannot be appended to, and may not be renamable or
-overwritable, so every file is written once, under its final name: entries are
-buffered and written as a new chunk every `LOG_FLUSH_SECONDS`, and each pod
-merges its own chunks of a finished day into one daily file. `LOGGING.md`
-describes the file layout and the entry format.
+stdout goes to the platform's log pipeline, which keeps it for a short time
+only. So every entry is also appended to one file per pod and UTC day under
+`LOGS_DIR`, a volume that outlives the pod, and a weekly job
+(`dmm_api.tools.log_archive`) moves each finished week to S3 as one gzip file.
+`LOGGING.md` describes the files and the entry format.
 """
 
 import json
 import logging
 import os
+import queue
 import re
-import shutil
 import sys
 import threading
 import time
 import uuid
-from collections import deque
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
-from itertools import groupby
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import IO, Any, Iterator
 
 import structlog
 
@@ -41,23 +38,30 @@ FIXED_FIELDS = (
     "user_id",
 )
 
-CHUNK_RE = re.compile(
-    r"^dmm-api_(?P<day>\d{4}-\d{2}-\d{2})T(?P<time>\d{2}-\d{2}-\d{2})Z"
-    r"(?:-(?P<n>\d+))?_(?P<pod>[A-Za-z0-9.-]+)\.log$"
-)
-DAILY_RE = re.compile(
+LOG_FILE_RE = re.compile(
     r"^dmm-api_(?P<day>\d{4}-\d{2}-\d{2})_(?P<pod>[A-Za-z0-9.-]+)\.log$"
 )
 
 CORRELATION_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
 
 # Problems with the log files themselves go to stdout only, so that a failing
-# mount cannot feed its own error messages back into the buffer.
+# disk cannot feed its own error messages back into the file queue.
 _FILES_LOGGER_NAME = "dmm_api.logging_config.files"
 _files_logger = structlog.get_logger(_FILES_LOGGER_NAME)
 
+# At most this many entries wait for the file writer; past that, new entries
+# reach stdout only.
+MAX_QUEUED = 50_000
+# How long shutdown waits for the file writer, well within the 30 s Kubernetes
+# gives a stopping pod, so that a hung disk cannot hold the pod until it is
+# killed.
+CLOSE_SECONDS = 5.0
+
 _handlers: list[logging.Handler] = []
-_file_handler: "ChunkFileHandler | None" = None
+_queue_handler: "_FileQueueHandler | None" = None
+_writer: "DailyFileWriter | None" = None
+_writer_thread: threading.Thread | None = None
+_STOP = object()
 
 
 @dataclass
@@ -138,7 +142,10 @@ def _drop_console_noise(_, __, event_dict: dict) -> dict:
 
 
 def _render_json(_, __, event_dict: dict) -> str:
-    return json.dumps(event_dict, default=str, ensure_ascii=False)
+    text = json.dumps(event_dict, default=str, ensure_ascii=False)
+    # A lone surrogate, as a JSON body may carry, cannot be encoded as UTF-8.
+    # Written as `\udXXX`, it stays a valid JSON escape.
+    return text.encode("utf-8", "backslashreplace").decode("utf-8")
 
 
 def json_formatter() -> logging.Formatter:
@@ -176,186 +183,118 @@ class _StdoutHandler(logging.StreamHandler):
         pass
 
 
-class ChunkFileHandler(logging.Handler):
-    """Buffer formatted entries and write them to the log folder as chunks.
+class DailyFileWriter:
+    """Append each entry to this pod's file for the entry's UTC day.
 
-    Requests only append to the buffer; a background thread does the writing,
-    so a slow mount never slows an API call.
+    Used by the file writer's thread only.
     """
 
-    def __init__(
-        self,
-        logs_dir: Path,
-        pod: str,
-        flush_seconds: float = 180.0,
-        chunk_entries: int = 10_000,
-        max_entries: int = 50_000,
-    ):
-        super().__init__()
+    def __init__(self, logs_dir: Path, pod: str):
         self.logs_dir = logs_dir
         self.pod = pod
-        self.flush_seconds = flush_seconds
-        self.chunk_entries = chunk_entries
-        self.max_entries = max_entries
-        self._buffer: deque[tuple[float, str]] = deque()
+        self._day: date | None = None
+        self._file: IO[bytes] | None = None
+        self._missed = 0
+
+    def write(self, created: float, line: str) -> None:
+        day = datetime.fromtimestamp(created, timezone.utc).date()
+        try:
+            if day != self._day:
+                self._open(day)
+            self._file.write(line.encode("utf-8") + b"\n")
+            self._file.flush()
+        except OSError as exc:
+            self._close()
+            if not self._missed:
+                _files_logger.warning(
+                    "could not write the log file, entries reach stdout only",
+                    error=str(exc),
+                )
+            self._missed += 1
+            return
+        if self._missed:
+            _files_logger.warning("log file writes resumed", missed=self._missed)
+            self._missed = 0
+
+    def _open(self, day: date) -> None:
+        self._close()
+        path = self.logs_dir / f"dmm-api_{day.isoformat()}_{self.pod}.log"
+        self._file = open(path, "a+b")
+        # A line cut short, by a crash or a failed write, is ended first, so
+        # that the next entry starts on a line of its own.
+        size = self._file.seek(0, os.SEEK_END)
+        if size:
+            self._file.seek(size - 1)
+            if self._file.read(1) != b"\n":
+                self._file.write(b"\n")
+        self._day = day
+
+    def _close(self) -> None:
+        if self._file:
+            try:
+                self._file.close()
+            except OSError:
+                pass  # Every line was flushed when it was written.
+        self._file = None
+        self._day = None
+
+    def close(self) -> None:
+        self._close()
+
+
+def _write_queued(file_queue: queue.Queue, writer: DailyFileWriter) -> None:
+    """Write queued entries until told to stop.
+
+    This is the only thread that writes the files, so no error may end it.
+    """
+    while (item := file_queue.get()) is not _STOP:
+        try:
+            writer.write(*item)
+        except Exception:
+            _files_logger.exception("log file writer failed, entry not written")
+
+
+class _FileQueueHandler(logging.Handler):
+    """Format each entry and queue it for the file writer's thread.
+
+    Formatting happens here, in the caller's thread, where the request context
+    is set. A slow or hung disk then never slows a request. When the queue is
+    full, entries are dropped from the files; stdout still has them.
+    """
+
+    def __init__(self, file_queue: queue.Queue):
+        super().__init__()
+        self.queue = file_queue
         self._dropped = 0
-        self._buffer_lock = threading.Lock()
-        self._write_lock = threading.Lock()
-        self._wake = threading.Event()
-        self._stop = threading.Event()
-        self._merged_days: set[date] = set()
-        self._thread: threading.Thread | None = None
 
-    def start(self) -> None:
-        self._thread = threading.Thread(target=self._run, name="log-files", daemon=True)
-        self._thread.start()
-
+    # `Handler.handle` holds the handler's lock around this, so the count
+    # needs no lock of its own.
     def emit(self, record: logging.LogRecord) -> None:
         try:
             line = self.format(record)
         except Exception:
             self.handleError(record)
             return
-        with self._buffer_lock:
-            self._buffer.append((record.created, line))
-            self._enforce_cap()
-            full = len(self._buffer) >= self.chunk_entries
-        if full:
-            self._wake.set()
-
-    def _enforce_cap(self) -> None:
-        while len(self._buffer) > self.max_entries:
-            self._buffer.popleft()
-            self._dropped += 1
-
-    def _run(self) -> None:
-        while not self._stop.is_set():
-            self._wake.wait(self.flush_seconds)
-            self._wake.clear()
-            # This is the only thread that writes the files, so no error may
-            # end it: it is reported, and the next flush tries again.
-            try:
-                self.write_chunks()
-                self.merge_days()
-            except Exception:
-                _files_logger.exception("log writer failed, retrying at the next flush")
-
-    def write_chunks(self) -> None:
-        """Write the buffer as chunks, one per UTC day; keep it on failure."""
-        with self._write_lock:
-            with self._buffer_lock:
-                entries = list(self._buffer)
-                self._buffer.clear()
-                dropped, self._dropped = self._dropped, 0
-            if dropped:
+        try:
+            self.queue.put_nowait((record.created, line))
+        except queue.Full:
+            if not self._dropped:
                 _files_logger.warning(
-                    "log buffer full, oldest entries dropped", dropped=dropped
+                    "log file queue full, entries reach stdout only",
+                    max_queued=self.queue.maxsize,
                 )
-            days = [
-                list(group)
-                for _, group in groupby(entries, key=lambda e: _utc_day(e[0]))
-            ]
-            for index, day_entries in enumerate(days):
-                try:
-                    self._write_chunk(day_entries)
-                except OSError as exc:
-                    unwritten = [e for group in days[index:] for e in group]
-                    with self._buffer_lock:
-                        self._buffer.extendleft(reversed(unwritten))
-                        self._enforce_cap()
-                    _files_logger.warning(
-                        "could not write a log chunk, retrying at the next flush",
-                        error=str(exc),
-                        entries=len(unwritten),
-                    )
-                    return
-
-    def _write_chunk(self, entries: list[tuple[float, str]]) -> None:
-        first = datetime.fromtimestamp(entries[0][0], timezone.utc)
-        folder = self.logs_dir / first.strftime("%Y-%m")
-        folder.mkdir(exist_ok=True)
-        stem = first.strftime("dmm-api_%Y-%m-%dT%H-%M-%SZ")
-        data = "".join(line + "\n" for _, line in entries)
-        path = folder / f"{stem}_{self.pod}.log"
-        n = 2
-        while True:
-            try:
-                with open(path, "x", encoding="utf-8") as f:
-                    f.write(data)
-                return
-            except FileExistsError:
-                path = folder / f"{stem}-{n}_{self.pod}.log"
-                n += 1
-
-    def merge_days(self, today: date | None = None) -> None:
-        """Merge this pod's chunks of each finished day into a daily file."""
-        today = today or datetime.now(timezone.utc).date()
-        # A day with entries still in the buffer, after a failed write, is not
-        # finished: its last chunk is still to come.
-        with self._buffer_lock:
-            skip = self._merged_days | {_utc_day(c) for c, _ in self._buffer}
-        found: dict[date, list[tuple[str, int, Path]]] = {}
-        months = {f"{day:%Y-%m}" for day in (today, today - timedelta(days=1))}
-        for month in sorted(months):
-            for path in (self.logs_dir / month).glob(f"dmm-api_*_{self.pod}.log"):
-                match = CHUNK_RE.match(path.name)
-                if not match or match["pod"] != self.pod:
-                    continue
-                day = date.fromisoformat(match["day"])
-                if day < today and day not in skip:
-                    found.setdefault(day, []).append(
-                        (match["time"], int(match["n"] or 1), path)
-                    )
-        for day, chunks in sorted(found.items()):
-            self._merge_day(day, [path for *_, path in sorted(chunks)])
-
-    def _merge_day(self, day: date, chunks: list[Path]) -> None:
-        daily = chunks[0].parent / f"dmm-api_{day.isoformat()}_{self.pod}.log"
-        try:
-            with open(daily, "xb") as out:
-                for chunk in chunks:
-                    with open(chunk, "rb") as f:
-                        shutil.copyfileobj(f, out)
-        except FileExistsError:
-            self._merged_days.add(day)
-            _files_logger.warning(
-                "daily log file already exists, chunks left in place",
-                file=daily.name,
-            )
+            self._dropped += 1
             return
-        except OSError as exc:
-            # A partial daily file would hide the chunks from the weekly
-            # archive, so it goes, and the day is tried again at the next flush.
-            daily.unlink(missing_ok=True)
+        if self._dropped:
             _files_logger.warning(
-                "could not write the daily log file", file=daily.name, error=str(exc)
+                "log file queue has room again", dropped=self._dropped
             )
-            return
-        self._merged_days.add(day)
-        try:
-            for chunk in chunks:
-                chunk.unlink()
-        except OSError as exc:
-            _files_logger.warning(
-                "could not delete merged log chunks", file=daily.name, error=str(exc)
-            )
-
-    def close(self) -> None:
-        self._stop.set()
-        self._wake.set()
-        if self._thread and self._thread is not threading.current_thread():
-            self._thread.join(timeout=10)
-        self.write_chunks()
-        super().close()
-
-
-def _utc_day(created: float) -> date:
-    return datetime.fromtimestamp(created, timezone.utc).date()
+            self._dropped = 0
 
 
 def configure_logging(write_files: bool = True) -> None:
     """Send structlog and standard logging to stdout and, if asked, to files."""
-    global _file_handler
+    global _queue_handler, _writer, _writer_thread
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
@@ -366,12 +305,12 @@ def configure_logging(write_files: bool = True) -> None:
         wrapper_class=structlog.stdlib.BoundLogger,
     )
 
+    close_log_files()
     root = logging.getLogger()
     for handler in _handlers:
         root.removeHandler(handler)
         handler.close()
     _handlers.clear()
-    _file_handler = None
 
     stdout = _StdoutHandler()
     stdout.setFormatter(console_formatter())
@@ -408,16 +347,38 @@ def configure_logging(write_files: bool = True) -> None:
             error=str(exc),
         )
         return
-    _file_handler = ChunkFileHandler(
-        logs_dir, config.POD_NAME, config.LOG_FLUSH_SECONDS
+    file_queue: queue.Queue = queue.Queue(maxsize=MAX_QUEUED)
+    _writer = DailyFileWriter(logs_dir, config.POD_NAME)
+    _writer_thread = threading.Thread(
+        target=_write_queued, args=(file_queue, _writer), name="log-files", daemon=True
     )
-    _file_handler.setFormatter(json_formatter())
-    root.addHandler(_file_handler)
-    _handlers.append(_file_handler)
-    _file_handler.start()
+    _writer_thread.start()
+    _queue_handler = _FileQueueHandler(file_queue)
+    _queue_handler.setFormatter(json_formatter())
+    root.addHandler(_queue_handler)
 
 
-def write_log_files() -> None:
-    """Write the buffered entries now, at shutdown."""
-    if _file_handler:
-        _file_handler.write_chunks()
+def close_log_files() -> None:
+    """Write what is still queued and close the file, at shutdown.
+
+    Waits at most `CLOSE_SECONDS` for the queue and as long again for the
+    writer. Entries logged after this reach stdout only.
+    """
+    global _queue_handler, _writer, _writer_thread
+    if not _queue_handler:
+        return
+    handler, writer, thread = _queue_handler, _writer, _writer_thread
+    _queue_handler = _writer = _writer_thread = None
+    logging.getLogger().removeHandler(handler)
+    try:
+        handler.queue.put(_STOP, timeout=CLOSE_SECONDS)
+    except queue.Full:
+        pass  # The writer is stuck; the join below times out and says so.
+    thread.join(timeout=CLOSE_SECONDS)
+    if thread.is_alive():
+        _files_logger.warning(
+            "log file writer did not finish in time, waiting entries not written",
+            waiting=handler.queue.qsize(),
+        )
+        return
+    writer.close()

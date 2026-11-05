@@ -1,10 +1,10 @@
 """Weekly archive of the log files, run by a Kubernetes CronJob.
 
-The pods write plain chunk and daily files under `LOGS_DIR`. Once a week has
-ended, this merges every pod's files for that week into one gzip file in
-timestamp order, checks it, lists the inputs next to it, and deletes them. A
-later run finishes deletes that failed. `LOGGING.md` describes the layout and
-the CronJob.
+The API pods append to one file per pod and UTC day under `LOGS_DIR`, a disk
+claim. Once a week has ended, this merges every pod's files for that week into
+one gzip file under `LOG_ARCHIVE_DIR` on the S3 mount, in timestamp order,
+reads it back to check it, and deletes the files. `LOGGING.md` describes the
+layout and the CronJob.
 
 Run as `python -m dmm_api.tools.log_archive`; it exits with 1 if any week
 failed.
@@ -21,7 +21,7 @@ from typing import Iterator
 import structlog
 
 from dmm_api import config
-from dmm_api.logging_config import CHUNK_RE, DAILY_RE, configure_logging
+from dmm_api.logging_config import LOG_FILE_RE, configure_logging
 
 logger = structlog.get_logger(__name__)
 
@@ -31,11 +31,11 @@ def _monday(day: date) -> date:
 
 
 def find_weeks(logs_dir: Path, today: date) -> dict[date, list[Path]]:
-    """Group the plain log files of every finished week by the week's Monday."""
+    """Group the log files of every finished week by the week's Monday."""
     current = _monday(today)
     weeks: dict[date, list[Path]] = {}
-    for path in sorted(logs_dir.glob("*/dmm-api_*.log")):
-        match = CHUNK_RE.match(path.name) or DAILY_RE.match(path.name)
+    for path in sorted(logs_dir.glob("dmm-api_*.log")):
+        match = LOG_FILE_RE.match(path.name)
         if not match:
             continue
         monday = _monday(date.fromisoformat(match["day"]))
@@ -63,109 +63,101 @@ def _entries(path: Path) -> Iterator[tuple[str, str]]:
             yield timestamp, line
 
 
-def _delete(paths: list[Path]) -> bool:
+def _free_name(archive_dir: Path, monday: date) -> Path:
+    """The week's archive name, numbered if an earlier run already took it.
+
+    S3 files cannot be overwritten, so files left by a failed delete, or
+    written late, go into a second archive of the same week rather than into
+    the first.
+    """
+    stem = f"dmm-api_week_{monday.isoformat()}"
+    path = archive_dir / f"{stem}.log.gz"
+    n = 2
+    while path.exists():
+        path = archive_dir / f"{stem}-{n}.log.gz"
+        n += 1
+    return path
+
+
+def _discard(archive: Path) -> None:
+    """Delete a failed archive, so that nobody takes it for a whole week."""
+    try:
+        archive.unlink(missing_ok=True)
+    except OSError as exc:
+        logger.error(
+            "could not delete a failed weekly log archive, the next run writes "
+            "another beside it",
+            archive=str(archive),
+            error=str(exc),
+        )
+
+
+def _delete(sizes: dict[Path, int]) -> bool:
+    """Delete the archived files, keeping any that grew after it was read.
+
+    A pod still writing a backlog after a disk outage can append to a file of
+    the week being archived; such a file goes into the week's next archive.
+    """
     ok = True
-    for path in paths:
+    for path, size in sizes.items():
         try:
+            if path.stat().st_size != size:
+                logger.warning(
+                    "log file grew while it was archived, kept for the next run",
+                    file=str(path),
+                )
+                continue
             path.unlink()
         except OSError as exc:
             logger.error(
-                "could not delete an archived log file", file=str(path), error=str(exc)
+                "could not delete an archived log file, the next run archives "
+                "it again",
+                file=str(path),
+                error=str(exc),
             )
             ok = False
     return ok
 
 
-def _name(logs_dir: Path, path: Path) -> str:
-    return path.relative_to(logs_dir).as_posix()
-
-
-def _finish_archived_week(
-    logs_dir: Path, archive: Path, inputs_list: Path, paths: list[Path]
-) -> bool:
-    """Delete what an earlier run archived but could not delete.
-
-    Only files named in the archive's inputs list are deleted. Any other file
-    arrived after the archive was written, so it is kept and reported.
-    """
-    try:
-        archived = set(inputs_list.read_text(encoding="utf-8").splitlines())
-    except OSError as exc:
-        logger.error(
-            "weekly log archive exists without its inputs list, week left untouched",
-            archive=str(archive),
-            error=str(exc),
-        )
-        return False
-    leftovers = [p for p in paths if _name(logs_dir, p) in archived]
-    unarchived = [p for p in paths if _name(logs_dir, p) not in archived]
-    for path in unarchived:
-        logger.error(
-            "log file is not in the existing weekly archive, kept",
-            file=str(path),
-            archive=str(archive),
-        )
-    return _delete(leftovers) and not unarchived
-
-
-def archive_week(logs_dir: Path, monday: date, paths: list[Path]) -> bool:
-    """Write the week's archive and delete its inputs; False on any error."""
-    folder = logs_dir / f"{monday:%Y-%m}"
-    archive = folder / f"dmm-api_week_{monday.isoformat()}.log.gz"
-    # Named so that `zcat -f dmm-api_*` in LOGGING.md does not read it.
-    inputs_list = folder / f"inputs_week_{monday.isoformat()}.txt"
-    if archive.exists():
-        return _finish_archived_week(logs_dir, archive, inputs_list, paths)
-
-    # A daily file already holds its pod's chunks for that day. Such chunks
-    # are left out of the archive but deleted with the rest.
-    dailies = {(m["pod"], m["day"]) for p in paths if (m := DAILY_RE.match(p.name))}
-    sources = [
-        p
-        for p in paths
-        if not ((m := CHUNK_RE.match(p.name)) and (m["pod"], m["day"]) in dailies)
-    ]
-
+def archive_week(archive_dir: Path, monday: date, paths: list[Path]) -> bool:
+    """Write the week's archive and delete its files; False on any error."""
+    name: Path | None = None
+    # Set once this run has created the file, so that only its own file is
+    # ever discarded.
+    archive: Path | None = None
     written = 0
     try:
-        folder.mkdir(exist_ok=True)
-        with gzip.open(archive, "xt", encoding="utf-8") as out:
-            merged = heapq.merge(*(_entries(p) for p in sources), key=lambda e: e[0])
+        sizes = {p: p.stat().st_size for p in paths}
+        archive_dir.mkdir(parents=True, exist_ok=True)
+        name = _free_name(archive_dir, monday)
+        with gzip.open(name, "xt", encoding="utf-8") as out:
+            archive = name
+            merged = heapq.merge(*(_entries(p) for p in paths), key=lambda e: e[0])
             for _, line in merged:
                 out.write(line + "\n")
                 written += 1
         with gzip.open(archive, "rt", encoding="utf-8") as f:
             read_back = sum(1 for _ in f)
-    except OSError as exc:
+    except (OSError, EOFError) as exc:
         logger.error(
-            "could not write the weekly log archive",
-            archive=str(archive),
+            "could not write the weekly log archive, files kept",
+            archive=str(name),
             error=str(exc),
         )
+        if archive:
+            _discard(archive)
         return False
     if read_back != written:
         logger.error(
-            "weekly log archive check failed, inputs kept",
+            "weekly log archive check failed, files kept",
             archive=str(archive),
             written=written,
             read_back=read_back,
         )
+        _discard(archive)
         return False
 
-    # Written before any delete, so that a later run can finish the deletes
-    # without touching files the archive does not hold.
-    try:
-        with open(inputs_list, "x", encoding="utf-8") as f:
-            f.write("".join(_name(logs_dir, p) + "\n" for p in paths))
-    except OSError as exc:
-        logger.error(
-            "could not write the inputs list, inputs kept",
-            inputs_list=str(inputs_list),
-            error=str(exc),
-        )
-        return False
-
-    ok = _delete(paths)
+    ok = _delete(sizes)
     logger.info(
         "archived a week of logs",
         archive=str(archive),
@@ -175,18 +167,25 @@ def archive_week(logs_dir: Path, monday: date, paths: list[Path]) -> bool:
     return ok
 
 
-def run(logs_dir: Path, today: date) -> int:
+def run(logs_dir: Path, archive_dir: Path, today: date) -> int:
     weeks = find_weeks(logs_dir, today)
     if not weeks:
         logger.info("no finished week to archive", logs_dir=str(logs_dir))
         return 0
-    results = [archive_week(logs_dir, m, paths) for m, paths in sorted(weeks.items())]
+    results = [
+        archive_week(archive_dir, monday, paths)
+        for monday, paths in sorted(weeks.items())
+    ]
     return 0 if all(results) else 1
 
 
 def main() -> int:
     configure_logging(write_files=False)
-    return run(Path(config.LOGS_DIR), datetime.now(timezone.utc).date())
+    return run(
+        Path(config.LOGS_DIR),
+        Path(config.LOG_ARCHIVE_DIR),
+        datetime.now(timezone.utc).date(),
+    )
 
 
 if __name__ == "__main__":

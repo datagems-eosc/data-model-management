@@ -3,7 +3,9 @@ import gzip
 import io
 import json
 import logging
+import queue
 import re
+import threading
 import time
 import uuid
 from datetime import date, datetime, timezone
@@ -15,16 +17,19 @@ from fastapi import APIRouter, HTTPException
 from fastapi.testclient import TestClient
 from structlog.testing import capture_logs
 
-from dmm_api import config
+from dmm_api import config, logging_config
 from dmm_api.logging_config import (
     FIXED_FIELDS,
-    ChunkFileHandler,
+    DailyFileWriter,
+    close_log_files,
+    configure_logging,
     json_formatter,
     request_context,
     set_user_id,
 )
 from dmm_api.main import app
 from dmm_api.resources.security import FailedDependencyException
+from dmm_api.tools import log_archive
 from dmm_api.tools.log_archive import run
 
 
@@ -38,10 +43,8 @@ def _record(when: datetime, message: str = "entry") -> logging.LogRecord:
     return record
 
 
-def _handler(logs_dir: Path, pod: str = "pod-a", **kwargs) -> ChunkFileHandler:
-    handler = ChunkFileHandler(logs_dir, pod, **kwargs)
-    handler.setFormatter(json_formatter())
-    return handler
+def _line(event: str) -> str:
+    return json.dumps({"event": event})
 
 
 def _files(logs_dir: Path) -> list[str]:
@@ -131,246 +134,294 @@ def test_no_log_call_passes_a_reserved_field():
     assert offending == []
 
 
-# Chunks
+# Files
 
 
-def test_a_flush_writes_one_chunk(tmp_path):
-    handler = _handler(tmp_path)
-    handler.emit(_record(_utc(2026, 11, 3, 10, 15, 3, 412000), "first"))
-    handler.emit(_record(_utc(2026, 11, 3, 10, 15, 4), "second"))
-    handler.write_chunks()
-    assert _files(tmp_path) == ["2026-11/dmm-api_2026-11-03T10-15-03Z_pod-a.log"]
-    chunk = tmp_path / "2026-11/dmm-api_2026-11-03T10-15-03Z_pod-a.log"
-    assert _events(chunk) == ["first", "second"]
+def _at(*args: int) -> float:
+    return _utc(*args).timestamp()
 
 
-def test_a_chunk_never_spans_two_days(tmp_path):
-    handler = _handler(tmp_path)
-    handler.emit(_record(_utc(2026, 10, 31, 23, 59, 59)))
-    handler.emit(_record(_utc(2026, 11, 1, 0, 0, 1)))
-    handler.write_chunks()
+def test_entries_go_to_the_pods_file_of_their_day(tmp_path):
+    writer = DailyFileWriter(tmp_path, "pod-a")
+    writer.write(_at(2026, 11, 2, 23, 59, 59), _line("before"))
+    writer.write(_at(2026, 11, 3, 0, 0, 1), _line("after"))
+    writer.write(_at(2026, 11, 2, 23, 59, 59, 999000), _line("late"))
+    writer.close()
     assert _files(tmp_path) == [
-        "2026-10/dmm-api_2026-10-31T23-59-59Z_pod-a.log",
-        "2026-11/dmm-api_2026-11-01T00-00-01Z_pod-a.log",
+        "dmm-api_2026-11-02_pod-a.log",
+        "dmm-api_2026-11-03_pod-a.log",
+    ]
+    assert _events(tmp_path / "dmm-api_2026-11-02_pod-a.log") == ["before", "late"]
+    assert _events(tmp_path / "dmm-api_2026-11-03_pod-a.log") == ["after"]
+
+
+def test_a_restarted_pod_appends_and_ends_a_cut_line_first(tmp_path):
+    path = tmp_path / "dmm-api_2026-11-03_pod-a.log"
+    _write(path, _line("old") + "\n", '{"event": "cut')
+    writer = DailyFileWriter(tmp_path, "pod-a")
+    writer.write(_at(2026, 11, 3, 10), _line("new"))
+    writer.close()
+    assert path.read_text().splitlines() == [
+        _line("old"),
+        '{"event": "cut',
+        _line("new"),
     ]
 
 
-def test_a_taken_chunk_name_gets_a_number(tmp_path):
-    handler = _handler(tmp_path)
-    for _ in range(2):
-        handler.emit(_record(_utc(2026, 11, 3, 10, 0, 0)))
-        handler.write_chunks()
-    assert _files(tmp_path) == [
-        "2026-11/dmm-api_2026-11-03T10-00-00Z-2_pod-a.log",
-        "2026-11/dmm-api_2026-11-03T10-00-00Z_pod-a.log",
-    ]
-
-
-def test_a_failed_write_keeps_the_entries_for_the_next_flush(tmp_path):
+def test_a_failed_open_is_reported_once_and_writing_resumes(tmp_path):
     blocked = tmp_path / "blocked"
     blocked.write_text("")
-    handler = _handler(blocked)
-    handler.emit(_record(_utc(2026, 11, 3, 10, 0, 0), "kept"))
-    handler.write_chunks()
-    handler.logs_dir = tmp_path / "logs"
-    handler.logs_dir.mkdir()
-    handler.write_chunks()
-    assert _events(
-        handler.logs_dir / "2026-11/dmm-api_2026-11-03T10-00-00Z_pod-a.log"
-    ) == ["kept"]
-
-
-def test_a_full_buffer_drops_the_oldest_entries(tmp_path):
-    handler = _handler(tmp_path, max_entries=3)
-    for second in range(5):
-        handler.emit(_record(_utc(2026, 11, 3, 10, 0, second), f"e{second}"))
-    handler.write_chunks()
-    (chunk,) = tmp_path.rglob("*.log")
-    assert _events(chunk) == ["e2", "e3", "e4"]
-
-
-def test_a_buffer_at_chunk_size_wakes_the_writer(tmp_path):
-    handler = _handler(tmp_path, chunk_entries=2)
-    handler.emit(_record(_utc(2026, 11, 3, 10, 0, 0)))
-    assert not handler._wake.is_set()
-    handler.emit(_record(_utc(2026, 11, 3, 10, 0, 1)))
-    assert handler._wake.is_set()
-
-
-def test_an_error_does_not_stop_the_writer(tmp_path, monkeypatch):
-    handler = _handler(tmp_path, flush_seconds=0.01)
-    calls = []
-
-    def merge_days(today=None):
-        calls.append(today)
-        if len(calls) == 1:
-            raise OSError("mount gone")
-
-    monkeypatch.setattr(handler, "merge_days", merge_days)
-    handler.start()
-    deadline = time.monotonic() + 5
-    while len(calls) < 2 and time.monotonic() < deadline:
-        time.sleep(0.01)
-    handler.close()
-    assert len(calls) >= 2
-
-
-# Daily files
-
-
-def test_the_daily_merge_joins_the_pods_chunks_in_order(tmp_path):
-    month = tmp_path / "2026-11"
-    _write(month / "dmm-api_2026-11-02T23-00-00Z-2_pod-a.log", "a2\n")
-    _write(month / "dmm-api_2026-11-02T23-00-00Z_pod-a.log", "a1\n")
-    _write(month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log", "a0\n")
-    _write(month / "dmm-api_2026-11-02T10-00-00Z_pod-b.log", "b0\n")
-    _write(month / "dmm-api_2026-11-03T00-01-00Z_pod-a.log", "today\n")
-    _handler(tmp_path).merge_days(today=date(2026, 11, 3))
-    assert (month / "dmm-api_2026-11-02_pod-a.log").read_text() == "a0\na1\na2\n"
-    assert _files(tmp_path) == [
-        "2026-11/dmm-api_2026-11-02T10-00-00Z_pod-b.log",
-        "2026-11/dmm-api_2026-11-02_pod-a.log",
-        "2026-11/dmm-api_2026-11-03T00-01-00Z_pod-a.log",
+    writer = DailyFileWriter(blocked, "pod-a")
+    with capture_logs() as logs:
+        writer.write(_at(2026, 11, 3, 10), _line("lost 1"))
+        writer.write(_at(2026, 11, 3, 10), _line("lost 2"))
+        writer.logs_dir = tmp_path
+        writer.write(_at(2026, 11, 3, 10), _line("kept"))
+    writer.close()
+    assert [e["event"] for e in logs] == [
+        "could not write the log file, entries reach stdout only",
+        "log file writes resumed",
     ]
+    assert logs[1]["missed"] == 2
+    assert _events(tmp_path / "dmm-api_2026-11-03_pod-a.log") == ["kept"]
 
 
-def test_the_daily_file_goes_in_the_folder_of_its_month(tmp_path):
-    _write(tmp_path / "2026-10/dmm-api_2026-10-31T23-00-00Z_pod-a.log", "a\n")
-    _handler(tmp_path).merge_days(today=date(2026, 11, 1))
-    assert _files(tmp_path) == ["2026-10/dmm-api_2026-10-31_pod-a.log"]
+class _FullDisk:
+    def write(self, data):
+        raise OSError(28, "No space left on device")
+
+    def close(self):
+        pass
 
 
-def test_an_existing_daily_file_stops_the_merge(tmp_path):
-    month = tmp_path / "2026-11"
-    _write(month / "dmm-api_2026-11-02_pod-a.log", "old\n")
-    _write(month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log", "a0\n")
-    _handler(tmp_path).merge_days(today=date(2026, 11, 3))
-    assert (month / "dmm-api_2026-11-02_pod-a.log").read_text() == "old\n"
-    assert (month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log").exists()
+def test_a_failed_write_to_an_open_file_reopens_it(tmp_path):
+    writer = DailyFileWriter(tmp_path, "pod-a")
+    writer.write(_at(2026, 11, 3, 10), _line("first"))
+    writer._file.close()
+    writer._file = _FullDisk()
+    with capture_logs() as logs:
+        writer.write(_at(2026, 11, 3, 10), _line("lost"))
+        writer.write(_at(2026, 11, 3, 10), _line("kept"))
+    writer.close()
+    assert logs[1]["missed"] == 1
+    assert _events(tmp_path / "dmm-api_2026-11-03_pod-a.log") == ["first", "kept"]
 
 
-def test_a_day_with_buffered_entries_waits_for_its_last_chunk(tmp_path):
-    month = tmp_path / "2026-11"
-    _write(month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log", "a0\n")
-    handler = _handler(tmp_path)
-    handler.emit(_record(_utc(2026, 11, 2, 23, 59, 59), "late"))
-    handler.merge_days(today=date(2026, 11, 3))
-    assert _files(tmp_path) == ["2026-11/dmm-api_2026-11-02T09-00-00Z_pod-a.log"]
+def test_no_error_stops_the_file_writer():
+    class Writer:
+        def __init__(self):
+            self.lines = []
 
-    handler.write_chunks()
-    handler.merge_days(today=date(2026, 11, 3))
-    assert _files(tmp_path) == ["2026-11/dmm-api_2026-11-02_pod-a.log"]
-    first, late = (month / "dmm-api_2026-11-02_pod-a.log").read_text().splitlines()
-    assert first == "a0"
-    assert json.loads(late)["event"] == "late"
+        def write(self, created, line):
+            if line == "bad":
+                raise ValueError("not a log line")
+            self.lines.append(line)
+
+    file_queue: queue.Queue = queue.Queue()
+    for line in ("bad", "good"):
+        file_queue.put((0.0, line))
+    file_queue.put(logging_config._STOP)
+    writer = Writer()
+    with capture_logs() as logs:
+        logging_config._write_queued(file_queue, writer)
+    assert writer.lines == ["good"]
+    assert logs[0]["event"] == "log file writer failed, entry not written"
+
+
+def test_a_full_queue_drops_entries_and_says_how_many():
+    file_queue: queue.Queue = queue.Queue(maxsize=1)
+    handler = logging_config._FileQueueHandler(file_queue)
+    handler.setFormatter(json_formatter())
+    with capture_logs() as logs:
+        for event in ("queued", "dropped 1", "dropped 2"):
+            handler.handle(_record(_utc(2026, 11, 3, 10), event))
+        file_queue.get_nowait()
+        handler.handle(_record(_utc(2026, 11, 3, 10), "queued again"))
+    assert [e["event"] for e in logs] == [
+        "log file queue full, entries reach stdout only",
+        "log file queue has room again",
+    ]
+    assert logs[1]["dropped"] == 2
+    _, line = file_queue.get_nowait()
+    assert json.loads(line)["event"] == "queued again"
+
+
+@pytest.fixture
+def log_files(tmp_path, monkeypatch):
+    """Log to files under `tmp_path`, as the API does, for one test."""
+    monkeypatch.setattr(config, "LOGS_DIR", str(tmp_path))
+    monkeypatch.setattr(config, "POD_NAME", "pod-a")
+    configure_logging()
+    yield tmp_path
+    monkeypatch.undo()
+    configure_logging()
+
+
+def _file_entries(logs_dir: Path) -> list[dict]:
+    (path,) = logs_dir.glob("dmm-api_*_pod-a.log")
+    return [json.loads(line) for line in path.read_text().splitlines()]
+
+
+def test_a_file_entry_carries_the_request_context(log_files):
+    with request_context("abc-123"):
+        set_user_id("user-1")
+        structlog.get_logger("tests.files").warning("inside", dataset_id="d1")
+    close_log_files()
+    (entry,) = [e for e in _file_entries(log_files) if e["event"] == "inside"]
+    assert entry["correlation_id"] == "abc-123"
+    assert entry["user_id"] == "user-1"
+    assert entry["pod"] == "pod-a"
+    assert entry["dataset_id"] == "d1"
+
+
+def test_a_lone_surrogate_is_written_escaped(log_files):
+    logger = structlog.get_logger("tests.files")
+    logger.warning("odd", ap={"q": "\ud800"})
+    logger.warning("next")
+    close_log_files()
+    odd, after = [e for e in _file_entries(log_files) if e["event"] in ("odd", "next")]
+    assert odd["ap"] == {"q": "\ud800"}
+    assert after["event"] == "next"
+
+
+def test_shutdown_does_not_wait_for_a_hung_disk(log_files, monkeypatch):
+    monkeypatch.setattr(logging_config, "CLOSE_SECONDS", 0.1)
+    released = threading.Event()
+    monkeypatch.setattr(
+        logging_config._writer, "write", lambda created, line: released.wait()
+    )
+    structlog.get_logger("tests.files").warning("stuck")
+    started = time.monotonic()
+    with capture_logs() as logs:
+        close_log_files()
+    released.set()
+    assert time.monotonic() - started < 1
+    assert logs[-1]["event"] == (
+        "log file writer did not finish in time, waiting entries not written"
+    )
 
 
 # Weekly archive
 
 
+def _archived(archive_dir: Path, name: str = "dmm-api_week_2026-10-26.log.gz"):
+    with gzip.open(archive_dir / name, "rt") as f:
+        return [
+            json.loads(line)["event"] if line.startswith("{") else line.rstrip("\n")
+            for line in f
+        ]
+
+
 def test_the_weekly_archive_merges_every_pod_in_time_order(tmp_path):
-    october, november = tmp_path / "2026-10", tmp_path / "2026-11"
+    logs, s3 = tmp_path / "logs", tmp_path / "s3"
     _write(
-        october / "dmm-api_2026-10-30_pod-a.log",
+        logs / "dmm-api_2026-10-30_pod-a.log",
         _entry("2026-10-30T10:00:00.000Z", "a1"),
         _entry("2026-10-30T12:00:00.000Z", "a3"),
     )
     _write(
-        october / "dmm-api_2026-10-30_pod-b.log",
+        logs / "dmm-api_2026-10-30_pod-b.log",
         _entry("2026-10-30T11:00:00.000Z", "b2"),
         "not json\n",
         _entry("2026-10-30T13:00:00.000Z", "b4"),
     )
-    # Covered by pod-a's daily file: left out, but deleted.
     _write(
-        october / "dmm-api_2026-10-30T10-00-00Z_pod-a.log",
-        _entry("2026-10-30T10:00:00.000Z", "a1 again"),
-    )
-    # A pod that died before its daily merge.
-    _write(
-        november / "dmm-api_2026-11-01T09-00-00Z_pod-c.log",
+        logs / "dmm-api_2026-11-01_pod-c.log",
         _entry("2026-11-01T09:00:00.000Z", "c5"),
     )
+    # The current week: left alone.
     _write(
-        november / "dmm-api_2026-11-03_pod-a.log",
+        logs / "dmm-api_2026-11-03_pod-a.log",
         _entry("2026-11-03T09:00:00.000Z", "now"),
     )
 
-    assert run(tmp_path, date(2026, 11, 4)) == 0
+    assert run(logs, s3, date(2026, 11, 4)) == 0
 
-    archive = october / "dmm-api_week_2026-10-26.log.gz"
-    with gzip.open(archive, "rt") as f:
-        lines = f.read().splitlines()
-    assert [
-        json.loads(line)["event"] if line.startswith("{") else line for line in lines
-    ] == [
-        "a1",
-        "b2",
-        "not json",
-        "a3",
-        "b4",
-        "c5",
-    ]
-    assert _files(tmp_path) == [
-        "2026-10/dmm-api_week_2026-10-26.log.gz",
-        "2026-10/inputs_week_2026-10-26.txt",
-        "2026-11/dmm-api_2026-11-03_pod-a.log",
-    ]
-    assert (october / "inputs_week_2026-10-26.txt").read_text().splitlines() == [
-        "2026-10/dmm-api_2026-10-30T10-00-00Z_pod-a.log",
-        "2026-10/dmm-api_2026-10-30_pod-a.log",
-        "2026-10/dmm-api_2026-10-30_pod-b.log",
-        "2026-11/dmm-api_2026-11-01T09-00-00Z_pod-c.log",
-    ]
+    assert _archived(s3) == ["a1", "b2", "not json", "a3", "b4", "c5"]
+    assert _files(logs) == ["dmm-api_2026-11-03_pod-a.log"]
+    assert _files(s3) == ["dmm-api_week_2026-10-26.log.gz"]
 
 
-def test_a_week_in_the_next_month_gets_its_mondays_folder(tmp_path):
+def test_a_failed_archive_is_deleted_and_the_files_kept(tmp_path, monkeypatch):
+    logs, s3 = tmp_path / "logs", tmp_path / "s3"
     _write(
-        tmp_path / "2026-11/dmm-api_2026-11-01_pod-a.log",
-        _entry("2026-11-01T10:00:00.000Z", "a"),
+        logs / "dmm-api_2026-10-30_pod-a.log",
+        _entry("2026-10-30T10:00:00.000Z", "a"),
     )
-    assert run(tmp_path, date(2026, 11, 4)) == 0
-    assert (tmp_path / "2026-10/dmm-api_week_2026-10-26.log.gz").exists()
+
+    def fail_midway(path):
+        yield "2026-10-30T10:00:00.000Z", _line("written")
+        raise OSError("disk gone")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(log_archive, "_entries", fail_midway)
+        assert run(logs, s3, date(2026, 11, 4)) == 1
+    assert _files(s3) == []
+    assert _files(logs) == ["dmm-api_2026-10-30_pod-a.log"]
+
+    assert run(logs, s3, date(2026, 11, 4)) == 0
+    assert _archived(s3) == ["a"]
 
 
-def test_a_later_run_finishes_failed_deletes(tmp_path, monkeypatch):
-    october = tmp_path / "2026-10"
-    daily = october / "dmm-api_2026-10-30_pod-a.log"
-    _write(daily, _entry("2026-10-30T10:00:00.000Z", "a"))
+def test_a_taken_archive_name_gets_a_number(tmp_path):
+    logs, s3 = tmp_path / "logs", tmp_path / "s3"
+    _write(s3 / "dmm-api_week_2026-10-26.log.gz", "left by an earlier run")
+    _write(
+        logs / "dmm-api_2026-10-30_pod-a.log",
+        _entry("2026-10-30T23:00:00.000Z", "late"),
+    )
+    assert run(logs, s3, date(2026, 11, 4)) == 0
+    assert _archived(s3, "dmm-api_week_2026-10-26-2.log.gz") == ["late"]
+    assert (s3 / "dmm-api_week_2026-10-26.log.gz").read_text() == (
+        "left by an earlier run"
+    )
+
+
+def test_a_file_that_could_not_be_deleted_is_archived_again(tmp_path, monkeypatch):
+    logs, s3 = tmp_path / "logs", tmp_path / "s3"
+    path = logs / "dmm-api_2026-10-30_pod-a.log"
+    _write(path, _entry("2026-10-30T10:00:00.000Z", "a"))
 
     def refuse(self, missing_ok=False):
         raise PermissionError("deletes not allowed")
 
     with monkeypatch.context() as patch:
         patch.setattr(Path, "unlink", refuse)
-        assert run(tmp_path, date(2026, 11, 4)) == 1
-    assert daily.exists()
+        assert run(logs, s3, date(2026, 11, 4)) == 1
+    assert path.exists()
 
-    # A file that arrives after the archive is not in it, so it stays.
-    late = october / "dmm-api_2026-10-30T23-00-00Z_pod-b.log"
-    _write(late, _entry("2026-10-30T23:00:00.000Z", "late"))
-    assert run(tmp_path, date(2026, 11, 4)) == 1
-    assert not daily.exists()
-    assert late.exists()
-    assert run(tmp_path, date(2026, 11, 4)) == 1
+    assert run(logs, s3, date(2026, 11, 4)) == 0
+    assert not path.exists()
+    assert _files(s3) == [
+        "dmm-api_week_2026-10-26-2.log.gz",
+        "dmm-api_week_2026-10-26.log.gz",
+    ]
 
 
-def test_an_archive_without_its_inputs_list_leaves_the_week_untouched(tmp_path):
-    october = tmp_path / "2026-10"
-    _write(
-        october / "dmm-api_2026-10-30_pod-a.log",
-        _entry("2026-10-30T10:00:00.000Z", "a"),
-    )
-    october.joinpath("dmm-api_week_2026-10-26.log.gz").write_bytes(b"existing")
-    assert run(tmp_path, date(2026, 11, 4)) == 1
-    assert (
-        october.joinpath("dmm-api_week_2026-10-26.log.gz").read_bytes() == b"existing"
-    )
-    assert october.joinpath("dmm-api_2026-10-30_pod-a.log").exists()
+def test_a_file_that_grows_while_archived_is_kept(tmp_path, monkeypatch):
+    logs, s3 = tmp_path / "logs", tmp_path / "s3"
+    path = logs / "dmm-api_2026-11-01_pod-a.log"
+    _write(path, _entry("2026-11-01T23:00:00.000Z", "first"))
+    read = log_archive._entries
+
+    def append_after_reading(p):
+        yield from read(p)
+        with open(p, "a") as f:
+            f.write(_entry("2026-11-01T23:59:59.000Z", "backlog"))
+
+    with monkeypatch.context() as patch:
+        patch.setattr(log_archive, "_entries", append_after_reading)
+        assert run(logs, s3, date(2026, 11, 4)) == 0
+    assert _archived(s3) == ["first"]
+    assert path.exists()
+
+    assert run(logs, s3, date(2026, 11, 4)) == 0
+    assert _archived(s3, "dmm-api_week_2026-10-26-2.log.gz") == ["first", "backlog"]
+    assert not path.exists()
 
 
 def test_nothing_to_archive_is_not_an_error(tmp_path):
-    assert run(tmp_path, date(2026, 11, 4)) == 0
+    assert run(tmp_path, tmp_path / "s3", date(2026, 11, 4)) == 0
 
 
 # Requests

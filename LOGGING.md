@@ -1,7 +1,8 @@
 # Logging
 
-The API logs to stdout and to files on the S3 mount. stdout is what
-`kubectl logs` shows, and is gone with the pod. The files stay.
+The API logs to stdout and to files on a disk claim. stdout is what
+`kubectl logs` shows and what the platform's ELK stack collects, for a limited
+time. The files stay: each finished week is archived to S3.
 
 ## Finding a request
 
@@ -13,16 +14,17 @@ body a `correlationId`:
 ```
 
 To look into a failed call, ask whoever made it for that ID and the
-approximate time. Then search the month's folder. `zgrep` and `zcat -f` read
-plain and gzipped files alike, so the same commands work before and after a
-week is archived:
+approximate time. Days not archived yet are in `LOGS_DIR`, on the disk claim;
+earlier weeks are in `LOG_ARCHIVE_DIR`, on S3. `zgrep` and `zcat -f` read plain
+and gzipped files alike, so the same commands work in both:
 
 ```sh
-cd /s3/data-model-management/logs/2026-11
+cd /logs
 zgrep -h 5b1e0c9a dmm-api_*
-zcat -f dmm-api_2026-11-02* | jq -c 'select(.outcome == "server_error")'
-zcat -f dmm-api_week_2026-10-26.log.gz | jq -c 'select(.level == "warning")'
-zcat -f dmm-api_* | jq -c 'select(.user_id == "16a5380f-4787-44dd-a552-c7095f2d12d1")'
+zcat -f dmm-api_2026-11-02_* | jq -c 'select(.outcome == "server_error")'
+cd /s3/data-model-management/logs
+zcat -f dmm-api_week_2026-10-26*.log.gz | jq -c 'select(.level == "warning")'
+zcat -f dmm-api_week_* | jq -c 'select(.user_id == "16a5380f-4787-44dd-a552-c7095f2d12d1")'
 ```
 
 The ID is taken from the request's `x-tracking-correlation` header when it is
@@ -89,58 +91,57 @@ are empty.
 ## Files
 
 ```
-logs/
-  2026-11/
-    dmm-api_week_2026-10-26.log.gz                                # weekly archive, all pods
-    dmm-api_2026-11-02_data-model-management-7c9f-x2k4q.log            # daily, one pod
-    dmm-api_2026-11-03T00-00-07Z_data-model-management-7c9f-x2k4q.log  # chunk, one pod
+/logs/                                                     # LOGS_DIR, the disk claim
+  dmm-api_2026-11-03_data-model-management-7c9f-x2k4q.log  # one pod, one day
+/s3/data-model-management/logs/                            # LOG_ARCHIVE_DIR, on S3
+  dmm-api_week_2026-10-26.log.gz                           # one week, all pods
 ```
 
 | File | Name | Written |
 | - | - | - |
-| Chunk | `dmm-api_<UTC time of its first entry>_<pod>.log` | by each pod, every `LOG_FLUSH_SECONDS` |
-| Daily | `dmm-api_<day>_<pod>.log` | by each pod, at its first flush after midnight UTC |
-| Weekly archive | `dmm-api_week_<Monday>.log.gz` | by the CronJob, Mondays 01:00 UTC |
-| Archive inputs list | `inputs_week_<Monday>.txt` | by the CronJob, with each archive |
+| Daily | `dmm-api_<day>_<pod>.log`, under `LOGS_DIR` | by each pod, one entry at a time |
+| Weekly archive | `dmm-api_week_<Monday>.log.gz`, under `LOG_ARCHIVE_DIR` | by the CronJob, Mondays 01:00 UTC |
 
-- Every file sits in the folder of its day's month; a weekly archive in the
-  folder of its Monday's month. Weeks run Monday to Sunday, UTC.
-- Chunks and daily files are plain text; only the weekly archive is gzipped.
-  It holds every pod's entries for the week, in timestamp order.
-- When two chunks would get the same name, the second gets `-2` after the
-  time, the third `-3`, and so on.
-- A pod writes, merges and deletes only its own files, so the two pods that
-  overlap during a rolling update never touch each other's.
+- Days are UTC; weeks run Monday to Sunday.
+- Each pod appends to its own file, so the two pods that overlap during a
+  rolling update never write to the same one. A container restarted in the
+  same pod keeps the pod name and appends to the same file; a line cut short
+  by a crash is ended before the next entry.
+- Daily files are plain text. A weekly archive holds every pod's entries for
+  the week, in timestamp order.
+- An archive is written once and never changed. A week that gets a second
+  archive (see below) has it named `dmm-api_week_<Monday>-2.log.gz`, then
+  `-3`, and so on.
 
-The S3 mount cannot append to a file, so every file is written once, in full,
-and never changed. The only other operation is deleting files once they have
-been merged or archived. Nothing deletes an archive: expiring old ones, if
-wanted, is an S3 lifecycle rule on `logs/`.
+The API pods and the CronJob mount the claim at the same time, so it must be
+ReadWriteMany. Nothing deletes an archive: expiring old ones, if wanted, is an
+S3 lifecycle rule on `logs/`.
 
 ### What can be missing from the files
 
-- Entries are buffered in memory between flushes. A pod killed without
-  warning (out of memory, node failure) loses up to `LOG_FLUSH_SECONDS` of
-  entries from the files. stdout still had them.
-- On a normal stop, the API writes its buffer during shutdown. uvicorn's last
-  two messages ("Application shutdown complete", "Finished server process")
-  come after that and reach stdout only.
-- If the mount cannot be written, the entries stay in the buffer and are
-  retried at the next flush. The buffer holds at most 50,000 entries; past
-  that the oldest are dropped, and a warning on stdout gives the number.
+- Each entry is formatted in the request and handed to a background thread
+  that appends it to the file, so a slow disk never slows a request. A pod
+  killed without warning loses only the entries still waiting, normally none.
+  stdout still had them.
+- At most 50,000 entries wait. If the disk falls further behind, or cannot be
+  written, new entries reach stdout only. A warning on stdout says so, and a
+  second one gives the number missed once writing resumes.
+- On a normal stop, the API writes what is waiting during shutdown, for at
+  most 10 seconds; a warning on stdout gives the number left unwritten.
+  uvicorn's last two messages ("Application shutdown complete", "Finished
+  server process") come after that and reach stdout only.
 - If `LOGS_DIR` cannot be created or written when the API starts, a warning
   goes to stdout and the API logs to stdout only.
 
-Problems with the log files themselves (a failed write, merge or delete) are
-reported on stdout only.
+Problems with the log files themselves are reported on stdout only.
 
 ## Settings
 
 | Variable | Default | Meaning |
 | - | - | - |
-| `LOGS_DIR` | `/s3/data-model-management/logs` | Root folder of the log files |
+| `LOGS_DIR` | `/logs` | Folder of the daily files, on the disk claim |
+| `LOG_ARCHIVE_DIR` | `/s3/data-model-management/logs` | Folder of the weekly archives, on the S3 mount; read by the archive job only |
 | `LOG_LEVEL` | `INFO` | Lowest level written, to stdout and files: `DEBUG`, `INFO`, `WARNING`, `ERROR` or `CRITICAL` |
-| `LOG_FLUSH_SECONDS` | `180` | How often a pod writes a chunk. A chunk is also written as soon as 10,000 entries are waiting |
 | `HOSTNAME` | set by Kubernetes to the pod name | The pod name in entries and file names; characters other than `A-Z a-z 0-9 . -` become `-` |
 
 For a local run, point `LOGS_DIR` at a folder in the working copy, such as
@@ -149,30 +150,29 @@ For a local run, point `LOGS_DIR` at a folder in the working copy, such as
 ## The weekly archive job
 
 `python -m dmm_api.tools.log_archive` archives every week that ended before the
-current one and still has plain files:
+current one and still has daily files:
 
-1. It merges all pods' daily files and leftover chunks for the week into
-   `dmm-api_week_<Monday>.log.gz`. A chunk whose pod and day also have a daily
-   file is left out, since the daily file holds it.
+1. It merges all pods' daily files for the week, in timestamp order, into
+   `dmm-api_week_<Monday>.log.gz` under `LOG_ARCHIVE_DIR`.
 2. It reads the archive back and checks the line count.
-3. It writes `inputs_week_<Monday>.txt` next to the archive, listing the files
-   it archived.
-4. It deletes the week's plain files.
+3. It deletes the week's daily files.
 
-Any failure leaves the plain files in place, and the job exits with status 1,
-so Kubernetes shows the run as failed. A missed run is caught up by the next
-one. The job logs to stdout only.
+If writing or checking the archive fails, the job deletes the archive and
+keeps the daily files, and the next run tries again. The job exits with status
+1 when any week failed, so Kubernetes shows the run as failed. A missed run is
+caught up by the next one. The job logs to stdout only.
 
-When a week's archive already exists, the job finishes that week instead of
-archiving it again: it deletes the plain files named in the inputs list, and
-keeps and reports any other file, since that file arrived after the archive
-was written and is not in it. It exits with status 1 for as long as any plain
-file of an archived week remains.
+A failure can leave an entry in two archives, never in none:
 
-The mount must allow deletes (for Mountpoint for S3, `--allow-delete`).
-Without that, the archive and its inputs list are written, the deletes fail,
-the plain files stay next to them, and every run exits with status 1 until
-deletes are allowed. The next run after that deletes them.
+- A daily file that could not be deleted, that grew while the job read it, or
+  that was written after its week was archived, goes into that week's next
+  archive at the next run.
+- A failed archive that could not be deleted stays beside the next one. It
+  may look complete; the job's error on stdout, "could not delete a failed
+  weekly log archive", names it.
+
+Deleting a failed archive needs an S3 mount that allows deletes (for
+Mountpoint for S3, `--allow-delete`).
 
 The CronJob runs the same image as the API, at the same tag, so bump both
 together:
@@ -198,6 +198,9 @@ spec:
           imagePullSecrets:
             - name: ghcr-pull-secret
           volumes:
+            - name: logs-volume
+              persistentVolumeClaim:
+                claimName: <the log claim>
             - name: s3-volume
               persistentVolumeClaim:
                 claimName: dg-s3-dev-pvc-univr
@@ -207,11 +210,16 @@ spec:
               command: ["uv", "run", "python", "-m", "dmm_api.tools.log_archive"]
               env:
                 - name: LOGS_DIR
+                  value: "/logs"
+                - name: LOG_ARCHIVE_DIR
                   value: "/s3/data-model-management/logs"
               volumeMounts:
+                - name: logs-volume
+                  mountPath: /logs
                 - name: s3-volume
                   mountPath: /s3
 ```
 
-`LOGS_DIR` must match the API's. `backoffLimit: 0` keeps a failed run from
-being retried at once; the next week's run picks up what it left.
+`LOGS_DIR` must match the API's, and the API's Deployment mounts the same
+claim there. `backoffLimit: 0` keeps a failed run from being retried at once;
+the next week's run picks up what it left.

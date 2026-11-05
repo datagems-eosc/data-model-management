@@ -10,11 +10,11 @@ import uvicorn
 
 from dmm_api.config import APP_VERSION, require_configuration
 from dmm_api.logging_config import (
+    close_log_files,
     configure_logging,
     correlation_id_from_header,
     get_correlation_id,
     request_context,
-    write_log_files,
 )
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
@@ -31,8 +31,8 @@ CORRELATION_HEADER = "x-tracking-correlation"
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     yield
-    # Kubernetes stops the pod; write what is still buffered before it goes.
-    await asyncio.to_thread(write_log_files)
+    # Kubernetes stops the pod; write what is still queued before it goes.
+    await asyncio.to_thread(close_log_files)
 
 
 app = FastAPI(

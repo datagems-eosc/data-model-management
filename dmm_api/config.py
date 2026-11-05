@@ -51,9 +51,9 @@ try:
 except PackageNotFoundError:
     APP_VERSION = "dev"
 
-LOGS_DIR = os.environ.get("LOGS_DIR", "/s3/data-model-management/logs")
+LOGS_DIR = os.environ.get("LOGS_DIR", "/logs")
+LOG_ARCHIVE_DIR = os.environ.get("LOG_ARCHIVE_DIR", "/s3/data-model-management/logs")
 LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
-LOG_FLUSH_SECONDS = float(os.environ.get("LOG_FLUSH_SECONDS", "180"))
 # Kubernetes sets HOSTNAME to the pod name. It goes into log file names, which
 # use `_` as a separator, so only these characters are kept.
 POD_NAME = re.sub(
