@@ -4,6 +4,7 @@ import io
 import json
 import logging
 import re
+import time
 import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -196,6 +197,24 @@ def test_a_buffer_at_chunk_size_wakes_the_writer(tmp_path):
     assert handler._wake.is_set()
 
 
+def test_an_error_does_not_stop_the_writer(tmp_path, monkeypatch):
+    handler = _handler(tmp_path, flush_seconds=0.01)
+    calls = []
+
+    def merge_days(today=None):
+        calls.append(today)
+        if len(calls) == 1:
+            raise OSError("mount gone")
+
+    monkeypatch.setattr(handler, "merge_days", merge_days)
+    handler.start()
+    deadline = time.monotonic() + 5
+    while len(calls) < 2 and time.monotonic() < deadline:
+        time.sleep(0.01)
+    handler.close()
+    assert len(calls) >= 2
+
+
 # Daily files
 
 
@@ -228,6 +247,22 @@ def test_an_existing_daily_file_stops_the_merge(tmp_path):
     _handler(tmp_path).merge_days(today=date(2026, 11, 3))
     assert (month / "dmm-api_2026-11-02_pod-a.log").read_text() == "old\n"
     assert (month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log").exists()
+
+
+def test_a_day_with_buffered_entries_waits_for_its_last_chunk(tmp_path):
+    month = tmp_path / "2026-11"
+    _write(month / "dmm-api_2026-11-02T09-00-00Z_pod-a.log", "a0\n")
+    handler = _handler(tmp_path)
+    handler.emit(_record(_utc(2026, 11, 2, 23, 59, 59), "late"))
+    handler.merge_days(today=date(2026, 11, 3))
+    assert _files(tmp_path) == ["2026-11/dmm-api_2026-11-02T09-00-00Z_pod-a.log"]
+
+    handler.write_chunks()
+    handler.merge_days(today=date(2026, 11, 3))
+    assert _files(tmp_path) == ["2026-11/dmm-api_2026-11-02_pod-a.log"]
+    first, late = (month / "dmm-api_2026-11-02_pod-a.log").read_text().splitlines()
+    assert first == "a0"
+    assert json.loads(late)["event"] == "late"
 
 
 # Weekly archive

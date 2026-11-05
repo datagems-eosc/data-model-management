@@ -232,8 +232,13 @@ class ChunkFileHandler(logging.Handler):
         while not self._stop.is_set():
             self._wake.wait(self.flush_seconds)
             self._wake.clear()
-            self.write_chunks()
-            self.merge_days()
+            # This is the only thread that writes the files, so no error may
+            # end it: it is reported, and the next flush tries again.
+            try:
+                self.write_chunks()
+                self.merge_days()
+            except Exception:
+                _files_logger.exception("log writer failed, retrying at the next flush")
 
     def write_chunks(self) -> None:
         """Write the buffer as chunks, one per UTC day; keep it on failure."""
@@ -285,6 +290,10 @@ class ChunkFileHandler(logging.Handler):
     def merge_days(self, today: date | None = None) -> None:
         """Merge this pod's chunks of each finished day into a daily file."""
         today = today or datetime.now(timezone.utc).date()
+        # A day with entries still in the buffer, after a failed write, is not
+        # finished: its last chunk is still to come.
+        with self._buffer_lock:
+            skip = self._merged_days | {_utc_day(c) for c, _ in self._buffer}
         found: dict[date, list[tuple[str, int, Path]]] = {}
         months = {f"{day:%Y-%m}" for day in (today, today - timedelta(days=1))}
         for month in sorted(months):
@@ -293,7 +302,7 @@ class ChunkFileHandler(logging.Handler):
                 if not match or match["pod"] != self.pod:
                     continue
                 day = date.fromisoformat(match["day"])
-                if day < today and day not in self._merged_days:
+                if day < today and day not in skip:
                     found.setdefault(day, []).append(
                         (match["time"], int(match["n"] or 1), path)
                     )
