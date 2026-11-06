@@ -16,6 +16,7 @@ from dmm_api.logging_config import (
     get_correlation_id,
     request_context,
 )
+from dmm_api.uploads import BodyLimitMiddleware
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 from dmm_api.resources.security import router as security_router
@@ -51,6 +52,10 @@ app = FastAPI(
 app.include_router(dataset_router, prefix="/api/v1")
 app.include_router(converter_router, prefix="/api/v1")
 app.include_router(security_router, prefix="/api/v1")
+
+# Added before log_request, so that it runs inside it: its 413 then carries
+# the correlation ID and gets a request summary entry.
+app.add_middleware(BodyLimitMiddleware)
 
 
 @app.middleware("http")
