@@ -11,10 +11,10 @@ cd tests
 
 > Prerequisite: all steps below require a valid access token. Complete [0) Access Token Setup](#auth-test-bearer-token-required) before running any command.
 
-> Uploaded files (`-F "file=@..."`) are limited to 64 MB, or `MAX_UPLOAD_MB` where the deployment sets it. A larger file gets a `413` response:
+> Request bodies, uploaded files (`-F "file=@..."`) included, are limited to 64 MB, or `MAX_UPLOAD_MB` where the deployment sets it. A larger request gets a `413` response; when it declares its size, the service answers without reading its body:
 >
 > ```json
-> {"code": 413, "error": "File too large: the limit is 64 MB."}
+> {"code": 413, "error": "Request too large: the limit is 64 MB.", "correlationId": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33"}
 > ```
 
 ## Table of Contents
