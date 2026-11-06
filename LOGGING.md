@@ -167,11 +167,10 @@ A failure can leave an entry in two archives, never in none:
   may look complete; the job's error on stdout, "could not delete a failed
   weekly log archive", names it.
 
-Deleting a failed archive needs an S3 mount that allows deletes (for
-Mountpoint for S3, `--allow-delete`).
+Deleting a failed archive needs an S3 mount that allows deletes.
 
 The CronJob runs the same image as the API, at the same tag, so bump both
-together:
+together. Like the API, it runs as the image's user, uid and gid 10001:
 
 ```yaml
 apiVersion: batch/v1
@@ -191,6 +190,12 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            seccompProfile:
+              type: RuntimeDefault
           imagePullSecrets:
             - name: ghcr-pull-secret
           volumes:
@@ -203,7 +208,11 @@ spec:
           containers:
             - name: log-archive
               image: ghcr.io/datagems-eosc/datagems-eosc/data-model-management:<same tag as the API>
-              command: ["uv", "run", "python", "-m", "dmm_api.tools.log_archive"]
+              command: ["/app/.venv/bin/python", "-m", "dmm_api.tools.log_archive"]
+              securityContext:
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
               env:
                 - name: LOGS_DIR
                   value: "/logs"
