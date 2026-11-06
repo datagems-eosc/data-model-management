@@ -1,22 +1,39 @@
+import asyncio
 import os
-from importlib.metadata import PackageNotFoundError, version
+import time
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException
 from fastapi.responses import JSONResponse, RedirectResponse
+import structlog
 import uvicorn
 
-from dmm_api.config import require_configuration
+from dmm_api.config import APP_VERSION, require_configuration
+from dmm_api.logging_config import (
+    close_log_files,
+    configure_logging,
+    correlation_id_from_header,
+    get_correlation_id,
+    request_context,
+)
 from dmm_api.resources.dataset import router as dataset_router
 from dmm_api.resources.converter import router as converter_router
 from dmm_api.resources.security import router as security_router
 
-# The release version, from pyproject.toml via the installed package metadata
-try:
-    APP_VERSION = version("dmm-api")
-except PackageNotFoundError:
-    APP_VERSION = "dev"
-
+configure_logging()
 require_configuration()
+
+logger = structlog.get_logger(__name__)
+
+CORRELATION_HEADER = "x-tracking-correlation"
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    # Kubernetes stops the pod; write what is still queued before it goes.
+    await asyncio.to_thread(close_log_files)
+
 
 app = FastAPI(
     title="Dataset API",
@@ -26,6 +43,7 @@ app = FastAPI(
     docs_url="/api/v1/swagger",
     redoc_url="/api/v1/redoc",
     root_path=os.getenv("ROOT_PATH", ""),
+    lifespan=lifespan,
 )
 
 
@@ -35,14 +53,57 @@ app.include_router(converter_router, prefix="/api/v1")
 app.include_router(security_router, prefix="/api/v1")
 
 
+@app.middleware("http")
+async def log_request(request: Request, call_next):
+    """Give the request a correlation ID and log one summary entry for it."""
+    correlation_id = correlation_id_from_header(request.headers.get(CORRELATION_HEADER))
+    started = time.perf_counter()
+    with request_context(correlation_id):
+        try:
+            response = await call_next(request)
+        except Exception:
+            logger.exception("unhandled exception")
+            response = JSONResponse(
+                status_code=500,
+                content={
+                    "code": 500,
+                    "error": "Internal server error",
+                    "correlationId": correlation_id,
+                },
+            )
+        status_code = response.status_code
+        # 424 means a downstream service failed, not the caller.
+        if status_code >= 500 or status_code == 424:
+            outcome, log = "server_error", logger.error
+        elif status_code >= 400:
+            outcome, log = "client_error", logger.warning
+        else:
+            outcome, log = "success", logger.info
+        log(
+            "request finished",
+            method=request.method,
+            path=request.url.path,
+            status_code=status_code,
+            duration_ms=round((time.perf_counter() - started) * 1000, 1),
+            outcome=outcome,
+        )
+    response.headers[CORRELATION_HEADER] = correlation_id
+    return response
+
+
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Return the detail payload directly, without FastAPI's {"detail": ...} wrapper."""
     detail = exc.detail
     if isinstance(detail, dict):
-        body = detail
+        body = {**detail}
+        body.setdefault("correlationId", get_correlation_id())
     else:
-        body = {"code": exc.status_code, "error": str(detail)}
+        body = {
+            "code": exc.status_code,
+            "error": str(detail),
+            "correlationId": get_correlation_id(),
+        }
     return JSONResponse(status_code=exc.status_code, content=body)
 
 

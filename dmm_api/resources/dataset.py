@@ -1942,7 +1942,7 @@ async def execute_and_store_dataset_recommendations(
         try:
             store_AP_in_grafeo(APRequest.model_validate(response_payload.get("ap", {})))
         except Exception as e:
-            print(f"[{service['name']}] AP Storage failed: {e}")
+            logger.warning("AP storage failed", service=service["name"], error=str(e))
     except ValueError:
         response_payload = {
             "status_code": response.status_code,
@@ -2384,7 +2384,7 @@ async def polyglot_query(
         try:
             store_AP_in_grafeo(executed_ap)
         except Exception as e:
-            print(f"AP Storage failed: {e}")
+            logger.warning("AP storage failed", error=str(e))
         return APSuccessEnvelope(
             code=status.HTTP_200_OK,
             message=f"Query executed successfully, results stored at {upload_path}",
@@ -2575,7 +2575,7 @@ async def execute_and_store_idd(
     try:
         store_AP_in_grafeo(ap)
     except Exception as e:
-        print(f"[{service['name']}] AP Storage failed: {e}")
+        logger.warning("AP storage failed", service=service["name"], error=str(e))
 
     async with httpx.AsyncClient(
         timeout=REQUEST_TIMEOUT_SECONDS, follow_redirects=True
@@ -3122,7 +3122,9 @@ def extract_filters_per_tables(tree):
                 for table in tables:
                     if table not in filters:
                         filters[table] = []
-                    print("Condition:", condition.sql(), "Table:", table)
+                    logger.debug(
+                        "SQL condition", condition=condition.sql(), table=table
+                    )
                     filters[table].append(condition.sql())
     # JOIN filters
     for join in tree.find_all(exp.Join):
@@ -3134,7 +3136,9 @@ def extract_filters_per_tables(tree):
                     for t in tables:
                         if t not in filters:
                             filters[t] = []
-                        print("Join Condition:", cond.sql(), "Table:", t)
+                        logger.debug(
+                            "SQL join condition", condition=cond.sql(), table=t
+                        )
                         filters[t].append(cond.sql())
     return filters
 

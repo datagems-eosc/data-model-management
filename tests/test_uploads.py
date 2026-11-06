@@ -37,4 +37,5 @@ def test_one_byte_over_gets_the_413_body(small_limit):
     assert response.json() == {
         "code": 413,
         "error": f"File too large: the limit is {uploads.MAX_UPLOAD_MB} MB.",
+        "correlationId": response.headers["x-tracking-correlation"],
     }

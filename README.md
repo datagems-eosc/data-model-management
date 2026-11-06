@@ -68,6 +68,8 @@ cd tests
 
 For full request/response walkthroughs, see [API_USAGE.md](API_USAGE.md).
 
+To find a request in the logs, and for the log format, see [LOGGING.md](LOGGING.md).
+
 Example assets are organized under:
 - `tests/register`, `tests/load`, `tests/update`;
 - `tests/query`;

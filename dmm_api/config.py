@@ -1,4 +1,4 @@
-"""Settings the service cannot run without, read once at import.
+"""The service's settings, read once at import.
 
 The service URLs used to default to the dev deployment, so a deployment that
 missed one silently talked to the dev services. They are now required, and
@@ -6,6 +6,9 @@ missed one silently talked to the dev services. They are now required, and
 """
 
 import os
+import re
+import socket
+from importlib.metadata import PackageNotFoundError, version
 
 import structlog
 
@@ -41,6 +44,21 @@ CDD_URL = service_url("CDD_URL")
 IDD_URL = service_url("IDD_URL")
 QD_URL = service_url("QD_URL")
 REC_SYS_URL = service_url("REC_SYS_URL")
+
+# The release version, from pyproject.toml via the installed package metadata
+try:
+    APP_VERSION = version("dmm-api")
+except PackageNotFoundError:
+    APP_VERSION = "dev"
+
+LOGS_DIR = os.environ.get("LOGS_DIR", "/logs")
+LOG_ARCHIVE_DIR = os.environ.get("LOG_ARCHIVE_DIR", "/s3/data-model-management/logs")
+LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO").upper()
+# Kubernetes sets HOSTNAME to the pod name. It goes into log file names, which
+# use `_` as a separator, so only these characters are kept.
+POD_NAME = re.sub(
+    r"[^A-Za-z0-9.-]", "-", os.environ.get("HOSTNAME") or socket.gethostname()
+)
 
 
 def require_configuration() -> None:
