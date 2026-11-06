@@ -1,23 +1,17 @@
 import json
-import os
-import tempfile
+from typing import Any
+
 import structlog
 
-from fastapi import APIRouter, File, UploadFile, Query, HTTPException
+from fastapi import APIRouter, Depends, File, UploadFile, Query, HTTPException
 from fastapi.responses import Response
+import dmm_api.resources.security as security
 from dmm_api.tools.PG2Croissant.parser import parse_profile
 from dmm_api.tools.PG2Croissant.mapper import map_to_croissant
 from dmm_api.uploads import read_upload
 
 router = APIRouter()
 logger = structlog.get_logger(__name__)
-
-
-def convertProfileFile(pgjson_path: str):
-    with open(pgjson_path, "r", encoding="utf-8") as f:
-        pgjson = json.load(f)
-
-    return convertProfile(pgjson)
 
 
 def convertProfile(pgjson):
@@ -37,6 +31,7 @@ async def convert(
     file: UploadFile = File(...),
     from_format: str = Query(..., alias="from"),
     to_format: str = Query(..., alias="to"),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
     # Validate formats
     if from_format != "moma":
@@ -48,16 +43,9 @@ async def convert(
             status_code=400, detail=f"Unsupported to format: {to_format}"
         )
 
-    temp_dir = tempfile.gettempdir()
-    pg_json = os.path.join(temp_dir, file.filename)
-    logger.info(f"Saving uploaded file to {pg_json}")
-
     try:
         content = await read_upload(file)
-        with open(pg_json, "wb") as f:
-            f.write(content)
-
-        croissant_jsonld = convertProfileFile(pgjson_path=pg_json)
+        croissant_jsonld = convertProfile(json.loads(content))
         croissant_dict = json.loads(croissant_jsonld)
         response_data = {
             "message": f"Converted from {from_format} to {to_format} successfully",
