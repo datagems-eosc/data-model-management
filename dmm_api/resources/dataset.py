@@ -3,6 +3,7 @@ from enum import Enum
 import json
 import os
 import re
+import tempfile
 import time
 from pathlib import Path
 import shutil
@@ -226,6 +227,15 @@ router = APIRouter()
 MOMA_REQUEST_TIMEOUT_SECONDS = 300.0
 REQUEST_TIMEOUT_SECONDS = 300.0
 GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
+
+# The service runs as a user that cannot write to the image. DuckDB spills to
+# the temp folder rather than to `.tmp` in the working directory, and a query
+# never downloads an extension: the image installs the postgres one at build
+# time.
+DUCKDB_CONFIG = {
+    "temp_directory": os.path.join(tempfile.gettempdir(), "duckdb"),
+    "autoinstall_known_extensions": False,
+}
 
 
 EXTERNAL_SERVICES = {
@@ -1996,7 +2006,7 @@ async def execute_and_store_dataset_recommendations(
 
 def execute_query_postgres(query_builder):
     """Execute query on PostgreSQL via DuckDB"""
-    duckdb_connection = duckdb.connect(database=":memory:")
+    duckdb_connection = duckdb.connect(database=":memory:", config=DUCKDB_CONFIG)
     t0 = time.perf_counter()
     try:
         # Install and load postgres extension
@@ -2065,7 +2075,7 @@ def execute_query_mixed(query_builder):
         )
 
     try:
-        con = duckdb.connect(database=":memory:")
+        con = duckdb.connect(database=":memory:", config=DUCKDB_CONFIG)
         db_connections = []
         view_map = {}
         for argname, arg_info in query_builder.get("args_map", {}).items():
