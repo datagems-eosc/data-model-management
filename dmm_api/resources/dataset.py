@@ -5,6 +5,7 @@ import os
 import re
 import tempfile
 import time
+import uuid
 from pathlib import Path
 import shutil
 from dmm_api.config import CDD_URL, IDD_URL, MOMA_URL, QD_URL, REC_SYS_URL
@@ -12,6 +13,7 @@ from dmm_api.resources.converter import convertProfile
 from dmm_api.uploads import read_upload
 import requests
 import sqlglot
+from sqlglot.errors import SqlglotError
 from sqlglot.optimizer import optimize
 from sqlglot import expressions as exp
 
@@ -237,6 +239,10 @@ DUCKDB_CONFIG = {
     "autoinstall_known_extensions": False,
 }
 
+# Where the bucket's `s3://dataset/` folder is mounted. A query over CSV files
+# reads files only below it.
+DATASET_MOUNT = "/s3/dataset/"
+
 
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
@@ -351,8 +357,29 @@ async def data_workflow(
     file: UploadFile = File(...),
     file_name: str = Form(...),
     dataset_id: str = Form(...),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
 ):
     """Handle data workflow by uploading files and assigning metadata."""
+    # Both become parts of the file's path under the scratchpad.
+    try:
+        uuid.UUID(dataset_id)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="dataset_id must be a UUID.",
+            ).model_dump(exclude_none=True),
+        )
+    if file_name in ("", ".", "..") or Path(file_name).name != file_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=ErrorEnvelope(
+                code=status.HTTP_400_BAD_REQUEST,
+                error="file_name must be a file name, without a folder.",
+            ).model_dump(exclude_none=True),
+        )
+
     file_bytes = await read_upload(file)
     try:
         s3path = upload_dataset_to_scratchpad(file_bytes, file_name, dataset_id)
@@ -2064,6 +2091,33 @@ def execute_query_postgres(query_builder):
         raise Exception(f"PostgreSQL connection failed: {str(e)}.")
 
 
+def _require_one_query(sql: str) -> None:
+    """Refuse anything but one query: DuckDB runs the SQL as it is.
+
+    A statement such as COPY or ATTACH would write files where the query may
+    only read them.
+    """
+    try:
+        statements = [s for s in sqlglot.parse(sql, read="duckdb") if s is not None]
+    except SqlglotError as e:
+        raise ValueError(f"Query could not be parsed: {e}") from e
+    if len(statements) != 1 or not isinstance(statements[0], exp.Query):
+        raise ValueError("Only a single SELECT query is supported for mixed sources.")
+
+
+def _restrict_to_datasets(con: duckdb.DuckDBPyConnection) -> None:
+    """Let the connection read files only under DATASET_MOUNT, for good.
+
+    Called once the views and the PostgreSQL attachments are in place, before
+    the query runs. With external access off, DuckDB opens no other file and
+    loads no extension; the locked configuration keeps the query from turning
+    it back on.
+    """
+    con.sql(f"SET allowed_directories = ['{DATASET_MOUNT}']")
+    con.sql("SET enable_external_access = false")
+    con.sql("SET lock_configuration = true")
+
+
 def execute_query_mixed(query_builder):
     """Execute query with mixed CSV and PostgreSQL sources via DuckDB"""
     query = query_builder.get("query", "")
@@ -2103,6 +2157,7 @@ def execute_query_mixed(query_builder):
         args_map, query_executable = write_views_minimal_extraction(
             processed_query, args_map
         )
+        _require_one_query(query_executable)
 
         if db_connections:
             con.sql("INSTALL postgres;")
@@ -2141,6 +2196,7 @@ def execute_query_mixed(query_builder):
             if view:
                 con.sql(view)
 
+        _restrict_to_datasets(con)
         try:
             result_df = con.execute(query_executable).fetchdf()
         finally:
@@ -3065,6 +3121,14 @@ def extract_alias(sql, args_map):
     return args_map
 
 
+def _dataset_csv_path(content_url: str) -> str:
+    """The mounted path of an `s3://dataset/` CSV file, quoted for SQL."""
+    prefix = "s3://dataset/"
+    if not content_url.startswith(prefix) or ".." in content_url.split("/"):
+        raise ValueError(f"A CSV contentUrl must be a file under {prefix}")
+    return (DATASET_MOUNT + content_url[len(prefix) :]).replace("'", "''")
+
+
 def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
     tree = sqlglot.parse_one(query)
     optimized = optimize(tree)
@@ -3089,9 +3153,7 @@ def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
                         '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
-                local_path = arg_info.get("contentUrl", "").replace(
-                    "s3://dataset/", "/s3/dataset/"
-                )
+                local_path = _dataset_csv_path(arg_info.get("contentUrl", ""))
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM read_csv_auto('{local_path}');"""
@@ -3112,9 +3174,7 @@ def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
                         '{pg_sql_escaped}'
                     );"""
             if arg_info.get("mimeType") == "text/csv":
-                local_path = arg_info.get("contentUrl", "").replace(
-                    "s3://dataset/", "/s3/dataset/"
-                )
+                local_path = _dataset_csv_path(arg_info.get("contentUrl", ""))
                 view = f"""CREATE OR REPLACE VIEW {view_name} AS
                     SELECT *
                     FROM read_csv_auto('{local_path}')
