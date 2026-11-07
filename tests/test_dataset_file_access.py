@@ -63,27 +63,71 @@ def test_any_other_csv_url_is_refused(url):
         dataset._dataset_csv_path(url)
 
 
-def test_a_restricted_connection_reads_only_the_datasets(tmp_path, monkeypatch):
+@pytest.mark.parametrize("name", ["zoo", "Zoo_2024", "_x"])
+def test_a_database_name_is_accepted(name):
+    assert dataset._postgres_db_name(name) == name
+
+
+@pytest.mark.parametrize(
+    "name", ["", "zoo db", "zoo-db", "a.b", "x' AS y (TYPE postgres); COPY"]
+)
+def test_any_other_database_name_is_refused(name):
+    with pytest.raises(ValueError):
+        dataset._postgres_db_name(name)
+
+
+@pytest.fixture
+def mount(tmp_path, monkeypatch):
     (tmp_path / "dataset" / "d1").mkdir(parents=True)
     (tmp_path / "dataset" / "d1" / "x.csv").write_text("a,b\n1,2\n")
     (tmp_path / "outside.csv").write_text("secret\n42\n")
     monkeypatch.setattr(dataset, "DATASET_MOUNT", f"{tmp_path}/dataset/")
+    return tmp_path
 
+
+def test_a_restricted_connection_reads_only_the_datasets(mount):
     con = duckdb.connect(database=":memory:", config=dataset.DUCKDB_CONFIG)
-    con.sql(
-        f"CREATE VIEW v AS SELECT * FROM read_csv_auto('{tmp_path}/dataset/d1/x.csv')"
-    )
     dataset._restrict_to_datasets(con)
+    con.sql(f"CREATE VIEW v AS SELECT * FROM read_csv_auto('{mount}/dataset/d1/x.csv')")
 
     assert con.sql("SELECT * FROM v").fetchall() == [(1, 2)]
     for sql in [
-        f"SELECT * FROM read_csv_auto('{tmp_path}/outside.csv')",
-        f"SELECT * FROM read_text('{tmp_path}/dataset/../outside.csv')",
+        f"SELECT * FROM read_csv_auto('{mount}/outside.csv')",
+        f"SELECT * FROM read_text('{mount}/dataset/../outside.csv')",
     ]:
         with pytest.raises(duckdb.PermissionException):
             con.sql(sql).fetchall()
     with pytest.raises(duckdb.InvalidInputException):
         con.sql("SET enable_external_access = true")
+
+
+def mixed_query(query, argname="arg1"):
+    return dataset.execute_query_mixed(
+        {
+            "query": query,
+            "args_map": {
+                argname: {"mimeType": "text/csv", "contentUrl": "s3://dataset/d1/x.csv"}
+            },
+        }
+    )
+
+
+def test_a_mixed_query_reads_its_csv(mount):
+    assert mixed_query("SELECT t.a, t.b FROM {{arg1}} as t").values.tolist() == [[1, 2]]
+
+
+def test_an_argument_name_never_reaches_sql(mount):
+    argname = (
+        f"x AS SELECT 1; COPY (SELECT 1) TO '{mount}/escaped.csv'; CREATE VIEW tail"
+    )
+
+    assert mixed_query("SELECT 1 AS a", argname)["a"].tolist() == [1]
+    assert not (mount / "escaped.csv").exists()
+
+
+def test_a_second_statement_is_refused(mount):
+    with pytest.raises(Exception, match="single SELECT"):
+        mixed_query("SELECT t.a FROM {{arg1}} as t; PRAGMA version")
 
 
 @pytest.fixture

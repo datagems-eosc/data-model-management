@@ -2043,7 +2043,9 @@ def execute_query_postgres(query_builder):
         db_name = None
         for argname, arg_info in query_builder.get("args_map", {}).items():
             if arg_info.get("mimeType") == "text/sql":
-                db_name = arg_info.get("dbConnection", {}).get("name", "Unknown DB")
+                db_name = _postgres_db_name(
+                    arg_info.get("dbConnection", {}).get("name", "")
+                )
 
         # Attach PostgreSQL database
         db_host = os.getenv("DATAGEMS_POSTGRES_HOST")
@@ -2105,13 +2107,22 @@ def _require_one_query(sql: str) -> None:
         raise ValueError("Only a single SELECT query is supported for mixed sources.")
 
 
+def _postgres_db_name(name: str) -> str:
+    """A PostgreSQL database name, checked before it goes into DuckDB SQL."""
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", name or ""):
+        raise ValueError(
+            "A database connection name may hold only letters, digits and _"
+        )
+    return name
+
+
 def _restrict_to_datasets(con: duckdb.DuckDBPyConnection) -> None:
     """Let the connection read files only under DATASET_MOUNT, for good.
 
-    Called once the views and the PostgreSQL attachments are in place, before
-    the query runs. With external access off, DuckDB opens no other file and
-    loads no extension; the locked configuration keeps the query from turning
-    it back on.
+    Called once the PostgreSQL attachments are in place, before the views and
+    the query, which carry parts of the request. With external access off,
+    DuckDB opens no other file and loads no extension; the locked
+    configuration keeps the query from turning it back on.
     """
     con.sql(f"SET allowed_directories = ['{DATASET_MOUNT}']")
     con.sql("SET enable_external_access = false")
@@ -2132,18 +2143,24 @@ def execute_query_mixed(query_builder):
         con = duckdb.connect(database=":memory:", config=DUCKDB_CONFIG)
         db_connections = []
         view_map = {}
-        for argname, arg_info in query_builder.get("args_map", {}).items():
+        # View names are numbered: an argument's name comes from the request
+        # and never goes into SQL.
+        for index, (argname, arg_info) in enumerate(
+            query_builder.get("args_map", {}).items()
+        ):
             if arg_info.get("mimeType") == "text/sql":
                 content_url = arg_info.get("contentUrl", "")
                 db_conn_props = arg_info.get("dbConnection") or {}
-                db_connection = db_conn_props.get("name") or content_url.split(".")[0]
+                db_connection = _postgres_db_name(
+                    db_conn_props.get("name") or content_url.split(".")[0]
+                )
                 if db_connection not in db_connections:
                     db_connections.append(db_connection)
-                view_name = f"pg_{argname}"
+                view_name = f"pg_{index}"
                 view_map[argname] = view_name
                 arg_info["view_name"] = view_name
             elif arg_info.get("mimeType") == "text/csv":
-                view_name = f"csv_{argname}"
+                view_name = f"csv_{index}"
                 view_map[argname] = view_name
                 arg_info["view_name"] = view_name
 
@@ -2191,12 +2208,12 @@ def execute_query_mixed(query_builder):
                 )
                 con.sql(f"ATTACH '{connection_string}' AS {db_name} (TYPE postgres);")
 
+        _restrict_to_datasets(con)
         for argname, arg_info in query_builder.get("args_map", {}).items():
             view = arg_info.get("view")
             if view:
                 con.sql(view)
 
-        _restrict_to_datasets(con)
         try:
             result_df = con.execute(query_executable).fetchdf()
         finally:
@@ -3141,8 +3158,8 @@ def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
         conds = filters_by_table.get(alias, [])
         if not conds:
             if arg_info.get("mimeType") == "text/sql":
-                db_connection = arg_info.get("dbConnection", {}).get(
-                    "name", "Unknown DB"
+                db_connection = _postgres_db_name(
+                    arg_info.get("dbConnection", {}).get("name", "")
                 )
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')}"
                 pg_sql_escaped = pg_sql.replace("'", "''")
@@ -3162,8 +3179,8 @@ def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
                 f'"{arg_info.get("alias")}".', ""
             )
             if arg_info.get("mimeType") == "text/sql":
-                db_connection = arg_info.get("dbConnection", {}).get(
-                    "name", "Unknown DB"
+                db_connection = _postgres_db_name(
+                    arg_info.get("dbConnection", {}).get("name", "")
                 )
                 pg_sql = f"SELECT * FROM {arg_info.get('contentUrl', '')} WHERE {where_clause}"
                 pg_sql_escaped = pg_sql.replace("'", "''")
