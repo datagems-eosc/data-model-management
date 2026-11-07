@@ -1,6 +1,6 @@
 [project]
 name = "dmm-api"
-version = "0.2.1"
+version = "0.3.0"
 description = "Data Model & Management Platform API (WP5)"
 authors = [{ name = "Matteo Lissandrini", email = "matteo.lissandrini@univr.it" }]
 readme = "README.md"
