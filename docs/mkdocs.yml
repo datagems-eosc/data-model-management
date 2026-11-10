@@ -17,7 +17,7 @@ nav:
     - Automations: automations.md
     - Deployment: deployment.md
     - Configuration: configuration.md
-    - Logging & Accounting: logging.md
+    - Logging: logging.md
     - Maintenance: maintenance.md
   - Material:
     - Onboarding: onboarding.md

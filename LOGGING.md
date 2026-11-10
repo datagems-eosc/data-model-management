@@ -63,8 +63,8 @@ The entries follow the logging service's
 [json-cf-2 format](https://datagems-eosc.github.io/dg-logging/latest/logging-formats/),
 which makes `timestamp`, `msg`, `level`, `DGCorrelationId`, `UserId` and
 `ClientId` searchable there; the other fields are kept, not searchable. The
-pod label `logFormat: json-cf-2` in the Deployment tells the service which
-format to expect.
+label `logFormat: json-cf-2` on the Deployment's pod template tells the
+service which format to expect.
 
 ### The request summary
 
@@ -199,6 +199,9 @@ spec:
     spec:
       backoffLimit: 0
       template:
+        metadata:
+          labels:
+            logFormat: json-cf-2
         spec:
           restartPolicy: Never
           securityContext:
@@ -238,4 +241,6 @@ spec:
 
 `LOGS_DIR` must match the API's, and the API's Deployment mounts the same
 claim there. `backoffLimit: 0` keeps a failed run from being retried at once;
-the next week's run picks up what it left.
+the next week's run picks up what it left. The `logFormat` label on the pod
+template lets the logging service parse the job's entries, as the same label
+on the API's pod template does for the API.
