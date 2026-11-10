@@ -1,8 +1,10 @@
 # Logging
 
 The API logs to stdout and to files on a disk claim. stdout is what
-`kubectl logs` shows and what the platform's ELK stack collects, for a limited
-time. The files stay: each finished week is archived to S3.
+`kubectl logs` shows and what the
+[DataGEMS logging service](https://datagems-eosc.github.io/dg-logging/latest/)
+collects, for a limited time. The files stay: each finished week is archived
+to S3.
 
 ## Finding a request
 
@@ -24,40 +26,49 @@ zgrep -h 5b1e0c9a dmm-api_*
 zcat -f dmm-api_2026-11-02_* | jq -c 'select(.outcome == "server_error")'
 cd /s3/data-model-management/logs
 zcat -f dmm-api_week_2026-10-26*.log.gz | jq -c 'select(.level == "warning")'
-zcat -f dmm-api_week_* | jq -c 'select(.user_id == "16a5380f-4787-44dd-a552-c7095f2d12d1")'
+zcat -f dmm-api_week_* | jq -c 'select(.UserId == "16a5380f-4787-44dd-a552-c7095f2d12d1")'
 ```
 
 The ID is taken from the request's `x-tracking-correlation` header when it is
 1 to 128 characters of `A-Z a-z 0-9 . _ -`. Otherwise the API generates a
 UUID4. A caller that sends its own ID can therefore find its requests in these
-logs under the same ID.
+logs under the same ID. The API passes the ID on, in the same header, to the
+other DataGEMS services it calls, so their logs carry it too.
 
 FastAPI's own validation errors (422) keep their `{"detail": [...]}` body; the
 ID is in their header only. So is it for paths that match no route (404).
 
 ## Entries
 
-Each line, on stdout and in the files, is one JSON object. These eight
+Each line, on stdout and in the files, is one JSON object. These nine
 fields come first, in this order, on every entry:
 
 | Field | Type | Content |
 | - | - | - |
 | `timestamp` | string | UTC, ISO 8601 with milliseconds: `2026-11-02T10:15:03.412Z` |
 | `level` | string | `debug`, `info`, `warning`, `error` or `critical` |
-| `event` | string | The message |
+| `msg` | string | The message |
 | `logger` | string | The module that logged it, e.g. `dmm_api.resources.dataset`; `uvicorn.error` for the server's own messages |
 | `app_version` | string | The release, e.g. `0.2.0` |
 | `pod` | string | The pod name |
-| `correlation_id` | string or `null` | The request's ID; `null` outside a request |
-| `user_id` | string or `null` | The `sub` claim of the caller's token; `null` before authentication or without it |
+| `DGCorrelationId` | string or `null` | The request's ID; `null` outside a request |
+| `UserId` | string or `null` | The `sub` claim of the caller's token; `null` before authentication or without it |
+| `ClientId` | string or `null` | The `azp` claim of the caller's token, the client it was issued to; `null` as for `UserId` |
 
 Then come the fields the log call passed, such as `dataset_id` or
 `status_code`, and last, only when an exception was logged, `exception` with
 the full traceback.
 
+The entries follow the logging service's
+[json-cf-2 format](https://datagems-eosc.github.io/dg-logging/latest/logging-formats/),
+which makes `timestamp`, `msg`, `level`, `DGCorrelationId`, `UserId` and
+`ClientId` searchable there; the other fields are kept, not searchable. The
+label `logFormat: json-cf-2` on the Deployment's pod template tells the
+service which format to expect.
+
 ### The request summary
 
-Every request ends with one entry whose `event` is `request finished`, with
+Every request ends with one entry whose `msg` is `request finished`, with
 `method`, `path` (without the query string), `status_code`, `duration_ms` and
 `outcome`:
 
@@ -79,9 +90,9 @@ Analytical Pattern log), and `error` a failure that fails the request.
 A failed dataset update, as it appears on stdout and in a file:
 
 ```json
-{"timestamp": "2026-11-02T10:15:02.601Z", "level": "info", "event": "Requesting dataset metadata from MoMa", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433"}
-{"timestamp": "2026-11-02T10:15:03.412Z", "level": "error", "event": "MoMa API HTTP error while fetching dataset metadata", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433", "status_code": 502}
-{"timestamp": "2026-11-02T10:15:03.419Z", "level": "error", "event": "request finished", "logger": "dmm_api.main", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "correlation_id": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "user_id": "16a5380f-4787-44dd-a552-c7095f2d12d1", "method": "PUT", "path": "/api/v1/dataset/update", "status_code": 424, "duration_ms": 818.2, "outcome": "server_error"}
+{"timestamp": "2026-11-02T10:15:02.601Z", "level": "info", "msg": "Requesting dataset metadata from MoMa", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "DGCorrelationId": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "UserId": "16a5380f-4787-44dd-a552-c7095f2d12d1", "ClientId": "example-client", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433"}
+{"timestamp": "2026-11-02T10:15:03.412Z", "level": "error", "msg": "MoMa API HTTP error while fetching dataset metadata", "logger": "dmm_api.resources.dataset", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "DGCorrelationId": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "UserId": "16a5380f-4787-44dd-a552-c7095f2d12d1", "ClientId": "example-client", "dataset_id": "729f8932-8300-4ac5-a71e-b41904ca7433", "status_code": 502}
+{"timestamp": "2026-11-02T10:15:03.419Z", "level": "error", "msg": "request finished", "logger": "dmm_api.main", "app_version": "0.2.0", "pod": "data-model-management-7c9f-x2k4q", "DGCorrelationId": "5b1e0c9a-3f4d-4e2b-9a71-0c2d8e6f1a33", "UserId": "16a5380f-4787-44dd-a552-c7095f2d12d1", "ClientId": "example-client", "method": "PUT", "path": "/api/v1/dataset/update", "status_code": 424, "duration_ms": 818.2, "outcome": "server_error"}
 ```
 
 ## Files
@@ -188,6 +199,9 @@ spec:
     spec:
       backoffLimit: 0
       template:
+        metadata:
+          labels:
+            logFormat: json-cf-2
         spec:
           restartPolicy: Never
           securityContext:
@@ -227,4 +241,6 @@ spec:
 
 `LOGS_DIR` must match the API's, and the API's Deployment mounts the same
 claim there. `backoffLimit: 0` keeps a failed run from being retried at once;
-the next week's run picks up what it left.
+the next week's run picks up what it left. The `logFormat` label on the pod
+template lets the logging service parse the job's entries, as the same label
+on the API's pod template does for the API.

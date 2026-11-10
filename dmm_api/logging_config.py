@@ -27,21 +27,28 @@ import structlog
 
 from dmm_api import config
 
+# The fields every entry starts with. `timestamp`, `level`, `msg`,
+# `DGCorrelationId`, `UserId` and `ClientId` are the json-cf-2 format of the
+# DataGEMS logging service, which makes them searchable there. Its parser
+# lowercases every key, so a log call must not pass a key that equals one of
+# these once lowercased.
 FIXED_FIELDS = (
     "timestamp",
     "level",
-    "event",
+    "msg",
     "logger",
     "app_version",
     "pod",
-    "correlation_id",
-    "user_id",
+    "DGCorrelationId",
+    "UserId",
+    "ClientId",
 )
 
 LOG_FILE_RE = re.compile(
     r"^dmm-api_(?P<day>\d{4}-\d{2}-\d{2})_(?P<pod>[A-Za-z0-9.-]+)\.log$"
 )
 
+CORRELATION_HEADER = "x-tracking-correlation"
 CORRELATION_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
 
 # Problems with the log files themselves go to stdout only, so that a failing
@@ -68,11 +75,12 @@ _STOP = object()
 class RequestContext:
     correlation_id: str
     user_id: str | None = None
+    client_id: str | None = None
 
 
-# A mutable holder rather than two context variables: the user ID is recorded
-# inside the endpoint, which runs in a copy of the middleware's context, and
-# the middleware still has to see it for the request summary.
+# A mutable holder rather than separate context variables: the caller is
+# recorded inside the endpoint, which runs in a copy of the middleware's
+# context, and the middleware still has to see it for the request summary.
 _request: ContextVar[RequestContext | None] = ContextVar("request", default=None)
 
 
@@ -98,10 +106,12 @@ def get_correlation_id() -> str | None:
     return context.correlation_id if context else None
 
 
-def set_user_id(user_id: str | None) -> None:
+def set_caller(user_id: str | None, client_id: str | None) -> None:
+    """Record the caller's user and client IDs for the rest of the request."""
     context = _request.get()
     if context:
         context.user_id = user_id
+        context.client_id = client_id
 
 
 def _timestamp(created: float) -> str:
@@ -116,15 +126,22 @@ def _add_fixed_fields(_, method_name: str, event_dict: dict) -> dict:
     entry: dict[str, Any] = {
         "timestamp": _timestamp(record.created if record else time.time()),
         "level": record.levelname.lower() if record else method_name,
-        "event": str(event_dict.get("event", "")),
+        "msg": str(event_dict.get("event", "")),
         "logger": record.name if record else "",
         "app_version": config.APP_VERSION,
         "pod": config.POD_NAME,
-        "correlation_id": context.correlation_id if context else None,
-        "user_id": context.user_id if context else None,
+        "DGCorrelationId": context.correlation_id if context else None,
+        "UserId": context.user_id if context else None,
+        "ClientId": context.client_id if context else None,
     }
+    # structlog's `event` is the message, already written as `msg`.
     for key, value in event_dict.items():
-        if key not in entry and key not in ("exception", "_record", "_from_structlog"):
+        if key not in entry and key not in (
+            "event",
+            "exception",
+            "_record",
+            "_from_structlog",
+        ):
             entry[key] = value
     if "exception" in event_dict:
         entry["exception"] = event_dict["exception"]

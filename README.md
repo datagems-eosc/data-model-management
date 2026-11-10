@@ -109,32 +109,21 @@ set -a; . ./dev.env; set +a
 uv run uvicorn dmm_api.main:app --port 5000
 ```
 
-### Terminal
-
-To start the API server, open your terminal and navigate to the dmm_api directory.
-
-Run the api.py script:
-
-```bash
-cd dmm_api
-python api.py
-```
-
----
-
 ### Docker
 
-Alternatively, run the API using Docker.
+`docker compose up` builds the image and starts it on port 5050, with Grafeo.
+To run the image on its own:
 
-Use the provided Dockerfile to build the image:
 ```bash
-docker build -t fastapi-image .
+docker build -t dmm-api .
+docker run -d -p 5000:5000 --env-file dev.env --name dmm-api dmm-api
 ```
-Start a container from the image and mount the results directory:
-```bash
-docker run -d -p 5000:5000 -v /path/to/your/local/results:/app/dmm_api/data/results --name fastapi-container fastapi-image
-```
-Replace `/path/to/your/local/results` with the actual path to your local results directory, e.g., `desktop/repositories/data-model-management/dmm_api/data/results`.
+
+The image runs as uid and gid 10001 and writes only to `/logs`, `/s3` and
+`/tmp`. Mount writable volumes at `/logs` and `/s3` to keep the log files and
+the dataset files; without a writable `/logs`, the API logs to stdout only.
+Set `GRAFEO_URL` when Grafeo is not on `localhost:7474` as seen from the
+container.
 
 #### Required Service URLs
 
@@ -158,15 +147,15 @@ The following environment variables are read by the API **without defaults**.
 
 | Variable | Used by | Required when | Secret |
 |---|---|---|---|
-| `OIDC_CLIENT_SECRET` | Token exchange in `dmm_api/security/auth.py` | Using `POST /api/v1/authtest/cdd-search` (or any token-exchange flow) | Yes |
+| `OIDC_CLIENT_SECRET` | Token exchange in `dmm_api/resources/security.py` | Exchanging a caller's token for one for cross-dataset discovery | Yes |
 | `DATASET_DIR` | Dataset load flow in `dmm_api/resources/dataset.py` | Using `PUT /api/v1/dataset/load` | No |
-| `DATAGEMS_POSTGRES_HOST` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
-| `DATAGEMS_POSTGRES_PORT` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | No |
-| `DS_READER_USER` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | Yes |
-| `DS_READER_PS` | Postgres test endpoint | Using `GET /api/v1/test-postgres-duckdb` | Yes |
+| `DATAGEMS_POSTGRES_HOST` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
+| `DATAGEMS_POSTGRES_PORT` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
+| `DS_READER_USER` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
+| `DS_READER_PS` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
 
 Notes:
-- For `authtest/cdd-search`, also review optional auth variables with defaults in `dmm_api/security/auth.py` (`OIDC_CLIENT_ID`, `OIDC_TOKEN_URL`, etc.).
+- The optional auth variables, with their defaults, are in `dmm_api/resources/security.py`: `OIDC_CLIENT_ID`, `OIDC_JWKS_URL`, `CDD_EXCHANGE_SCOPE` and `JWKS_CACHE_TTL_SECONDS`.
 - `OIDC_CLIENT_SECRET` should never be hardcoded in image layers or committed files.
 
 #### Secrets with Vault (Kubernetes)

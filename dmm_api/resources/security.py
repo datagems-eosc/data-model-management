@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, StrictInt, StrictStr
 import structlog
 
 from dmm_api.config import OIDC_ISSUER_URL
-from dmm_api.logging_config import get_correlation_id, set_user_id
+from dmm_api.logging_config import get_correlation_id, set_caller
 
 
 class FailedDependencyMessage(BaseModel):
@@ -270,7 +270,7 @@ async def require_valid_token(
             detail=f"Could not fetch JWKS: {exc}",
         ) from exc
 
-    set_user_id(payload.get("sub"))
+    set_caller(payload.get("sub"), payload.get("azp"))
     # Dependency output: route handlers can use these claims directly.
     return payload
 

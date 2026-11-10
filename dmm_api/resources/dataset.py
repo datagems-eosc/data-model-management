@@ -9,6 +9,7 @@ import uuid
 from pathlib import Path
 import shutil
 from dmm_api.config import CDD_URL, IDD_URL, MOMA_URL, QD_URL, REC_SYS_URL
+from dmm_api.logging_config import CORRELATION_HEADER, get_correlation_id
 from dmm_api.resources.converter import convertProfile
 from dmm_api.uploads import read_upload
 import requests
@@ -74,6 +75,19 @@ from ..tools.S3.results import (
 from ..tools.S3.catalogue import upload_dataset_to_catalogue
 
 logger = structlog.get_logger(__name__)
+
+
+def _service_headers(token: str | None) -> dict[str, str]:
+    """Headers for a call to another DataGEMS service.
+
+    The correlation ID goes along, so that the called service logs the request
+    under the same ID.
+    """
+    headers = {"Authorization": f"Bearer {token}"}
+    correlation_id = get_correlation_id()
+    if correlation_id:
+        headers[CORRELATION_HEADER] = correlation_id
+    return headers
 
 
 class WrappedAPRequest(BaseModel):
@@ -304,9 +318,7 @@ async def get_dataset_metadata(
         )
 
     try:
-        response = await client.get(
-            url, params=params, headers={"Authorization": f"Bearer {token}"}
-        )
+        response = await client.get(url, params=params, headers=_service_headers(token))
         logger.info(
             "Received dataset metadata response from MoMa",
             dataset_id=dataset_id,
@@ -566,7 +578,7 @@ async def search_datasets(
     ) as client:
         try:
             response = await client.get(
-                url, params=params, headers={"Authorization": f"Bearer {token}"}
+                url, params=params, headers=_service_headers(token)
             )
             response.raise_for_status()
 
@@ -673,7 +685,7 @@ async def get_dataset(
         try:
             response = await client.get(
                 f"{MOMA_URL}datasets/{dataset_id}",
-                headers={"Authorization": f"Bearer {token}"},
+                headers=_service_headers(token),
             )
 
             if response.status_code == status.HTTP_404_NOT_FOUND:
@@ -895,7 +907,7 @@ async def register_dataset(
             )
 
             response = await client.post(
-                post_url, json=post_data, headers={"Authorization": f"Bearer {token}"}
+                post_url, json=post_data, headers=_service_headers(token)
             )
 
             response.raise_for_status()
@@ -1199,7 +1211,7 @@ async def load_dataset(
                     "archivedAt": new_path,
                     "status": DatasetState.Loaded.value,
                 },
-                headers={"Authorization": f"Bearer {token}"},
+                headers=_service_headers(token),
             )
             response.raise_for_status()
             logger.info(
@@ -1442,7 +1454,7 @@ async def update_dataset(
                 response = await client.get(
                     search_url,
                     params=search_params,
-                    headers={"Authorization": f"Bearer {token}"},
+                    headers=_service_headers(token),
                 )
                 response.raise_for_status()
 
@@ -1559,7 +1571,7 @@ async def update_dataset(
             response = await client.post(
                 f"{MOMA_URL}datasets/",
                 json={"nodes": filtered_nodes, "edges": filtered_edges},
-                headers={"Authorization": f"Bearer {token}"},
+                headers=_service_headers(token),
             )
             response.raise_for_status()
 
@@ -1704,7 +1716,7 @@ async def execute_and_store(
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
             json=payload_data,
         )
 
@@ -1837,7 +1849,7 @@ async def execute_and_store_query_disambiguation(
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
             json=payload_data,
         )
 
@@ -1969,7 +1981,7 @@ async def execute_and_store_dataset_recommendations(
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
             json=payload_data,
         )
 
@@ -2401,7 +2413,7 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
         ) as client:
             response = await client.get(
                 endpoint,
-                headers={"Authorization": f"Bearer {token if token else 'NO_TOKEN'}"},
+                headers=_service_headers(token if token else "NO_TOKEN"),
             )
 
         # Check if node was not found
@@ -2665,7 +2677,7 @@ async def execute_and_store_idd(
     ) as client:
         response = await client.post(
             service["url"],
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
             json=payload_data,
         )
 
@@ -3357,7 +3369,7 @@ async def register_dataset_linking(
     ) as client:
         response = await client.post(
             url,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
             json=payload_data,
         )
     try:
@@ -3434,7 +3446,7 @@ async def get_dataset_linking(
     ) as client:
         response = await client.get(
             url,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
         )
     try:
         response_payload = response.json()
@@ -3508,7 +3520,7 @@ async def delete_dataset_linking_elt(
     ) as client:
         response = await client.delete(
             url,
-            headers={"Authorization": f"Bearer {token}"},
+            headers=_service_headers(token),
         )
     try:
         response_payload = response.json()
@@ -3584,7 +3596,7 @@ async def list_dataset_linking(
         try:
             response = await client.get(
                 f"{MOMA_URL}datasets/{dataset_id}/relationships",
-                headers={"Authorization": f"Bearer {token}"},
+                headers=_service_headers(token),
             )
 
             if response.status_code == status.HTTP_404_NOT_FOUND:
