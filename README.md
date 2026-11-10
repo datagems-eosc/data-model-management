@@ -147,16 +147,29 @@ The following environment variables are read by the API **without defaults**.
 
 | Variable | Used by | Required when | Secret |
 |---|---|---|---|
-| `OIDC_CLIENT_SECRET` | Token exchange in `dmm_api/resources/security.py` | Exchanging a caller's token for one for cross-dataset discovery | Yes |
 | `DATASET_DIR` | Dataset load flow in `dmm_api/resources/dataset.py` | Using `PUT /api/v1/dataset/load` | No |
 | `DATAGEMS_POSTGRES_HOST` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
 | `DATAGEMS_POSTGRES_PORT` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
 | `DS_READER_USER` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
 | `DS_READER_PS` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
 
-Notes:
-- The optional auth variables, with their defaults, are in `dmm_api/resources/security.py`: `OIDC_CLIENT_ID`, `OIDC_JWKS_URL`, `CDD_EXCHANGE_SCOPE` and `JWKS_CACHE_TTL_SECONDS`.
-- `OIDC_CLIENT_SECRET` should never be hardcoded in image layers or committed files.
+`DS_READER_USER` and `DS_READER_PS` should never be hardcoded in image layers or committed files.
+
+#### Optional Environment Variables
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `GRAFEO_URL` | `http://localhost:7474` | Grafeo's HTTP endpoint |
+| `OIDC_CLIENT_ID` | `data-model-management-api` | The audience (`aud`) a token must contain |
+| `OIDC_JWKS_URL` | `<OIDC_ISSUER_URL>/protocol/openid-connect/certs` | The login server's public keys |
+| `JWKS_CACHE_TTL_SECONDS` | `300` | How long the public keys are cached, in seconds |
+| `SCRATCHPAD_DIR` | `/s3/scratchpad` | Uploaded dataset files, before `PUT /api/v1/dataset/load` |
+| `RESULTS_DIR`, `RESULTS_FOLDER` | `/s3/data-model-management`, `results` | Query results, under `RESULTS_DIR/RESULTS_FOLDER` |
+| `CATALOGUE_DIR`, `CATALOGUE_FOLDER` | `/s3/data-model-management`, `catalogue` | The catalogue, under `CATALOGUE_DIR/CATALOGUE_FOLDER` |
+| `MAX_UPLOAD_MB` | `64` | The largest request body and uploaded file accepted, in MB |
+| `ROOT_PATH` | empty | The path prefix when the API is served behind a proxy |
+
+The logging variables are in [LOGGING.md](LOGGING.md#settings).
 
 #### Secrets with Vault (Kubernetes)
 
@@ -164,11 +177,6 @@ If you use Vault in Kubernetes, expose secrets into a Kubernetes Secret (for exa
 
 ```yaml
 env:
-  - name: OIDC_CLIENT_SECRET
-    valueFrom:
-      secretKeyRef:
-        name: dmm-api-secrets
-        key: OIDC_CLIENT_SECRET
   - name: DS_READER_USER
     valueFrom:
       secretKeyRef:
