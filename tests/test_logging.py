@@ -1,4 +1,5 @@
 import ast
+import asyncio
 import gzip
 import io
 import json
@@ -14,6 +15,7 @@ from pathlib import Path
 import pytest
 import structlog
 from fastapi import APIRouter, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.testclient import TestClient
 from structlog.testing import capture_logs
 
@@ -25,9 +27,10 @@ from dmm_api.logging_config import (
     configure_logging,
     json_formatter,
     request_context,
-    set_user_id,
+    set_caller,
 )
 from dmm_api.main import app
+from dmm_api.resources import security
 from dmm_api.resources.security import FailedDependencyException
 from dmm_api.tools import log_archive
 from dmm_api.tools.log_archive import run
@@ -44,7 +47,7 @@ def _record(when: datetime, message: str = "entry") -> logging.LogRecord:
 
 
 def _line(event: str) -> str:
-    return json.dumps({"event": event})
+    return json.dumps({"msg": event})
 
 
 def _files(logs_dir: Path) -> list[str]:
@@ -52,11 +55,11 @@ def _files(logs_dir: Path) -> list[str]:
 
 
 def _events(path: Path) -> list[str]:
-    return [json.loads(line)["event"] for line in path.read_text().splitlines()]
+    return [json.loads(line)["msg"] for line in path.read_text().splitlines()]
 
 
 def _entry(timestamp: str, event: str) -> str:
-    return json.dumps({"timestamp": timestamp, "event": event}) + "\n"
+    return json.dumps({"timestamp": timestamp, "msg": event}) + "\n"
 
 
 def _write(path: Path, *lines: str) -> None:
@@ -83,7 +86,7 @@ def _log_as_json(log_calls) -> list[dict]:
 def test_an_entry_has_the_fixed_fields_in_order():
     def log_calls(logger):
         with request_context("abc-123"):
-            set_user_id("user-1")
+            set_caller("user-1", "client-1")
             logger.warning("something happened", dataset_id="d1", where=Path("x"))
         logger.info("outside a request")
 
@@ -91,15 +94,17 @@ def test_an_entry_has_the_fixed_fields_in_order():
     assert list(inside) == [*FIXED_FIELDS, "dataset_id", "where"]
     assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{3}Z", inside["timestamp"])
     assert inside["level"] == "warning"
-    assert inside["event"] == "something happened"
+    assert inside["msg"] == "something happened"
     assert inside["logger"] == "tests.fields"
     assert inside["app_version"] == config.APP_VERSION
     assert inside["pod"] == config.POD_NAME
-    assert inside["correlation_id"] == "abc-123"
-    assert inside["user_id"] == "user-1"
+    assert inside["DGCorrelationId"] == "abc-123"
+    assert inside["UserId"] == "user-1"
+    assert inside["ClientId"] == "client-1"
     assert inside["where"] == "x"
-    assert outside["correlation_id"] is None
-    assert outside["user_id"] is None
+    assert outside["DGCorrelationId"] is None
+    assert outside["UserId"] is None
+    assert outside["ClientId"] is None
 
 
 def test_an_exception_comes_last_and_positional_arguments_are_filled_in():
@@ -113,7 +118,7 @@ def test_an_exception_comes_last_and_positional_arguments_are_filled_in():
     failed, warned = _log_as_json(log_calls)
     assert list(failed)[-2:] == ["step", "exception"]
     assert "ValueError: boom" in failed["exception"]
-    assert warned["event"] == "JWT validation failed: expired"
+    assert warned["msg"] == "JWT validation failed: expired"
 
 
 def test_stdout_gets_the_same_json_entries(capsys):
@@ -128,6 +133,8 @@ def test_stdout_gets_the_same_json_entries(capsys):
 
 def test_no_log_call_passes_a_reserved_field():
     levels = {"debug", "info", "warning", "error", "critical", "exception"}
+    # The logging service lowercases keys, and maps `msg` to `message`.
+    reserved = {field.lower() for field in FIXED_FIELDS} | {"message"}
     offending = []
     for path in (Path(__file__).parent.parent / "dmm_api").rglob("*.py"):
         for node in ast.walk(ast.parse(path.read_text())):
@@ -139,9 +146,31 @@ def test_no_log_call_passes_a_reserved_field():
                 offending += [
                     f"{path.name}:{node.lineno} {kw.arg}"
                     for kw in node.keywords
-                    if kw.arg in FIXED_FIELDS
+                    if kw.arg and kw.arg.lower() in reserved
                 ]
     assert offending == []
+
+
+def test_a_valid_token_records_the_user_and_the_client(monkeypatch):
+    async def no_keys():
+        return {}
+
+    monkeypatch.setattr(security, "_get_jwks", no_keys)
+    monkeypatch.setattr(
+        security.jwt,
+        "decode",
+        lambda *args, **kwargs: {"sub": "user-1", "azp": "app-1"},
+    )
+    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials="token")
+
+    def log_calls(logger):
+        with request_context("abc-123"):
+            asyncio.run(security.require_valid_token(credentials))
+            logger.info("authenticated")
+
+    (entry,) = _log_as_json(log_calls)
+    assert entry["UserId"] == "user-1"
+    assert entry["ClientId"] == "app-1"
 
 
 # Files
@@ -167,13 +196,13 @@ def test_entries_go_to_the_pods_file_of_their_day(tmp_path):
 
 def test_a_restarted_pod_appends_and_ends_a_cut_line_first(tmp_path):
     path = tmp_path / "dmm-api_2026-11-03_pod-a.log"
-    _write(path, _line("old") + "\n", '{"event": "cut')
+    _write(path, _line("old") + "\n", '{"msg": "cut')
     writer = DailyFileWriter(tmp_path, "pod-a")
     writer.write(_at(2026, 11, 3, 10), _line("new"))
     writer.close()
     assert path.read_text().splitlines() == [
         _line("old"),
-        '{"event": "cut',
+        '{"msg": "cut',
         _line("new"),
     ]
 
@@ -253,7 +282,7 @@ def test_a_full_queue_drops_entries_and_says_how_many():
     ]
     assert logs[1]["dropped"] == 2
     _, line = file_queue.get_nowait()
-    assert json.loads(line)["event"] == "queued again"
+    assert json.loads(line)["msg"] == "queued again"
 
 
 @pytest.fixture
@@ -274,12 +303,13 @@ def _file_entries(logs_dir: Path) -> list[dict]:
 
 def test_a_file_entry_carries_the_request_context(log_files):
     with request_context("abc-123"):
-        set_user_id("user-1")
+        set_caller("user-1", "client-1")
         structlog.get_logger("tests.files").warning("inside", dataset_id="d1")
     close_log_files()
-    (entry,) = [e for e in _file_entries(log_files) if e["event"] == "inside"]
-    assert entry["correlation_id"] == "abc-123"
-    assert entry["user_id"] == "user-1"
+    (entry,) = [e for e in _file_entries(log_files) if e["msg"] == "inside"]
+    assert entry["DGCorrelationId"] == "abc-123"
+    assert entry["UserId"] == "user-1"
+    assert entry["ClientId"] == "client-1"
     assert entry["pod"] == "pod-a"
     assert entry["dataset_id"] == "d1"
 
@@ -289,9 +319,9 @@ def test_a_lone_surrogate_is_written_escaped(log_files):
     logger.warning("odd", ap={"q": "\ud800"})
     logger.warning("next")
     close_log_files()
-    odd, after = [e for e in _file_entries(log_files) if e["event"] in ("odd", "next")]
+    odd, after = [e for e in _file_entries(log_files) if e["msg"] in ("odd", "next")]
     assert odd["ap"] == {"q": "\ud800"}
-    assert after["event"] == "next"
+    assert after["msg"] == "next"
 
 
 def test_shutdown_does_not_wait_for_a_hung_disk(log_files, monkeypatch):
@@ -317,7 +347,7 @@ def test_shutdown_does_not_wait_for_a_hung_disk(log_files, monkeypatch):
 def _archived(archive_dir: Path, name: str = "dmm-api_week_2026-10-26.log.gz"):
     with gzip.open(archive_dir / name, "rt") as f:
         return [
-            json.loads(line)["event"] if line.startswith("{") else line.rstrip("\n")
+            json.loads(line)["msg"] if line.startswith("{") else line.rstrip("\n")
             for line in f
         ]
 
