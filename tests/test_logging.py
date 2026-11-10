@@ -12,6 +12,7 @@ import uuid
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import httpx
 import pytest
 import structlog
 from fastapi import APIRouter, HTTPException
@@ -30,7 +31,7 @@ from dmm_api.logging_config import (
     set_caller,
 )
 from dmm_api.main import app
-from dmm_api.resources import security
+from dmm_api.resources import dataset, security
 from dmm_api.resources.security import FailedDependencyException
 from dmm_api.tools import log_archive
 from dmm_api.tools.log_archive import run
@@ -562,3 +563,25 @@ def test_the_request_summary(client, path, status_code, outcome, level):
     assert summary["method"] == "GET"
     assert summary["path"] == path
     assert summary["duration_ms"] >= 0
+
+
+def test_a_call_to_another_service_passes_the_correlation_id_on(monkeypatch):
+    sent = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        sent.append(request.headers)
+        return httpx.Response(200, json={"properties": {}})
+
+    real_client = httpx.AsyncClient
+    monkeypatch.setattr(
+        dataset.httpx,
+        "AsyncClient",
+        lambda **kwargs: real_client(transport=httpx.MockTransport(handler), **kwargs),
+    )
+    with request_context("abc-123"):
+        asyncio.run(dataset.get_node_properties("n1", "token"))
+    asyncio.run(dataset.get_node_properties("n1", "token"))
+    inside, outside = sent
+    assert inside["x-tracking-correlation"] == "abc-123"
+    assert inside["authorization"] == "Bearer token"
+    assert "x-tracking-correlation" not in outside

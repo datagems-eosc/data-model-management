@@ -32,7 +32,8 @@ zcat -f dmm-api_week_* | jq -c 'select(.UserId == "16a5380f-4787-44dd-a552-c7095
 The ID is taken from the request's `x-tracking-correlation` header when it is
 1 to 128 characters of `A-Z a-z 0-9 . _ -`. Otherwise the API generates a
 UUID4. A caller that sends its own ID can therefore find its requests in these
-logs under the same ID.
+logs under the same ID. The API passes the ID on, in the same header, to the
+other DataGEMS services it calls, so their logs carry it too.
 
 FastAPI's own validation errors (422) keep their `{"detail": [...]}` body; the
 ID is in their header only. So is it for paths that match no route (404).

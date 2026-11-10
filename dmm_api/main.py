@@ -10,6 +10,7 @@ import uvicorn
 
 from dmm_api.config import APP_VERSION, require_configuration
 from dmm_api.logging_config import (
+    CORRELATION_HEADER,
     close_log_files,
     configure_logging,
     correlation_id_from_header,
@@ -25,8 +26,6 @@ configure_logging()
 require_configuration()
 
 logger = structlog.get_logger(__name__)
-
-CORRELATION_HEADER = "x-tracking-correlation"
 
 
 @asynccontextmanager

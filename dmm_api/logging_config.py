@@ -27,10 +27,11 @@ import structlog
 
 from dmm_api import config
 
-# `timestamp`, `level`, `msg`, `DGCorrelationId`, `UserId` and `ClientId` are
-# the json-cf-2 format of the DataGEMS logging service, which makes them
-# searchable there. Its parser lowercases every key before matching, so a key
-# differing from one of these only in case would collide with it.
+# The fields every entry starts with. `timestamp`, `level`, `msg`,
+# `DGCorrelationId`, `UserId` and `ClientId` are the json-cf-2 format of the
+# DataGEMS logging service, which makes them searchable there. Its parser
+# lowercases every key, so a log call must not pass a key that equals one of
+# these once lowercased.
 FIXED_FIELDS = (
     "timestamp",
     "level",
@@ -47,6 +48,7 @@ LOG_FILE_RE = re.compile(
     r"^dmm-api_(?P<day>\d{4}-\d{2}-\d{2})_(?P<pod>[A-Za-z0-9.-]+)\.log$"
 )
 
+CORRELATION_HEADER = "x-tracking-correlation"
 CORRELATION_ID_RE = re.compile(r"[A-Za-z0-9._-]{1,128}")
 
 # Problems with the log files themselves go to stdout only, so that a failing
@@ -132,6 +134,7 @@ def _add_fixed_fields(_, method_name: str, event_dict: dict) -> dict:
         "UserId": context.user_id if context else None,
         "ClientId": context.client_id if context else None,
     }
+    # structlog's `event` is the message, already written as `msg`.
     for key, value in event_dict.items():
         if key not in entry and key not in (
             "event",
