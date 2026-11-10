@@ -98,6 +98,15 @@ async def log_request(request: Request, call_next):
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
     """Return the detail payload directly, without FastAPI's {"detail": ...} wrapper."""
+    # Error bodies carry no exception text, so that nothing internal reaches the
+    # caller. A server error raised while handling an exception logs it here,
+    # with its traceback, under the request's correlation ID.
+    if exc.status_code >= 500 and exc.__context__ is not None:
+        logger.error(
+            "request failed with an exception",
+            status_code=exc.status_code,
+            exc_info=exc.__context__,
+        )
     detail = exc.detail
     if isinstance(detail, dict):
         body = {**detail}

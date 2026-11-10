@@ -184,3 +184,16 @@ def test_data_workflow_refuses_a_path(
 ):
     assert upload(client, dataset_id, file_name).status_code == 400
     assert list(scratchpad.iterdir()) == []
+
+
+def test_a_query_result_needs_a_valid_token(client, monkeypatch):
+    async def no_keys():
+        return {}
+
+    monkeypatch.setattr(security, "_get_jwks", no_keys)
+    response = client.get(
+        f"/api/v1/polyglot/query/result/{DATASET_ID}",
+        headers={"Authorization": "Bearer not-a-token"},
+    )
+
+    assert response.status_code == 401
