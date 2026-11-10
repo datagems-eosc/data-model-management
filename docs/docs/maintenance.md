@@ -1,61 +1,17 @@
 # Maintenance
 
-The service is part of the DataGEMS platform offered through an existing deployment, following the DataGEMS release and deployment procedures over a managed infrasrtucture along with the maintenance activities that are scheduled within the platform. The purpose of this section is not to detail the maintenance activities put in place by the DataGEMS team.
+## Health
 
-## Healthchecks
+`GET /api/v1` answers without a token and reports the running version, so it shows whether the service is up.
 
-The service [OpenAPI Reference](openapi.md) describes healthcheck endpoints that can be used to track the status of the service.
+## Versions
 
-The appropriate configuration file that controls the behavior of the healthcheck endpoints is described in the relevant [Configuration](configuration.md) section along with the response status codes for Healthy / Degrades / Unhealthy status and if the response will be verbose.
-
-An example of a Verbose response that returns 200 OK for healthy state is:
-```json
-{
-    "status": "Healthy",
-    "duration": "00:00:00.0216780",
-    "results": {
-        "privateMemory": {
-            "status": "Healthy",
-            "description": null,
-            "duration": "00:00:00.0015544",
-            "tags": null,
-            "exception": null,
-            "data": {}
-        },
-        "processMemory": {
-            "status": "Healthy",
-            "description": "Allocated megabytes in memory: 408 mb",
-            "duration": "00:00:00.0000382",
-            "tags": null,
-            "exception": null,
-            "data": {}
-        },
-        "db": {
-            "status": "Healthy",
-            "description": null,
-            "duration": "00:00:00.0211601",
-            "tags": null,
-            "exception": null,
-            "data": {}
-        }
-    }
-}
-```
-
-## Verions & Updates
-
-The service follows a semantic versioning scheme and structures versions as MAJOR.MINOR.PATCH:
-
-* MAJOR (X.0.0): Breaking changes that are incompatible with previous versions.
-* MINOR (X.Y.0): New features added in a backward-compatible way.
-* PATCH (X.Y.Z): Bug fixes and security patches that do not affect compatibility.
+The service follows semantic versioning, `MAJOR.MINOR.PATCH`. Each release is a tag `vX.Y.Z` and the image of the same tag. The running version is in the answer of `GET /api/v1`, in the [OpenAPI Reference](openapi.md) and in every log entry.
 
 ## Backups
 
-All state persisted by the service is maintained in the relational database as described in the respective [datastores](datastore.md) section.
-
-To keep backups of the state, the respective utilities must be scheduled to run in a consistent manner.
+What the service writes is kept in MoMa, in Grafeo and on S3 storage, as [Data Stores](datastore.md) describes. Back up those.
 
 ## Troubleshooting
 
-Troubleshooting is primarily done through the logging mechanisms that are available and are described in the respective [logging](logging.md) section.
+Ask the caller for the correlation ID of the failed request, from the response's `x-tracking-correlation` header or the error body's `correlationId`, and find the request in the logs as [Logging](logging.md) describes.
