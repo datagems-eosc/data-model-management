@@ -26,13 +26,17 @@ clean-build: ## Clean build artifacts
 	@echo "🚀 Removing build artifacts"
 	@uv run python -c "import shutil; import os; shutil.rmtree('dist') if os.path.exists('dist') else None"
 
+.PHONY: docs-openapi
+docs-openapi: ## Write the OpenAPI document that the documentation renders
+	@uv run python scripts/export_openapi.py docs/docs/content/openapi.json
+
 .PHONY: docs-test
-docs-test: ## Test if documentation can be built without warnings or errors
-	@uv run mkdocs build -s
+docs-test: docs-openapi ## Test if documentation can be built without warnings or errors
+	@uv run --group docs mkdocs build -s -f docs/mkdocs.yml
 
 .PHONY: docs
-docs: ## Build and serve the documentation
-	@uv run mkdocs serve
+docs: docs-openapi ## Build and serve the documentation
+	@uv run --group docs mkdocs serve -f docs/mkdocs.yml
 
 
 .PHONY: help

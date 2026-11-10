@@ -14,22 +14,22 @@ jobs:
     permissions:
       contents: write
 
-    defaults:
-      run:
-        working-directory: docs
+    env:
+      # Install exactly what uv.lock pins, as the image does.
+      UV_FROZEN: "1"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
         with:
-          python-version: '3.x'
+          # The version the Dockerfile uses.
+          version: "0.7.4"
 
-      - name: Install dependencies
-        run: |
-          pip install mkdocs mkdocs-material mike neoteroi-mkdocs pymdown-extensions
+      - name: Build the docs strictly
+        run: make docs-test
 
       - name: Configure git
         run: |
@@ -40,6 +40,8 @@ jobs:
         run: git fetch origin gh-pages:gh-pages
 
       - name: Publish docs
+        env:
+          VERSION: ${{ github.event.inputs.version }}
         run: |
-          mike deploy --push --update-aliases ${{ github.event.inputs.version }} latest --config-file mkdocs.yml
-          mike set-default --push latest --config-file mkdocs.yml
+          uv run --group docs mike deploy --push --update-aliases "$VERSION" latest --config-file docs/mkdocs.yml
+          uv run --group docs mike set-default --push latest --config-file docs/mkdocs.yml
