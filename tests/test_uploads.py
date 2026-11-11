@@ -52,7 +52,7 @@ def test_a_body_at_the_limit_reaches_the_endpoint(small_limit, client):
 
 def test_a_declared_length_over_the_limit_gets_the_413_body(small_limit, client):
     response = client.post(
-        "/api/v1/convert?from=moma&to=croissant",
+        "/api/v1/data-workflow",
         files={"file": ("big.json", b"x" * 11)},
     )
     assert response.status_code == 413

@@ -2,7 +2,7 @@
 
 ## Authentication
 
-Every endpoint requires a bearer token issued by the [DataGEMS AAI service](https://github.com/datagems-eosc/dg-aai), except `GET /api/v1`, `GET /api/v1/dataset` and `GET /api/v1/grafeo/test`, which return no data:
+Every endpoint requires a bearer token issued by the [DataGEMS AAI service](https://github.com/datagems-eosc/dg-aai), except `GET /api/v1`, `GET /api/v1/dataset`, `GET /api/v1/grafeo/test` and the deprecated `POST /api/v1/convert`, which return no data:
 
 ```
 Authorization: Bearer <token>
