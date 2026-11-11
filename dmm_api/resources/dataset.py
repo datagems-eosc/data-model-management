@@ -1764,12 +1764,6 @@ async def execute_and_store(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -1780,10 +1774,8 @@ async def execute_and_store(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"{service['name']} returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {cdd_error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -1899,12 +1891,6 @@ async def execute_and_store_query_disambiguation(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -1915,10 +1901,8 @@ async def execute_and_store_query_disambiguation(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"{service['name']} returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -2031,12 +2015,6 @@ async def execute_and_store_dataset_recommendations(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -2047,10 +2025,8 @@ async def execute_and_store_dataset_recommendations(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"{service['name']} returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {cdd_error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -2759,12 +2735,6 @@ async def execute_and_store_idd(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -2775,10 +2745,8 @@ async def execute_and_store_idd(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"{service['name']} returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3467,12 +3435,6 @@ async def register_dataset_linking(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -3483,10 +3445,8 @@ async def register_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"MoMa returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {cdd_error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3545,12 +3505,6 @@ async def get_dataset_linking(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -3561,10 +3515,8 @@ async def get_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"MoMa returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3606,14 +3558,6 @@ async def delete_dataset_linking_elt(
             url,
             headers=_service_headers(token),
         )
-    try:
-        response_payload = response.json()
-
-    except ValueError:
-        response_payload = {
-            "status_code": response.status_code,
-            "content": response.text,
-        }
 
     # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
@@ -3622,12 +3566,6 @@ async def delete_dataset_linking_elt(
             status_code=response.status_code,
             response_text=response.text,
         )
-
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
 
         # Build context-specific error messages based on status code
         status_messages = {
@@ -3639,10 +3577,8 @@ async def delete_dataset_linking_elt(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        # Only a 400's message says what to fix in the request; others stay in the log.
+        # The called service's own message stays in the log above.
         error_message = f"MoMa returned error {response.status_code}"
-        if response.status_code == status.HTTP_400_BAD_REQUEST:
-            error_message = f"{error_message}: {error_msg}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 

@@ -168,28 +168,27 @@ def test_an_unreachable_moma_keeps_the_exception_out_of_the_body(client, monkeyp
     assert isinstance(entry["exc_info"], httpx.ConnectError)
 
 
-@pytest.mark.parametrize(
-    "status_code, shown",
-    [(400, True), (500, False)],
-)
-def test_a_forwarded_service_message_reaches_the_caller_only_after_a_400(
-    client, monkeypatch, status_code, shown
+@pytest.mark.parametrize("status_code", [400, 500])
+def test_a_forwarded_service_message_stays_out_of_the_body(
+    client, monkeypatch, status_code
 ):
     monkeypatch.setattr(
         httpx.AsyncClient,
         "post",
         _answer(status_code, json={"error": "query rejected by db.internal"}),
     )
-    response = client.post(
-        "/api/v1/cross-dataset-discovery/search", json=CDD_REQUEST, headers=TOKEN
-    )
+    with capture_logs() as logs:
+        response = client.post(
+            "/api/v1/cross-dataset-discovery/search", json=CDD_REQUEST, headers=TOKEN
+        )
 
     assert response.status_code == status_code
     assert response.json()["details"] == {
         "source": "Cross-Dataset Discovery",
         "statusCode": status_code,
     }
-    assert ("db.internal" in response.json()["error"]) is shown
+    assert "db.internal" not in response.text
+    assert any("db.internal" in e.get("response_text", "") for e in logs)
 
 
 def test_an_unreachable_login_server_keeps_its_host_out_of_the_body(monkeypatch):

@@ -20,7 +20,7 @@ The [OpenAPI Reference](openapi.md) gives the responses of each endpoint. This p
 | 503 | MoMa, or the keys that validate tokens, could not be reached |
 | 504 | MoMa did not answer in time |
 
-When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status. Its `error` includes that service's own message only when the status is 400, since that message says what to fix in the request.
+When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status. That service's own message stays in the service's logs.
 
 ## Error body
 
