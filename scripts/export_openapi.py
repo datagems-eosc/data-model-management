@@ -25,4 +25,8 @@ os.environ.setdefault("LOGS_DIR", tempfile.mkdtemp(prefix="dmm-api-openapi-logs-
 
 from dmm_api.main import app  # noqa: E402
 
-Path(sys.argv[1]).write_text(json.dumps(app.openapi(), indent=2) + "\n")
+# A fresh checkout has no `docs/docs/content/`: the document is its only file,
+# and it is not committed.
+out = Path(sys.argv[1])
+out.parent.mkdir(parents=True, exist_ok=True)
+out.write_text(json.dumps(app.openapi(), indent=2) + "\n")
