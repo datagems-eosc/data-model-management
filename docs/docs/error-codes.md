@@ -19,7 +19,7 @@ The [OpenAPI Reference](openapi.md) gives the responses of each endpoint. This p
 | 503 | MoMa, or the keys that validate tokens, could not be reached |
 | 504 | MoMa did not answer in time |
 
-When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status.
+When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status. Its `error` includes that service's own message only when the status is 400, since that message says what to fix in the request.
 
 ## Error body
 
@@ -37,7 +37,7 @@ An unsuccessful response carries a JSON body like this one:
 | - | - |
 | `code` | The HTTP status, repeated |
 | `error` | What went wrong. For a server error it carries no internal detail, which stays in the service's logs |
-| `details` | On some errors only: more information, such as the status MoMa answered with |
+| `details` | When a service the API called failed: `source`, that service, and `statusCode`, the status it answered with, if it answered. Some errors add more fields, such as the dataset ID |
 | `correlationId` | The request's correlation ID, also returned in the `x-tracking-correlation` header |
 
 Two kinds of response keep the framework's body, `{"detail": ...}`, with the correlation ID in the header only: `422`, whose `detail` lists what does not match the schema, and `404` for a path that matches no endpoint.
