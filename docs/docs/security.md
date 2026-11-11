@@ -15,7 +15,7 @@ The service accepts a token when:
 - it has not expired (`exp`);
 - its audience (`aud`) contains `data-model-management-api`. `POST /api/v1/authtest` does not check the audience.
 
-It does not check the authorized party (`azp`).
+It does not check the authorized party (`azp`), as the DataGEMS platform intends: any client that the AAI service allows a token with this audience may call the API.
 
 A missing or invalid token gets `401`, a token without the audience `403`. When the public keys cannot be fetched, the answer is `503`.
 
@@ -25,7 +25,9 @@ The service does not check roles or dataset grants: a caller with an accepted to
 
 ## Calls to other services
 
-When the service calls MoMa or another DataGEMS service while serving a request, it passes on the caller's token unchanged, with the request's correlation ID.
+When the service calls MoMa or another DataGEMS service while serving a request, it passes on the caller's token unchanged, with the request's correlation ID, so that service answers according to what the caller may see and do.
+
+A call made outside a request would need a service token, obtained with the service's own client ID and secret. The service makes no such call.
 
 ## Secrets
 
