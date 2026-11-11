@@ -115,10 +115,11 @@ async def require_valid_token(
             detail="Invalid token",
         ) from exc
     except httpx.HTTPError as exc:
-        # Infrastructure/network issue while retrieving verification keys.
+        # Infrastructure/network issue while retrieving verification keys. The
+        # exception handler logs `exc`, which can name the login server's host.
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Could not fetch JWKS: {exc}",
+            detail="Could not fetch JWKS",
         ) from exc
 
     set_caller(payload.get("sub"), payload.get("azp"))
