@@ -1,6 +1,7 @@
 """Error bodies carry no exception text; the log keeps it."""
 
 import json
+import traceback
 from pathlib import Path
 
 import duckdb
@@ -44,24 +45,84 @@ def test_a_server_error_keeps_the_exception_out_of_the_body(client, monkeypatch)
     assert isinstance(entry["exc_info"], RuntimeError)
 
 
-@pytest.mark.parametrize(
-    "error, shown",
-    [
-        (duckdb.BinderException('Referenced column "x" not found'), True),
-        (duckdb.IOException("could not connect: host=db user=reader"), False),
-    ],
+PASSWORD = "SECRETPW"
+SQL_ERROR = duckdb.BinderException('Referenced column "x" not found')
+CONNECTION_ERROR = duckdb.IOException(
+    f"Unable to connect to Postgres at dbname=db user=reader password={PASSWORD} "
+    "host=db.internal port=5432: connection refused"
 )
-def test_a_failed_query_shows_only_what_is_wrong_with_the_sql(
-    client, monkeypatch, error, shown
-):
-    async def fail(*args, **kwargs):
-        raise error
 
-    monkeypatch.setattr(dataset, "execute_query", fail)
+
+class _FakeDuckDB:
+    """A DuckDB connection whose ATTACH or query fails as DuckDB's would."""
+
+    def __init__(self, attach_error=None, query_error=None):
+        self.attach_error = attach_error
+        self.query_error = query_error
+
+    def sql(self, statement):
+        if statement.startswith("ATTACH") and self.attach_error:
+            raise self.attach_error
+
+    def execute(self, *args):
+        raise self.query_error
+
+    def close(self):
+        pass
+
+
+@pytest.fixture(params=["postgres", "mixed"])
+def failing_query(request, monkeypatch):
+    """Run the real query helper of one query type, against a fake DuckDB."""
+
+    async def query_builder(ap, token=None):
+        return {
+            "software": "DuckDB",
+            "type": request.param,
+            "query": "SELECT x FROM t",
+            "args_map": {"t": {"mimeType": "text/sql", "dbConnection": {"name": "db"}}},
+        }
+
+    monkeypatch.setenv("DATAGEMS_POSTGRES_HOST", "db.internal")
+    monkeypatch.setenv("DATAGEMS_POSTGRES_PORT", "5432")
+    monkeypatch.setenv("DS_READER_USER", "reader")
+    monkeypatch.setenv("DS_READER_PS", PASSWORD)
+    monkeypatch.setattr(dataset, "extract_query_from_AP", query_builder)
+    monkeypatch.setattr(dataset, "query_rewriting", lambda qb: qb["query"])
+    monkeypatch.setattr(dataset, "query_rewriting_views", lambda q, views: q)
+    monkeypatch.setattr(dataset, "extract_alias", lambda q, args: args)
+    monkeypatch.setattr(dataset, "write_views_minimal_extraction", lambda q, a: (a, q))
+
+    def fail_with(attach_error=None, query_error=None):
+        fake = _FakeDuckDB(attach_error, query_error)
+        monkeypatch.setattr(dataset.duckdb, "connect", lambda **kwargs: fake)
+
+    return fail_with
+
+
+def test_a_failed_query_shows_what_is_wrong_with_the_sql(client, failing_query):
+    failing_query(query_error=SQL_ERROR)
     response = client.post("/api/v1/polyglot/query", json=QUERY_REQUEST, headers=TOKEN)
 
     assert response.status_code == 500
-    assert (str(error) in response.json()["error"]) is shown
+    assert response.json()["error"] == f"Failed to execute query: {SQL_ERROR}"
+
+
+def test_a_failed_connection_keeps_the_password_out_of_body_and_log(
+    client, failing_query
+):
+    failing_query(attach_error=CONNECTION_ERROR)
+    with capture_logs() as logs:
+        response = client.post(
+            "/api/v1/polyglot/query", json=QUERY_REQUEST, headers=TOKEN
+        )
+
+    assert response.status_code == 500
+    assert response.json()["error"] == "Failed to execute query"
+    (entry,) = [e for e in logs if e["event"] == "request failed with an exception"]
+    logged = "".join(traceback.format_exception(entry["exc_info"]))
+    assert PASSWORD not in logged
+    assert "password=***" in logged
 
 
 def _answer(status_code, **content):
@@ -145,28 +206,23 @@ def test_an_unreachable_login_server_keeps_its_host_out_of_the_body(monkeypatch)
 
 
 @pytest.mark.parametrize(
-    "error, shown",
-    [
-        (duckdb.BinderException('Referenced column "x" not found'), True),
-        (Exception("PostgreSQL connection failed: host=db.internal"), False),
-    ],
+    "errors, shown",
+    [({"query_error": SQL_ERROR}, True), ({"attach_error": CONNECTION_ERROR}, False)],
 )
 def test_a_query_after_text2sql_shows_only_what_is_wrong_with_the_sql(
-    client, monkeypatch, error, shown
+    client, monkeypatch, failing_query, errors, shown
 ):
-    async def fail(*args, **kwargs):
-        raise error
-
+    failing_query(**errors)
     reply = json.loads((TEXT2SQL / "in-dataset-response.json").read_text())
     monkeypatch.setattr(httpx.AsyncClient, "post", _answer(200, json=reply))
     monkeypatch.setattr(dataset, "store_AP_in_grafeo", lambda ap: None)
-    monkeypatch.setattr(dataset, "execute_query", fail)
     response = client.post(
         "/api/v1/in-dataset-discovery/text2sql",
         json=json.loads((TEXT2SQL / "in-dataset-request.json").read_text()),
         headers=TOKEN,
     )
 
+    query_error = response.json()["content"]["query_error"]
     assert response.json()["code"] == 207
-    assert (str(error) in response.json()["content"]["query_error"]) is shown
-    assert "db.internal" not in response.text
+    assert (query_error == str(SQL_ERROR)) is shown
+    assert PASSWORD not in response.text

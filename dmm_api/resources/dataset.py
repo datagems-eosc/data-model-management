@@ -257,6 +257,10 @@ DUCKDB_CONFIG = {
 # reads files only below it.
 DATASET_MOUNT = "/s3/dataset/"
 
+# DuckDB errors that say what is wrong with a query's SQL: their message
+# reaches the caller. Any other error during a query stays in the log.
+_SQL_ERRORS = (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
+
 
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
@@ -2066,6 +2070,17 @@ async def execute_and_store_dataset_recommendations(
     )
 
 
+def _mask_password(error: Exception) -> str:
+    """The error's message with the PostgreSQL reader's password masked.
+
+    DuckDB's connection errors repeat the whole connection string, password
+    included.
+    """
+    message = str(error)
+    password = os.getenv("DS_READER_PS")
+    return message.replace(password, "***") if password else message
+
+
 def execute_query_postgres(query_builder):
     """Execute query on PostgreSQL via DuckDB"""
     duckdb_connection = duckdb.connect(database=":memory:", config=DUCKDB_CONFIG)
@@ -2124,8 +2139,12 @@ def execute_query_postgres(query_builder):
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
+    except _SQL_ERRORS:
+        raise
     except Exception as e:
-        raise Exception(f"PostgreSQL connection failed: {str(e)}.")
+        # `from None` keeps the original error, which can carry the password,
+        # out of this one's traceback, and so out of the log.
+        raise Exception(f"PostgreSQL connection failed: {_mask_password(e)}.") from None
 
 
 def _require_one_query(sql: str) -> None:
@@ -2256,8 +2275,11 @@ def execute_query_mixed(query_builder):
 
         return result_df
 
+    except _SQL_ERRORS:
+        raise
     except Exception as e:
-        raise Exception(f"{str(e)}")
+        # As in execute_query_postgres: the password stays out of the log.
+        raise Exception(_mask_password(e)) from None
 
 
 def query_rewriting_views(query, view_map):
@@ -2525,9 +2547,7 @@ async def polyglot_query(
         # DuckDB's own message tells the caller what is wrong with their SQL.
         # Any other error, such as a failed connection to PostgreSQL, can name
         # internal hosts or accounts, so it stays in the log.
-        if isinstance(
-            e, (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
-        ):
+        if isinstance(e, _SQL_ERRORS):
             detail = f"Failed to execute query: {e}"
         else:
             detail = "Failed to execute query"
@@ -2797,14 +2817,7 @@ async def execute_and_store_idd(
             )
             if isinstance(e, HTTPException):
                 query_error = str(e.detail)
-            elif isinstance(
-                e,
-                (
-                    duckdb.ParserException,
-                    duckdb.BinderException,
-                    duckdb.CatalogException,
-                ),
-            ):
+            elif isinstance(e, _SQL_ERRORS):
                 query_error = str(e)
             else:
                 query_error = "Failed to execute query"
