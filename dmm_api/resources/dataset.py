@@ -2775,7 +2775,7 @@ async def grafeo_test():
 
 
 def run_grafeo_query(query: str):
-    url = "http://grafeo:7474/cypher"  # adjust to your endpoint
+    url = f"{GRAFEO_URL}/cypher"
     payload = {"query": query}
     headers = {"Content-Type": "application/json"}
     resp = requests.post(url, json=payload, headers=headers)
