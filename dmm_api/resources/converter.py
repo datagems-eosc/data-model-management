@@ -1,17 +1,18 @@
+"""Property-graph JSON to Croissant JSON-LD.
+
+`GET /dataset/get/{dataset_id}?format=croissant` converts with
+`convertProfile`. The `POST /convert` endpoint is deprecated since v0.3.1;
+its route stays so that an old client learns why it no longer converts.
+"""
+
 import json
-from typing import Any
 
-import structlog
+from fastapi import APIRouter, HTTPException, status
 
-from fastapi import APIRouter, Depends, File, UploadFile, Query, HTTPException
-from fastapi.responses import Response
-import dmm_api.resources.security as security
 from dmm_api.tools.PG2Croissant.parser import parse_profile
 from dmm_api.tools.PG2Croissant.mapper import map_to_croissant
-from dmm_api.uploads import read_upload
 
 router = APIRouter()
-logger = structlog.get_logger(__name__)
 
 
 def convertProfile(pgjson):
@@ -26,34 +27,18 @@ def to_jsonld(croissant_dict: dict) -> str:
     return json.dumps(croissant_dict, indent=2)
 
 
-@router.post("/convert")
-async def convert(
-    file: UploadFile = File(...),
-    from_format: str = Query(..., alias="from"),
-    to_format: str = Query(..., alias="to"),
-    token_payload: dict[str, Any] = Depends(security.require_app_scope),
-):
-    # Validate formats
-    if from_format != "moma":
-        raise HTTPException(
-            status_code=400, detail=f"Unsupported from format: {from_format}"
-        )
-    if to_format != "croissant":
-        raise HTTPException(
-            status_code=400, detail=f"Unsupported to format: {to_format}"
-        )
-
-    try:
-        content = await read_upload(file)
-        croissant_jsonld = convertProfile(json.loads(content))
-        croissant_dict = json.loads(croissant_jsonld)
-        response_data = {
-            "message": f"Converted from {from_format} to {to_format} successfully",
-            "output": croissant_dict,
-        }
-        return Response(
-            content=json.dumps(response_data), media_type="application/json"
-        )
-    except Exception as e:
-        logger.error(f"Error processing file: {str(e)}")
-        raise
+@router.post(
+    "/convert",
+    deprecated=True,
+    status_code=status.HTTP_410_GONE,
+    responses={status.HTTP_410_GONE: {"description": "Deprecated since v0.3.1"}},
+)
+async def convert():
+    """Deprecated since v0.3.1. Answers 410 to any request, with or without a token."""
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail=(
+            "POST /convert is deprecated since v0.3.1 and no longer converts. "
+            "Use GET /api/v1/dataset/get/{dataset_id}?format=croissant."
+        ),
+    )

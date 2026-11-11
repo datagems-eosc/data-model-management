@@ -12,6 +12,7 @@ The [OpenAPI Reference](openapi.md) gives the responses of each endpoint. This p
 | 403 | The token's audience does not include this service |
 | 404 | The dataset, query result or AP log does not exist, or no endpoint matches the path |
 | 409 | The dataset already exists, or its files have already been moved |
+| 410 | `POST /convert`, deprecated since v0.3.1 |
 | 413 | The request body or an uploaded file is larger than the service accepts |
 | 422 | The request does not match the endpoint's schema |
 | 500 | The service, or one of its data stores, failed |
