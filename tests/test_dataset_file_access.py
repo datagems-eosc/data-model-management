@@ -214,6 +214,11 @@ def bucket(tmp_path, monkeypatch):
     async def exists(*args, **kwargs):
         return True, {"nodes": [], "edges": []}
 
+    async def no_moma(self, url, **kwargs):
+        raise AssertionError(f"the test reached MoMa: {url}")
+
+    # A load that passes the checks updates MoMa next; no test may reach it.
+    monkeypatch.setattr(httpx.AsyncClient, "patch", no_moma)
     monkeypatch.setattr(dataset, "S3_MOUNT", tmp_path)
     monkeypatch.setenv("SCRATCHPAD_DIR", str(tmp_path / "scratchpad"))
     monkeypatch.setenv("DATASET_DIR", str(tmp_path / "dataset"))
@@ -226,8 +231,12 @@ def bucket(tmp_path, monkeypatch):
     return tmp_path
 
 
-def load(client, archived_at, force=False):
-    body = ZOO_LOAD.replace(f"s3://scratchpad/{ZOO_ID}", archived_at)
+def load(client, archived_at, force=False, dataset_id=ZOO_ID):
+    body = (
+        ZOO_LOAD.replace(f"s3://scratchpad/{ZOO_ID}", "ARCHIVED_AT")
+        .replace(ZOO_ID, dataset_id)
+        .replace("ARCHIVED_AT", archived_at)
+    )
     return client.put(
         "/api/v1/dataset/load",
         params={"force": force},
@@ -253,6 +262,29 @@ def test_load_moves_nothing_from_outside_the_scratchpad(
 
     assert response.status_code == 400
     assert (bucket / "logs" / "kept.log").exists()
+    assert list((bucket / "dataset").iterdir()) == []
+
+
+@pytest.mark.parametrize("dataset_id", ["../x", "a/b", "ABSOLUTE"])
+def test_load_refuses_a_dataset_id_that_names_a_path(
+    client, logged_in, bucket, dataset_id
+):
+    if dataset_id == "ABSOLUTE":
+        # Inside DATASET_DIR once resolved, but it would also replace the
+        # catalogue's root.
+        dataset_id = str(bucket / "dataset" / "example")
+    response = load(client, f"s3://scratchpad/{ZOO_ID}", dataset_id=dataset_id)
+
+    assert response.status_code == 400
+    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
+    assert list((bucket / "dataset").iterdir()) == []
+
+
+def test_load_refuses_a_file_as_its_source(client, logged_in, bucket):
+    response = load(client, f"s3://scratchpad/{ZOO_ID}/zoo.csv")
+
+    assert response.status_code == 400
+    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
     assert list((bucket / "dataset").iterdir()) == []
 
 

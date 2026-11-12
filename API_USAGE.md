@@ -190,7 +190,7 @@ curl -X PUT \
 ```
 Example payload: [tests/load/zoo.json](tests/load/zoo.json) (command path when running from `tests`: `load/zoo.json`).
 
-The Dataset node's `archivedAt` must name a folder in `s3://scratchpad/`; any other location gets `400`.
+The Dataset node's `archivedAt` must name a folder in `s3://scratchpad/`, and its ID may hold only letters, digits, `-` and `_`; anything else gets `400`.
 
 Optional query parameter:
 - `force` (bool, default `false`): set to `true` when source and target paths are already the same.

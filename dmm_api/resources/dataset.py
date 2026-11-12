@@ -1151,13 +1151,16 @@ async def load_dataset(
                 f"Invalid S3 URI. Found '{dataset_path}'. Must start with s3://"
             )
 
+        # Both paths come from the request. The dataset ID names one folder,
+        # here and in the catalogue. Only a folder inside the scratchpad moves,
+        # into a folder inside DATASET_DIR; with `force`, a dataset already in
+        # place may name its own folder.
+        if not re.fullmatch(r"[A-Za-z0-9_-]+", str(dataset_id)):
+            raise ValueError("The dataset ID may hold only letters, digits, - and _")
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
         source_path = S3_MOUNT / path_without_s3_prefix
-        target_path = Path(DATASET_DIR) / dataset_id
+        target_path = Path(DATASET_DIR) / str(dataset_id)
 
-        # Both paths come from the request. Only a folder inside the scratchpad
-        # moves, into a folder inside DATASET_DIR; with `force`, a dataset
-        # already in place may name its own folder.
         scratchpad = Path(os.getenv("SCRATCHPAD_DIR", "/s3/scratchpad")).resolve()
         source, target = source_path.resolve(), target_path.resolve()
         if Path(DATASET_DIR).resolve() not in target.parents:
@@ -1169,6 +1172,8 @@ async def load_dataset(
             raise FileNotFoundError(
                 f"Source dataset not found at expected location: {source_path}"
             )
+        if not source_path.is_dir():
+            raise ValueError("'archivedAt' must name a folder, not a file")
 
         if target_path.exists():
             # If force is True and source and target resolve to the same path, skip the move
