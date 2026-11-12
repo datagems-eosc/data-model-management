@@ -1,15 +1,13 @@
 # Data Stores
 
-The service functions primarily as a gateway between the user interface, or other external integration points, and the core DataGEMS services. While it does not serve as the main repository for datasets or models related to most user requests, it plays a critical role in facilitating access to core platform features. As such, it must manage certain operational data necessary to support its responsibilities and ensure smooth interaction with the broader system.
+The service has no database of its own apart from Grafeo. What it writes goes to the stores below.
 
-## Relational Database
+| Store | What it holds | How the service reaches it |
+| - | - | - |
+| MoMa | Dataset metadata and links between datasets | MoMa's HTTP API, with the caller's token |
+| Grafeo | The Analytical Pattern logs | Cypher queries over HTTP |
+| S3 storage | Uploaded dataset files waiting to be loaded (the scratchpad), loaded datasets, the catalogue, and query results | Files under `/s3` |
+| PostgreSQL | Tables of datasets kept in the platform's database | Read-only, for SQL queries |
+| Log disk | The service's daily log files, archived weekly to S3 storage | Files under `/logs`; see [Logging](logging.md) |
 
-The primary data store for the service is a PostgreSQL hosted relational database.
-
-The schema of the relational database can be found in the service repository under the [db](https://github.com/datagems-eosc/dg-app-api/tree/main/db) folder.
-
-## Change scripts
-
-The evolution of the database is managed through ordered database change scripts. The scripts incrimentaly update the database schema to target the desired version. The change scripts are numbered and versioned in the service repository under the [db](https://github.com/datagems-eosc/dg-app-api/tree/main/db) folder.
-
-Intermediate "XX.XX.XXX-Seed.Scema.sql" scripts can be used to initialize the database in the sepecific version so that previous change scripts do not need to be applied.
+The folders on S3 storage and the Grafeo address are set by environment variables, listed under [Configuration](configuration.md).

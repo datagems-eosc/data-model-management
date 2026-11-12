@@ -280,7 +280,6 @@ EXTERNAL_SERVICES = {
         "name": "Query Disambiguation",
     },
 }
-CDD_EXCHANGE_SCOPE = os.getenv("CDD_EXCHANGE_SCOPE", "cross-dataset-discovery-api")
 
 
 async def get_dataset_metadata(
@@ -395,12 +394,12 @@ async def data_workflow(
     file_bytes = await read_upload(file)
     try:
         s3path = upload_dataset_to_scratchpad(file_bytes, file_name, dataset_id)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Failed to upload dataset to scratchpad: {str(e)}",
+                error="Failed to upload dataset to scratchpad",
             ).model_dump(exclude_none=True),
         )
 
@@ -818,12 +817,12 @@ async def register_dataset(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during the dataset extraction: {type(e).__name__}: {str(e)}",
+                error="Unexpected error during the dataset extraction",
             ).model_dump(exclude_none=True),
         )
 
@@ -886,12 +885,12 @@ async def register_dataset(
                     },
                 ).model_dump(exclude_none=True),
             )
-        except Exception as e:
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Unexpected error while checking dataset existence: {type(e).__name__}: {str(e)}",
+                    error="Unexpected error while checking dataset existence",
                 ).model_dump(exclude_none=True),
             )
 
@@ -979,7 +978,7 @@ async def register_dataset(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Unexpected error: {type(e).__name__}: {str(e)}",
+                    error="Unexpected error",
                 ).model_dump(exclude_none=True),
             )
 
@@ -1041,12 +1040,12 @@ async def load_dataset(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during dataset extraction: {type(e).__name__}: {str(e)}",
+                error="Unexpected error during dataset extraction",
             ).model_dump(exclude_none=True),
         )
 
@@ -1123,12 +1122,12 @@ async def load_dataset(
                 },
             ).model_dump(exclude_none=True),
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Failed to verify dataset existence in Neo4j: {type(e).__name__}: {str(e)}",
+                error="Failed to verify dataset existence in Neo4j",
             ).model_dump(exclude_none=True),
         )
 
@@ -1184,12 +1183,12 @@ async def load_dataset(
                 error=f"Invalid input format: {str(e)}",
             ).model_dump(exclude_none=True),
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Unexpected error during file move: {type(e).__name__}: {str(e)}",
+                error="Unexpected error during file move",
             ).model_dump(exclude_none=True),
         )
 
@@ -1306,9 +1305,11 @@ async def load_dataset(
             except Exception as rollback_exc:
                 rollback_error = rollback_exc
 
-            error_msg = f"{type(e).__name__}: {str(e)}"
+            error_msg = "Unexpected error"
             if rollback_error:
-                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+                error_msg += (
+                    " [ROLLBACK FAILED: the file may be left at its new location]"
+                )
 
             logger.error(
                 "Unexpected error during dataset load MoMa update",
@@ -1316,6 +1317,8 @@ async def load_dataset(
                 error_type=type(e).__name__,
                 error=str(e),
                 rollback_failed=rollback_error is not None,
+                rollback_error=str(rollback_error) if rollback_error else None,
+                target_path=str(target_path),
                 exc_info=True,
             )
 
@@ -1343,12 +1346,12 @@ async def load_dataset(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Dataset updated in Neo4j but failed to upload to catalogue: {type(e).__name__}: {str(e)}",
+                error="Dataset updated in Neo4j but failed to upload to catalogue",
             ).model_dump(exclude_none=True),
         )
 
@@ -1428,12 +1431,12 @@ async def update_dataset(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Failed to parse AP: {type(e).__name__}: {str(e)}",
+                error="Failed to parse AP",
             ).model_dump(exclude_none=True),
         )
 
@@ -1521,12 +1524,12 @@ async def update_dataset(
                     },
                 ).model_dump(exclude_none=True),
             )
-        except Exception as e:
+        except Exception:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Failed to verify dataset existence: {type(e).__name__}: {str(e)}",
+                    error="Failed to verify dataset existence",
                 ).model_dump(exclude_none=True),
             )
 
@@ -1634,7 +1637,7 @@ async def update_dataset(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=ErrorEnvelope(
                     code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    error=f"Unexpected error during upsert: {type(e).__name__}: {str(e)}",
+                    error="Unexpected error during upsert",
                 ).model_dump(exclude_none=True),
             )
 
@@ -2456,10 +2459,10 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
         )
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Error fetching node properties from MoMa2: {str(e)}",
+            detail="Error fetching node properties from MoMa2",
         )
 
 
@@ -2489,9 +2492,17 @@ async def polyglot_query(
     except HTTPException:
         raise
     except Exception as e:
+        # DuckDB's own message tells the caller what is wrong with their SQL.
+        # Any other error, such as a failed connection to PostgreSQL, can name
+        # internal hosts or accounts, so it stays in the log.
+        if isinstance(
+            e, (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
+        ):
+            detail = f"Failed to execute query: {e}"
+        else:
+            detail = "Failed to execute query"
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to execute query: {str(e)}",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail
         )
 
 
@@ -2547,6 +2558,7 @@ async def execute_query(wrapped: WrappedAPRequest, token: str):
 async def get_query_result(
     dataset_id: str,
     token: str = Depends(security.oauth2_scheme),
+    token_payload: dict[str, Any] = Depends(security.require_app_scope),
     lines: Optional[int] = Query(None, alias="lines"),
 ):
     """Endpoint to retrieve query results by dataset ID"""
@@ -2558,10 +2570,10 @@ async def get_query_result(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Result for dataset ID '{dataset_id}' not found.",
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve query result: {str(e)}",
+            detail="Failed to retrieve query result",
         )
 
 
@@ -2865,12 +2877,12 @@ async def ap_storage(
                 error=str(e),
             ).model_dump(exclude_none=True),
         )
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=ErrorEnvelope(
                 code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                error=f"Failed to store AP in Grafeo: {str(e)}",
+                error="Failed to store AP in Grafeo",
             ).model_dump(exclude_none=True),
         )
 
@@ -2930,10 +2942,10 @@ def get_full_aplog(ap_id: str, token, txId=None):
         return graph
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve AP log '{ap_id}' from Grafeo: {str(e)}",
+            detail=f"Failed to retrieve AP log '{ap_id}' from Grafeo",
         )
     finally:
         if owns_tx and txId is not None:
@@ -3304,10 +3316,10 @@ async def delete_aplog(
 
     except HTTPException:
         raise
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to delete AP log with id '{ap_id}': {str(e)}",
+            detail=f"Failed to delete AP log with id '{ap_id}'",
         )
     finally:
         if txId is not None:

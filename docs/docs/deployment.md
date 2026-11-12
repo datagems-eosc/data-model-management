@@ -1,15 +1,17 @@
 # Deployment
 
-The service is part of the DataGEMS platform offered through an existing deployment, following the DataGEMS release and deployment procedures over a managed infrasrtucture. The purpose of this section is not to detail the deployment processes put in place by the DataGEMS team.
+The DataGEMS team runs the service on the platform's Kubernetes cluster, from the container image the repository publishes (see [Automations](automations.md)).
 
-## Docker
+## The image
 
-The service is offered as a Docker image through the DataGEMS GitHub Organization Packages. This process is described in the relevant [Automations](automations.md) section.
+- It serves the API with uvicorn on port 5000.
+- It runs as user and group 10001.
+- It writes only to `/logs`, the log disk; `/s3`, the S3 storage; and `/tmp`.
 
 ## Configuration
 
-In order for the service to operate properly, the needed configuration values must be set to match the environment that it must operate in. The needed configuration is described in the relevant [Configuration](configuration.md) section.
+The service is configured with environment variables only; see [Configuration](configuration.md).
 
 ## Dependencies
 
-For the service to be able to operate, its underpinning services and dependnecies must be available and accessible. The [Architecture](architecture.md) section describes the ecosystem in which the service needs to operate.
+The service needs the components described under [Architecture](architecture.md): MoMa, Grafeo, S3 storage and the AAI service at all times, and PostgreSQL and the other DataGEMS services for the endpoints that use them.

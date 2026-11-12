@@ -1,9 +1,9 @@
-# DataGEMS Data Model Management Api
+# DataGEMS Data Model Management API
 
-This is the documentation site for the DataGEMS Data Model Management Api. The service is part of the wider [DataGEMS](https://datagems.eu/) platform. This is part of the overall [platform documentation](https://datagems-eosc.github.io/).
+This site documents the Data Model Management API, a service of the [DataGEMS](https://datagems.eu/) platform. The [platform documentation](https://datagems-eosc.github.io/) covers the platform as a whole.
 
-The platform Data Model Management Api service acts as the ... for DataGEMS [user interface](https://datagems-eosc.github.io/dg-app-ui) and any other integrating clients that want to utilize the DataGEMS offerings.
+The API registers, loads and updates datasets described in Croissant, keeping their metadata in MoMa and their files on the platform's storage. It runs SQL queries over a dataset's files and tables, and it forwards requests to the DataGEMS services that discover, explore and recommend datasets. Requests and results take the form of Analytical Patterns.
 
-You can use the menu options on the left to navigate through the available documentation. You may be interested to jump directly to an [Architecture Overview](architecture.md), see the available [Onboarding Material](onboarding.md), read about some [Api Constructs](api-overview.md), investigate how to interpret [Status & Error Codes](error-codes.md) or jump straight in to the [OpenAPI Reference](openapi.md). You can find here the service [code repository](https://github.com/datagems-eosc/dg-app-api).
+To start, read the [Architecture](architecture.md) and the [API Overview](api-overview.md), then the [OpenAPI Reference](openapi.md). [Status & Error Codes](error-codes.md) explains the error responses.
 
-For any questions, you can consult the [FAQ](faq.md), check if there is a relevant [issue](https://github.com/datagems-eosc/dg-app-api/issues) answering your question or contact the [DataGEMS Help Desk](https://datagems.eu/contact-us/).
+The code is in the [GitHub repository](https://github.com/datagems-eosc/data-model-management); report a problem in its [issues](https://github.com/datagems-eosc/data-model-management/issues). For anything else, contact the [DataGEMS Help Desk](https://datagems.eu/contact-us/).

@@ -112,8 +112,9 @@ venv.bak/
 # Rope project settings
 .ropeproject
 
-# mkdocs documentation
-/site
+# mkdocs documentation, and the OpenAPI document generated for it
+/docs/site/
+/docs/docs/content/openapi.json
 
 # mypy
 .mypy_cache/

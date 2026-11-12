@@ -2241,9 +2241,10 @@ The API return:
 
 ## Auth Test (Bearer token required)
 
-The `POST /authtest` endpoint requires a valid bearer token.
-
-Current authorized-party (`azp`) accepted by the API: `swagger-client`.
+The `POST /authtest` endpoint requires a valid bearer token: signed by the
+DataGEMS login server, from its realm, and not expired. The other endpoints
+also require `data-model-management-api` in the token's audience (`aud`).
+The authorized party (`azp`) is not checked.
 
 ### 0) Get an access token (Keycloak dev realm)
 ```bash
