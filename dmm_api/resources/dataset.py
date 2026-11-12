@@ -257,6 +257,10 @@ DUCKDB_CONFIG = {
 # reads files only below it.
 DATASET_MOUNT = "/s3/dataset/"
 
+# DuckDB errors that say what is wrong with a query's SQL: their message
+# reaches the caller. Any other error during a query stays in the log.
+_SQL_ERRORS = (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
+
 
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
@@ -624,8 +628,8 @@ async def search_datasets(
                         code=status.HTTP_404_NOT_FOUND,
                         error="Dataset search target not found in MoMa",
                         details={
-                            "moma_status_code": e.response.status_code,
-                            "moma_response": e.response.text,
+                            "source": "MoMa",
+                            "statusCode": e.response.status_code,
                         },
                     ).model_dump(exclude_none=True),
                 )
@@ -636,8 +640,8 @@ async def search_datasets(
                     code=status.HTTP_502_BAD_GATEWAY,
                     error=f"Error from MoMa API: {e.response.status_code}",
                     details={
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -654,8 +658,8 @@ async def search_datasets(
                     code=status.HTTP_503_SERVICE_UNAVAILABLE,
                     error="Failed to connect to MoMa API",
                     details={
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -720,6 +724,12 @@ async def get_dataset(
         except HTTPException:
             raise
         except httpx.HTTPStatusError as e:
+            logger.error(
+                "MoMa API HTTP error during dataset fetch",
+                dataset_id=dataset_id,
+                status_code=e.response.status_code,
+                response_text=e.response.text,
+            )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
@@ -727,8 +737,8 @@ async def get_dataset(
                     error=f"Error from MoMa API: {e.response.status_code}",
                     details={
                         "dataset_id": dataset_id,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -746,8 +756,8 @@ async def get_dataset(
                     error="Failed to connect to MoMa API",
                     details={
                         "dataset_id": dataset_id,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -860,8 +870,8 @@ async def register_dataset(
                     error="MoMa API error while checking dataset existence",
                     details={
                         "dataset_id": dataset_id,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -880,8 +890,8 @@ async def register_dataset(
                     error="Failed to connect to MoMa API while checking dataset existence",
                     details={
                         "dataset_id": dataset_id,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -941,8 +951,8 @@ async def register_dataset(
                     error=f"Error from MoMa API (Status: {e.response.status_code})",
                     details={
                         "dataset_id": dataset_id,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -961,8 +971,8 @@ async def register_dataset(
                     error="Failed to connect to MoMa API",
                     details={
                         "dataset_id": dataset_id,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -1097,8 +1107,8 @@ async def load_dataset(
                 error="MoMa API error while verifying dataset existence",
                 details={
                     "dataset_id": dataset_id,
-                    "moma_status_code": e.response.status_code,
-                    "moma_response": e.response.text,
+                    "source": "MoMa",
+                    "statusCode": e.response.status_code,
                 },
             ).model_dump(exclude_none=True),
         )
@@ -1117,8 +1127,8 @@ async def load_dataset(
                 error="Failed to connect to MoMa API while verifying dataset existence",
                 details={
                     "dataset_id": dataset_id,
+                    "source": "MoMa",
                     "request_error_type": type(e).__name__,
-                    "request_error": str(e),
                 },
             ).model_dump(exclude_none=True),
         )
@@ -1239,7 +1249,9 @@ async def load_dataset(
 
             error_msg = f"Error from MoMa API (Status: {e.response.status_code})"
             if rollback_error:
-                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+                error_msg += (
+                    " [ROLLBACK FAILED: the file may be left at its new location]"
+                )
 
             logger.error(
                 "MoMa API HTTP error during dataset load",
@@ -1247,6 +1259,8 @@ async def load_dataset(
                 status_code=e.response.status_code,
                 response_text=e.response.text,
                 rollback_failed=rollback_error is not None,
+                rollback_error=str(rollback_error) if rollback_error else None,
+                target_path=str(target_path),
             )
 
             raise HTTPException(
@@ -1256,8 +1270,8 @@ async def load_dataset(
                     error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
                     details={
                         "dataset_id": dataset_id,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                         "rollback_failed": rollback_error is not None,
                     },
                 ).model_dump(exclude_none=True),
@@ -1277,11 +1291,15 @@ async def load_dataset(
                 error=str(e),
                 timeout_seconds=MOMA_REQUEST_TIMEOUT_SECONDS,
                 rollback_failed=rollback_error is not None,
+                rollback_error=str(rollback_error) if rollback_error else None,
+                target_path=str(target_path),
             )
 
             error_msg = "Failed to connect to MoMa API"
             if rollback_error:
-                error_msg += f" [ROLLBACK FAILED: {type(rollback_error).__name__}: {str(rollback_error)}. File may be orphaned at {target_path}]"
+                error_msg += (
+                    " [ROLLBACK FAILED: the file may be left at its new location]"
+                )
 
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -1290,8 +1308,8 @@ async def load_dataset(
                     error=f"Dataset load failed during Neo4j update (file rolled back to {dataset_path}): {error_msg}",
                     details={
                         "dataset_id": dataset_id,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                         "rollback_failed": rollback_error is not None,
                     },
                 ).model_dump(exclude_none=True),
@@ -1499,8 +1517,8 @@ async def update_dataset(
                     error="MoMa API error while verifying dataset existence",
                     details={
                         "dataset_ids": dataset_ids,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -1519,8 +1537,8 @@ async def update_dataset(
                     error="Failed to connect to MoMa API while verifying dataset existence",
                     details={
                         "dataset_ids": dataset_ids,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -1600,8 +1618,8 @@ async def update_dataset(
                     error=f"Failed to upsert dataset: HTTP {e.response.status_code}",
                     details={
                         "dataset_ids": dataset_ids,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -1620,8 +1638,8 @@ async def update_dataset(
                     error="Failed to connect to MoMa API",
                     details={
                         "dataset_ids": dataset_ids,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -1746,12 +1764,6 @@ async def execute_and_store(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -1762,9 +1774,8 @@ async def execute_and_store(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
-        )
+        # The called service's own message stays in the log above.
+        error_message = f"{service['name']} returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -1773,6 +1784,7 @@ async def execute_and_store(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": service["name"], "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -1879,12 +1891,6 @@ async def execute_and_store_query_disambiguation(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -1895,9 +1901,8 @@ async def execute_and_store_query_disambiguation(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"{service['name']} returned error {response.status_code}: {error_msg}"
-        )
+        # The called service's own message stays in the log above.
+        error_message = f"{service['name']} returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -1906,6 +1911,7 @@ async def execute_and_store_query_disambiguation(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": service["name"], "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -2009,12 +2015,6 @@ async def execute_and_store_dataset_recommendations(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -2025,9 +2025,8 @@ async def execute_and_store_dataset_recommendations(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"{service['name']} returned error {response.status_code}: {cdd_error_msg}"
-        )
+        # The called service's own message stays in the log above.
+        error_message = f"{service['name']} returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -2036,6 +2035,7 @@ async def execute_and_store_dataset_recommendations(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": service["name"], "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -2044,6 +2044,17 @@ async def execute_and_store_dataset_recommendations(
         message=f"{service['name']} completed successfully",
         content=response_payload,
     )
+
+
+def _mask_password(error: Exception) -> str:
+    """The error's message with the PostgreSQL reader's password masked.
+
+    DuckDB's connection errors repeat the whole connection string, password
+    included.
+    """
+    message = str(error)
+    password = os.getenv("DS_READER_PS")
+    return message.replace(password, "***") if password else message
 
 
 def execute_query_postgres(query_builder):
@@ -2104,8 +2115,12 @@ def execute_query_postgres(query_builder):
         logger.info(f"[TIMER] Query execution: {time.perf_counter() - t1:.4f}s")
         return result_df
 
+    except _SQL_ERRORS:
+        raise
     except Exception as e:
-        raise Exception(f"PostgreSQL connection failed: {str(e)}.")
+        # `from None` keeps the original error, which can carry the password,
+        # out of this one's traceback, and so out of the log.
+        raise Exception(f"PostgreSQL connection failed: {_mask_password(e)}.") from None
 
 
 def _require_one_query(sql: str) -> None:
@@ -2236,8 +2251,11 @@ def execute_query_mixed(query_builder):
 
         return result_df
 
+    except _SQL_ERRORS:
+        raise
     except Exception as e:
-        raise Exception(f"{str(e)}")
+        # As in execute_query_postgres: the password stays out of the log.
+        raise Exception(_mask_password(e)) from None
 
 
 def query_rewriting_views(query, view_map):
@@ -2431,9 +2449,19 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
 
         # Check for other HTTP errors
         if not response.is_success:
+            logger.error(
+                "MoMa API error while fetching node properties",
+                node_id=node_id,
+                status_code=response.status_code,
+                response_text=response.text,
+            )
             raise HTTPException(
                 status_code=response.status_code,
-                detail=f"MoMa2 API error {response.status_code} for node '{node_id}': {response.text}",
+                detail=ErrorEnvelope(
+                    code=response.status_code,
+                    error=f"MoMa2 API error {response.status_code} for node '{node_id}'",
+                    details={"source": "MoMa", "statusCode": response.status_code},
+                ).model_dump(exclude_none=True),
             )
 
         try:
@@ -2450,7 +2478,7 @@ async def get_node_properties(node_id, token: Optional[str] = None) -> Dict[str,
     except httpx.ConnectError:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=f"Cannot reach MoMa2 API at {MOMA_URL}. Check the MOMA_URL environment variable.",
+            detail="Cannot reach MoMa2 API",
         )
     except httpx.TimeoutException:
         raise HTTPException(
@@ -2495,9 +2523,7 @@ async def polyglot_query(
         # DuckDB's own message tells the caller what is wrong with their SQL.
         # Any other error, such as a failed connection to PostgreSQL, can name
         # internal hosts or accounts, so it stays in the log.
-        if isinstance(
-            e, (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
-        ):
+        if isinstance(e, _SQL_ERRORS):
             detail = f"Failed to execute query: {e}"
         else:
             detail = "Failed to execute query"
@@ -2709,12 +2735,6 @@ async def execute_and_store_idd(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -2725,9 +2745,8 @@ async def execute_and_store_idd(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = (
-            f"{service['name']} returned error {response.status_code}: {error_msg}"
-        )
+        # The called service's own message stays in the log above.
+        error_message = f"{service['name']} returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -2736,6 +2755,7 @@ async def execute_and_store_idd(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": service["name"], "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
     else:
@@ -2757,14 +2777,26 @@ async def execute_and_store_idd(
             )
 
         except Exception as e:
+            # As in polyglot_query: the query's own errors tell the caller what
+            # to fix; any other error, such as a failed PostgreSQL connection,
+            # can name internal hosts or accounts, so it stays in the log.
+            logger.error(
+                "query execution failed after in-dataset discovery", exc_info=True
+            )
+            if isinstance(e, HTTPException):
+                query_error = str(e.detail)
+            elif isinstance(e, _SQL_ERRORS):
+                query_error = str(e)
+            else:
+                query_error = "Failed to execute query"
             # Build a partial success envelope
             return APResponseSuccessEnvelope(
                 code=status.HTTP_207_MULTI_STATUS,  # or 200 if you prefer
-                message=f"In-Dataset executed successfully, but query execution failed: {str(e)}",
+                message=f"In-Dataset executed successfully, but query execution failed: {query_error}",
                 content={
                     "ap": response_payload.get("ap", {}),
                     "metadata": response_payload.get("metadata", {}),
-                    "query_error": str(e),
+                    "query_error": query_error,
                 },
             )
 
@@ -2775,7 +2807,7 @@ async def grafeo_test():
 
 
 def run_grafeo_query(query: str):
-    url = "http://grafeo:7474/cypher"  # adjust to your endpoint
+    url = f"{GRAFEO_URL}/cypher"
     payload = {"query": query}
     headers = {"Content-Type": "application/json"}
     resp = requests.post(url, json=payload, headers=headers)
@@ -3403,12 +3435,6 @@ async def register_dataset_linking(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            cdd_error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            cdd_error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -3419,7 +3445,8 @@ async def register_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = f"MoMa returned error {response.status_code}: {cdd_error_msg}"
+        # The called service's own message stays in the log above.
+        error_message = f"MoMa returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3428,6 +3455,7 @@ async def register_dataset_linking(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": "MoMa", "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -3477,12 +3505,6 @@ async def get_dataset_linking(
             response_text=response.text,
         )
 
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
-
         # Build context-specific error messages based on status code
         status_messages = {
             status.HTTP_401_UNAUTHORIZED: "Authentication failed. The token is invalid, expired, or missing.",
@@ -3493,7 +3515,8 @@ async def get_dataset_linking(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = f"MoMa returned error {response.status_code}: {error_msg}"
+        # The called service's own message stays in the log above.
+        error_message = f"MoMa returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3502,6 +3525,7 @@ async def get_dataset_linking(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": "MoMa", "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -3534,14 +3558,6 @@ async def delete_dataset_linking_elt(
             url,
             headers=_service_headers(token),
         )
-    try:
-        response_payload = response.json()
-
-    except ValueError:
-        response_payload = {
-            "status_code": response.status_code,
-            "content": response.text,
-        }
 
     # If response is not successful, raise an error with context-aware messages
     if response.status_code >= 400:
@@ -3550,12 +3566,6 @@ async def delete_dataset_linking_elt(
             status_code=response.status_code,
             response_text=response.text,
         )
-
-        # Extract error message and format it with service name and status code
-        if isinstance(response_payload, dict):
-            error_msg = response_payload.get("error", json.dumps(response_payload))
-        else:
-            error_msg = response.text
 
         # Build context-specific error messages based on status code
         status_messages = {
@@ -3567,7 +3577,8 @@ async def delete_dataset_linking_elt(
         }
 
         context_msg = status_messages.get(response.status_code, "")
-        error_message = f"MoMa returned error {response.status_code}: {error_msg}"
+        # The called service's own message stays in the log above.
+        error_message = f"MoMa returned error {response.status_code}"
         if context_msg:
             error_message = f"{error_message} — {context_msg}"
 
@@ -3576,6 +3587,7 @@ async def delete_dataset_linking_elt(
             detail=ErrorEnvelope(
                 code=response.status_code,
                 error=error_message,
+                details={"source": "MoMa", "statusCode": response.status_code},
             ).model_dump(exclude_none=True),
         )
 
@@ -3640,6 +3652,12 @@ async def list_dataset_linking(
         except HTTPException:
             raise
         except httpx.HTTPStatusError as e:
+            logger.error(
+                "MoMa API HTTP error during dataset linking fetch",
+                dataset_id=dataset_id,
+                status_code=e.response.status_code,
+                response_text=e.response.text,
+            )
             raise HTTPException(
                 status_code=status.HTTP_502_BAD_GATEWAY,
                 detail=ErrorEnvelope(
@@ -3647,8 +3665,8 @@ async def list_dataset_linking(
                     error=f"Error from MoMa API: {e.response.status_code}",
                     details={
                         "dataset_id": dataset_id,
-                        "moma_status_code": e.response.status_code,
-                        "moma_response": e.response.text,
+                        "source": "MoMa",
+                        "statusCode": e.response.status_code,
                     },
                 ).model_dump(exclude_none=True),
             )
@@ -3666,8 +3684,8 @@ async def list_dataset_linking(
                     error="Failed to connect to MoMa API",
                     details={
                         "dataset_id": dataset_id,
+                        "source": "MoMa",
                         "request_error_type": type(e).__name__,
-                        "request_error": str(e),
                     },
                 ).model_dump(exclude_none=True),
             )

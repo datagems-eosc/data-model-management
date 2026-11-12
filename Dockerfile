@@ -22,14 +22,15 @@ COPY uv.lock /app/uv.lock
 COPY pyproject.toml /app/pyproject.toml
 COPY README.md /app/README.md
 
-# Install dependencies
-RUN uv sync --frozen --no-install-project
+# Install the runtime dependencies. `--no-dev` leaves out the `dev` group
+# (pytest, pre-commit), which uv would otherwise install by default
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy the dmm_api folder into the image
 COPY dmm_api /app/dmm_api
 
 # Sync the project
-RUN uv sync --frozen
+RUN uv sync --frozen --no-dev
 
 # DuckDB keeps extensions under $HOME. The postgres extension is installed
 # here, into a home only root can write, so a query never downloads it

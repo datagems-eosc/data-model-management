@@ -12,6 +12,7 @@ The [OpenAPI Reference](openapi.md) gives the responses of each endpoint. This p
 | 403 | The token's audience does not include this service |
 | 404 | The dataset, query result or AP log does not exist, or no endpoint matches the path |
 | 409 | The dataset already exists, or its files have already been moved |
+| 410 | `POST /convert`, deprecated since v0.3.1 |
 | 413 | The request body or an uploaded file is larger than the service accepts |
 | 422 | The request does not match the endpoint's schema |
 | 500 | The service, or one of its data stores, failed |
@@ -19,7 +20,7 @@ The [OpenAPI Reference](openapi.md) gives the responses of each endpoint. This p
 | 503 | MoMa, or the keys that validate tokens, could not be reached |
 | 504 | MoMa did not answer in time |
 
-When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status.
+When one of the DataGEMS services the API forwards to fails (cross-dataset discovery, in-dataset discovery, query disambiguation, dataset recommendation), the API answers with that service's status. That service's own message stays in the service's logs.
 
 ## Error body
 
@@ -37,7 +38,7 @@ An unsuccessful response carries a JSON body like this one:
 | - | - |
 | `code` | The HTTP status, repeated |
 | `error` | What went wrong. For a server error it carries no internal detail, which stays in the service's logs |
-| `details` | On some errors only: more information, such as the status MoMa answered with |
+| `details` | When a service the API called failed: `source`, that service, and `statusCode`, the status it answered with, if it answered. Some errors add more fields, such as the dataset ID |
 | `correlationId` | The request's correlation ID, also returned in the `x-tracking-correlation` header |
 
 Two kinds of response keep the framework's body, `{"detail": ...}`, with the correlation ID in the header only: `422`, whose `detail` lists what does not match the schema, and `404` for a path that matches no endpoint.
