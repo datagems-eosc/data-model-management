@@ -257,6 +257,9 @@ DUCKDB_CONFIG = {
 # reads files only below it.
 DATASET_MOUNT = "/s3/dataset/"
 
+# Where the bucket is mounted: `s3://<folder>/...` is `/s3/<folder>/...`.
+S3_MOUNT = Path("/s3")
+
 # DuckDB errors that say what is wrong with a query's SQL: their message
 # reaches the caller. Any other error during a query stays in the log.
 _SQL_ERRORS = (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
@@ -1149,8 +1152,18 @@ async def load_dataset(
             )
 
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
-        source_path = Path("/s3") / path_without_s3_prefix
+        source_path = S3_MOUNT / path_without_s3_prefix
         target_path = Path(DATASET_DIR) / dataset_id
+
+        # Both paths come from the request. Only a folder inside the scratchpad
+        # moves, into a folder inside DATASET_DIR; with `force`, a dataset
+        # already in place may name its own folder.
+        scratchpad = Path(os.getenv("SCRATCHPAD_DIR", "/s3/scratchpad")).resolve()
+        source, target = source_path.resolve(), target_path.resolve()
+        if Path(DATASET_DIR).resolve() not in target.parents:
+            raise ValueError("The dataset ID must not name a path")
+        if scratchpad not in source.parents and not (force and source == target):
+            raise ValueError("'archivedAt' must name a folder in s3://scratchpad/")
 
         if not source_path.exists():
             raise FileNotFoundError(

@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import duckdb
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
@@ -197,3 +200,71 @@ def test_a_query_result_needs_a_valid_token(client, monkeypatch):
     )
 
     assert response.status_code == 401
+
+
+ZOO_ID = "c893daaf-680f-4947-88e5-03fd61900795"
+ZOO_LOAD = (Path(__file__).parent / "load" / "zoo.json").read_text()
+
+
+@pytest.fixture
+def bucket(tmp_path, monkeypatch):
+    """A bucket mount with a scratchpad and a dataset folder, and MoMa saying
+    the dataset exists."""
+
+    async def exists(*args, **kwargs):
+        return True, {"nodes": [], "edges": []}
+
+    monkeypatch.setattr(dataset, "S3_MOUNT", tmp_path)
+    monkeypatch.setenv("SCRATCHPAD_DIR", str(tmp_path / "scratchpad"))
+    monkeypatch.setenv("DATASET_DIR", str(tmp_path / "dataset"))
+    monkeypatch.setattr(dataset, "get_dataset_metadata", exists)
+    (tmp_path / "scratchpad" / ZOO_ID).mkdir(parents=True)
+    (tmp_path / "scratchpad" / ZOO_ID / "zoo.csv").write_text("a\n1\n")
+    (tmp_path / "dataset").mkdir()
+    (tmp_path / "logs").mkdir()
+    (tmp_path / "logs" / "kept.log").write_text("x\n")
+    return tmp_path
+
+
+def load(client, archived_at, force=False):
+    body = ZOO_LOAD.replace(f"s3://scratchpad/{ZOO_ID}", archived_at)
+    return client.put(
+        "/api/v1/dataset/load",
+        params={"force": force},
+        content=body,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer t"},
+    )
+
+
+@pytest.mark.parametrize(
+    "archived_at, force",
+    [
+        ("s3://scratchpad/../logs", False),
+        ("s3://logs", False),
+        ("s3://scratchpad", False),
+        (f"s3://dataset/{ZOO_ID}", False),
+        ("s3://scratchpad/../logs", True),
+    ],
+)
+def test_load_moves_nothing_from_outside_the_scratchpad(
+    client, logged_in, bucket, archived_at, force
+):
+    response = load(client, archived_at, force)
+
+    assert response.status_code == 400
+    assert (bucket / "logs" / "kept.log").exists()
+    assert list((bucket / "dataset").iterdir()) == []
+
+
+def test_load_takes_a_folder_from_the_scratchpad(
+    client, logged_in, bucket, monkeypatch
+):
+    async def moma_fails(self, url, **kwargs):
+        return httpx.Response(500, request=httpx.Request("PATCH", url))
+
+    # The move passes the check; MoMa's failure then rolls it back.
+    monkeypatch.setattr(httpx.AsyncClient, "patch", moma_fails)
+    response = load(client, f"s3://scratchpad/{ZOO_ID}")
+
+    assert response.status_code == 502
+    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
