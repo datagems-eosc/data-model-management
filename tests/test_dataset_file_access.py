@@ -285,6 +285,22 @@ def test_load_refuses_a_dataset_id_that_names_a_path(
     assert list((bucket / "dataset").iterdir()) == []
 
 
+def test_load_names_a_missing_source_as_sent(client, logged_in, bucket):
+    response = load(client, "s3://scratchpad/missing")
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "No folder at s3://scratchpad/missing"
+
+
+def test_load_names_a_loaded_dataset_by_its_id(client, logged_in, bucket):
+    (bucket / "dataset" / ZOO_ID).mkdir()
+    response = load(client, f"s3://scratchpad/{ZOO_ID}")
+
+    assert response.status_code == 409
+    assert response.json()["error"] == f"Dataset {ZOO_ID} is already loaded"
+    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
+
+
 def test_load_refuses_a_file_as_its_source(client, logged_in, bucket):
     response = load(client, f"s3://scratchpad/{ZOO_ID}/zoo.csv")
 
