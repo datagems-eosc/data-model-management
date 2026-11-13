@@ -155,7 +155,7 @@ async def api_home():
                 "url": "/api/v1/dataset/register",
             },
             "dataset_load": {
-                "description": "Move a dataset from the scratchpad",
+                "description": "Move a dataset from the scratchpad or the staging folder",
                 "methods": ["PUT"],
                 "url": "/api/v1/dataset/load",
             },

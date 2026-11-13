@@ -164,6 +164,7 @@ The following environment variables are read by the API **without defaults**.
 | `OIDC_JWKS_URL` | `<OIDC_ISSUER_URL>/protocol/openid-connect/certs` | The login server's public keys |
 | `JWKS_CACHE_TTL_SECONDS` | `300` | How long the public keys are cached, in seconds |
 | `SCRATCHPAD_DIR` | `/s3/scratchpad` | Uploaded dataset files, before `PUT /api/v1/dataset/load` |
+| `DATASET_STAGING_DIR` | `/s3/dataset_staging` | Dataset files collected by the onboarding, before `PUT /api/v1/dataset/load` |
 | `RESULTS_DIR`, `RESULTS_FOLDER` | `/s3/data-model-management`, `results` | Query results, under `RESULTS_DIR/RESULTS_FOLDER` |
 | `CATALOGUE_DIR`, `CATALOGUE_FOLDER` | `/s3/data-model-management`, `catalogue` | The catalogue, under `CATALOGUE_DIR/CATALOGUE_FOLDER` |
 | `MAX_UPLOAD_MB` | `64` | The largest request body and uploaded file accepted, in MB |

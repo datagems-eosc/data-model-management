@@ -208,8 +208,9 @@ ZOO_LOAD = (Path(__file__).parent / "load" / "zoo.json").read_text()
 
 @pytest.fixture
 def bucket(tmp_path, monkeypatch):
-    """A bucket mount with a scratchpad and a dataset folder, and MoMa saying
-    the dataset exists."""
+    """A bucket mount with the zoo dataset in the scratchpad and in the
+    staging folder, an empty dataset folder, and MoMa saying the dataset
+    exists."""
 
     async def exists(*args, **kwargs):
         return True, {"nodes": [], "edges": []}
@@ -221,10 +222,12 @@ def bucket(tmp_path, monkeypatch):
     monkeypatch.setattr(httpx.AsyncClient, "patch", no_moma)
     monkeypatch.setattr(dataset, "S3_MOUNT", tmp_path)
     monkeypatch.setenv("SCRATCHPAD_DIR", str(tmp_path / "scratchpad"))
+    monkeypatch.setenv("DATASET_STAGING_DIR", str(tmp_path / "dataset_staging"))
     monkeypatch.setenv("DATASET_DIR", str(tmp_path / "dataset"))
     monkeypatch.setattr(dataset, "get_dataset_metadata", exists)
-    (tmp_path / "scratchpad" / ZOO_ID).mkdir(parents=True)
-    (tmp_path / "scratchpad" / ZOO_ID / "zoo.csv").write_text("a\n1\n")
+    for folder in ["scratchpad", "dataset_staging"]:
+        (tmp_path / folder / ZOO_ID).mkdir(parents=True)
+        (tmp_path / folder / ZOO_ID / "zoo.csv").write_text("a\n1\n")
     (tmp_path / "dataset").mkdir()
     (tmp_path / "logs").mkdir()
     (tmp_path / "logs" / "kept.log").write_text("x\n")
@@ -251,11 +254,13 @@ def load(client, archived_at, force=False, dataset_id=ZOO_ID):
         ("s3://scratchpad/../logs", False),
         ("s3://logs", False),
         ("s3://scratchpad", False),
+        ("s3://dataset_staging", False),
+        ("s3://dataset_staging/../logs", False),
         (f"s3://dataset/{ZOO_ID}", False),
         ("s3://scratchpad/../logs", True),
     ],
 )
-def test_load_moves_nothing_from_outside_the_scratchpad(
+def test_load_moves_nothing_from_outside_the_source_folders(
     client, logged_in, bucket, archived_at, force
 ):
     response = load(client, archived_at, force)
@@ -280,6 +285,22 @@ def test_load_refuses_a_dataset_id_that_names_a_path(
     assert list((bucket / "dataset").iterdir()) == []
 
 
+def test_load_names_a_missing_source_as_sent(client, logged_in, bucket):
+    response = load(client, "s3://scratchpad/missing")
+
+    assert response.status_code == 404
+    assert response.json()["error"] == "No folder at s3://scratchpad/missing"
+
+
+def test_load_names_a_loaded_dataset_by_its_id(client, logged_in, bucket):
+    (bucket / "dataset" / ZOO_ID).mkdir()
+    response = load(client, f"s3://scratchpad/{ZOO_ID}")
+
+    assert response.status_code == 409
+    assert response.json()["error"] == f"Dataset {ZOO_ID} is already loaded"
+    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
+
+
 def test_load_refuses_a_file_as_its_source(client, logged_in, bucket):
     response = load(client, f"s3://scratchpad/{ZOO_ID}/zoo.csv")
 
@@ -288,15 +309,16 @@ def test_load_refuses_a_file_as_its_source(client, logged_in, bucket):
     assert list((bucket / "dataset").iterdir()) == []
 
 
-def test_load_takes_a_folder_from_the_scratchpad(
-    client, logged_in, bucket, monkeypatch
+@pytest.mark.parametrize("folder", ["scratchpad", "dataset_staging"])
+def test_load_takes_a_folder_from_a_source_folder(
+    client, logged_in, bucket, monkeypatch, folder
 ):
     async def moma_fails(self, url, **kwargs):
         return httpx.Response(500, request=httpx.Request("PATCH", url))
 
     # The move passes the check; MoMa's failure then rolls it back.
     monkeypatch.setattr(httpx.AsyncClient, "patch", moma_fails)
-    response = load(client, f"s3://scratchpad/{ZOO_ID}")
+    response = load(client, f"s3://{folder}/{ZOO_ID}")
 
     assert response.status_code == 502
-    assert (bucket / "scratchpad" / ZOO_ID / "zoo.csv").exists()
+    assert (bucket / folder / ZOO_ID / "zoo.csv").exists()

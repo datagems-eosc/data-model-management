@@ -1152,26 +1152,33 @@ async def load_dataset(
             )
 
         # Both paths come from the request. The dataset ID names one folder,
-        # here and in the catalogue. Only a folder inside the scratchpad moves,
-        # into a folder inside DATASET_DIR; with `force`, a dataset already in
-        # place may name its own folder.
+        # here and in the catalogue. Only a folder inside the scratchpad (our
+        # uploads) or the staging folder (the onboarding's) moves, into a
+        # folder inside DATASET_DIR; with `force`, a dataset already in place
+        # may name its own folder.
         if not re.fullmatch(r"[A-Za-z0-9_-]+", str(dataset_id)):
             raise ValueError("The dataset ID may hold only letters, digits, - and _")
         path_without_s3_prefix = dataset_path.split("s3://", 1)[1]
         source_path = S3_MOUNT / path_without_s3_prefix
         target_path = Path(DATASET_DIR) / str(dataset_id)
 
-        scratchpad = Path(os.getenv("SCRATCHPAD_DIR", "/s3/scratchpad")).resolve()
+        source_folders = [
+            Path(os.getenv("SCRATCHPAD_DIR", "/s3/scratchpad")).resolve(),
+            Path(os.getenv("DATASET_STAGING_DIR", "/s3/dataset_staging")).resolve(),
+        ]
         source, target = source_path.resolve(), target_path.resolve()
         if Path(DATASET_DIR).resolve() not in target.parents:
             raise ValueError("The dataset ID must not name a path")
-        if scratchpad not in source.parents and not (force and source == target):
-            raise ValueError("'archivedAt' must name a folder in s3://scratchpad/")
-
-        if not source_path.exists():
-            raise FileNotFoundError(
-                f"Source dataset not found at expected location: {source_path}"
+        in_a_source_folder = any(folder in source.parents for folder in source_folders)
+        if not in_a_source_folder and not (force and source == target):
+            raise ValueError(
+                "'archivedAt' must name a folder in s3://scratchpad/ "
+                "or s3://dataset_staging/"
             )
+
+        # Error messages name what the caller sent, never the mount paths.
+        if not source_path.exists():
+            raise FileNotFoundError(f"No folder at {dataset_path}")
         if not source_path.is_dir():
             raise ValueError("'archivedAt' must name a folder, not a file")
 
@@ -1180,9 +1187,7 @@ async def load_dataset(
             if force and source_path.resolve() == target_path.resolve():
                 pass
             else:
-                raise FileExistsError(
-                    f"Target dataset with id {dataset_id} has already been moved to: {target_path}"
-                )
+                raise FileExistsError(f"Dataset {dataset_id} is already loaded")
         else:
             shutil.move(str(source_path), str(target_path))
         new_path = f"s3://dataset/{dataset_id}"
