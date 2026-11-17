@@ -160,6 +160,7 @@ The following environment variables are read by the API **without defaults**.
 | Variable | Default | Meaning |
 |---|---|---|
 | `GRAFEO_URL` | `http://localhost:7474` | Grafeo's HTTP endpoint |
+| `GRAFEO_AUTH_TOKEN` | *(unset)* | Bearer token for Grafeo HTTP requests |
 | `OIDC_CLIENT_ID` | `data-model-management-api` | The audience (`aud`) a token must contain |
 | `OIDC_JWKS_URL` | `<OIDC_ISSUER_URL>/protocol/openid-connect/certs` | The login server's public keys |
 | `JWKS_CACHE_TTL_SECONDS` | `300` | How long the public keys are cached, in seconds |

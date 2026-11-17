@@ -10,6 +10,15 @@ from dmm_api.tools.AP.parse_AP import APRequest, json_to_graph
 logger = structlog.get_logger(__name__)
 
 GRAFEO_URL = os.getenv("GRAFEO_URL", "http://localhost:7474")
+GRAFEO_AUTH_TOKEN = os.getenv("GRAFEO_AUTH_TOKEN")
+
+if not GRAFEO_AUTH_TOKEN:
+    raise RuntimeError("GRAFEO_AUTH_TOKEN environment variable is not configured")
+
+GRAFEO_HEADERS = {
+    "Authorization": f"Bearer {GRAFEO_AUTH_TOKEN}",
+    "Content-Type": "application/json",
+}
 
 
 ## The generated Grafeo queries will first check if the node id already exists, and if so, it will update the properties of the existing node instead of creating a new one. 
@@ -183,7 +192,10 @@ def Grafeo_to_AP(raw_data: dict) -> dict:
     }
 
 def grafeo_begin():
-    resp = requests.post(f"{GRAFEO_URL}/transaction/start")
+    resp = requests.post(
+        f"{GRAFEO_URL}/transaction/start",
+        headers=GRAFEO_HEADERS,
+    )
     if resp.status_code == 404:
         # Some Grafeo deployments expose only /cypher and not transaction APIs.
         logger.warning("Grafeo transaction API not available; falling back to /cypher mode")
@@ -196,7 +208,8 @@ def grafeo_execute(txId, query):
     if txId is None:
         resp = requests.post(
             f"{GRAFEO_URL}/cypher",
-            json={"query": query}
+            json={"query": query},
+            headers=GRAFEO_HEADERS,
         )
         try:
             resp.raise_for_status()
@@ -206,7 +219,8 @@ def grafeo_execute(txId, query):
 
     resp = requests.post(
         f"{GRAFEO_URL}/transaction/{txId}/execute",
-        json={"query": query}
+        json={"query": query},
+        headers=GRAFEO_HEADERS,
     )
     try:
         resp.raise_for_status()
@@ -217,13 +231,19 @@ def grafeo_execute(txId, query):
 def grafeo_commit(txId):
     if txId is None:
         return
-    resp = requests.post(f"{GRAFEO_URL}/transaction/{txId}/commit")
+    resp = requests.post(
+        f"{GRAFEO_URL}/transaction/{txId}/commit",
+        headers=GRAFEO_HEADERS,
+    )
     resp.raise_for_status()
 
 def grafeo_rollback(txId):
     if txId is None:
         return
-    requests.post(f"{GRAFEO_URL}/transaction/{txId}/rollback")
+    requests.post(
+        f"{GRAFEO_URL}/transaction/{txId}/rollback",
+        headers=GRAFEO_HEADERS,
+    )
 
 def store_AP_in_grafeo(ap: APRequest):
     txId = None

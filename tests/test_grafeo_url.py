@@ -18,13 +18,26 @@ def test_a_direct_query_uses_grafeo_url(monkeypatch):
     posted = []
 
     def post(url, **kwargs):
-        posted.append(url)
+        posted.append((url, kwargs["headers"]))
         return _GrafeoReply()
 
     monkeypatch.setattr(dataset, "GRAFEO_URL", "http://grafeo.example:1234")
+    monkeypatch.setattr(
+        dataset,
+        "GRAFEO_HEADERS",
+        {"Authorization": "Bearer test-token"},
+    )
     monkeypatch.setattr(dataset.requests, "post", post)
     response = TestClient(app).get("/api/v1/grafeo/test")
 
     assert response.status_code == 200
     assert response.json() == [{"ok": 1}]
-    assert posted == ["http://grafeo.example:1234/cypher"]
+    assert posted == [
+        (
+            "http://grafeo.example:1234/cypher",
+            {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer test-token",
+            },
+        )
+    ]

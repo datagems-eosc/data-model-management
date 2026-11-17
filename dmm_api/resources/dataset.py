@@ -19,6 +19,7 @@ from sqlglot.optimizer import optimize
 from sqlglot import expressions as exp
 
 from dmm_api.tools.AP.log_AP import (
+    GRAFEO_HEADERS,
     Grafeo_to_AP,
     Grafeo_to_AP_node,
     store_AP_in_grafeo,
@@ -2832,7 +2833,7 @@ async def grafeo_test():
 def run_grafeo_query(query: str):
     url = f"{GRAFEO_URL}/cypher"
     payload = {"query": query}
-    headers = {"Content-Type": "application/json"}
+    headers = {"Content-Type": "application/json", **GRAFEO_HEADERS}
     resp = requests.post(url, json=payload, headers=headers)
     resp.raise_for_status()
     data = resp.json()
