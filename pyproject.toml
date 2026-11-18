@@ -47,6 +47,11 @@ docs = [
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.uv]
+# One uv version for every machine, the Dockerfile and CI: another version
+# rewrites uv.lock in its own format whenever it relocks.
+required-version = "==0.13.5"
+
 [tool.setuptools]
 py-modules = ["dmm_api"]
 
