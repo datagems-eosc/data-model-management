@@ -16,6 +16,10 @@ test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@uv run python -m pytest --doctest-modules
 
+.PHONY: release
+release: ## Commit and tag a release on main: make release VERSION=X.Y.Z
+	@scripts/release.sh "$(VERSION)"
+
 .PHONY: build
 build: clean-build ## Build wheel file
 	@echo "🚀 Creating wheel file"
