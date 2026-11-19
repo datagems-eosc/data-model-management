@@ -28,6 +28,26 @@ In the pull request description, say:
 Change dependencies through uv (`uv add`, `uv remove`, `uv lock`), so that
 `pyproject.toml` and `uv.lock` stay in step. Never edit `uv.lock` by hand.
 
+## Formatting-only commits and git blame
+
+Some commits only reformat files, such as `c9c143c` ("chore: apply the
+pre-commit hooks to every file"), which first ran the pre-commit hooks over
+the whole repository. `git blame` would show them as the last change to
+every line they touched, hiding who really wrote it. `.git-blame-ignore-revs`
+lists those commits, so that blame skips them and shows the change before.
+
+GitHub's blame view reads the file on its own. For `git blame` in your clone,
+run this once:
+
+```
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
+To add a formatting-only commit, put its full hash in the file, under a
+comment line with its subject, in a commit of its own after it. Merge that
+pull request with a merge commit, not squash or rebase: both create new
+commits, and the listed hash would not be on `main`.
+
 ## Releasing
 
 A release is made on `main`, after the pull requests it releases are merged.

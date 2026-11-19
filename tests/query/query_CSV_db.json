@@ -8,7 +8,6 @@
         ],
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
-
       {
         "from": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
@@ -29,44 +28,44 @@
           "request"
         ],
         "to": "474c2c12-4185-42a0-9e79-38af377bdcad"
-      }, 
+      },
       {
         "from": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
         "labels": [
           "distribution"
         ],
         "to": "3b516b4d-5318-422f-a605-b86b5796d565"
-      }, 
+      },
       {
         "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
         "labels": [
           "distribution"
         ],
         "to": "7e09b481-0812-4321-8e80-f9dc812f8b71"
-      }, 
+      },
       {
-          "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
-          "labels": [
-            "distribution"
-          ],
-          "to": "e6e93f40-02a6-4335-97db-4f7c02d5da89"
+        "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+        "labels": [
+          "distribution"
+        ],
+        "to": "e6e93f40-02a6-4335-97db-4f7c02d5da89"
       },
       {
         "from": "3b516b4d-5318-422f-a605-b86b5796d565",
         "labels": [
           "input"
         ],
-        "properties":{
+        "properties": {
           "argName": "arg1"
         },
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
-      }, 
+      },
       {
         "from": "7e09b481-0812-4321-8e80-f9dc812f8b71",
         "labels": [
           "input"
-        ],  
-        "properties":{
+        ],
+        "properties": {
           "argName": "arg2"
         },
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
@@ -75,32 +74,32 @@
         "from": "6f6e18e2-c61c-4c72-8de8-808b16757166",
         "labels": [
           "input"
-        ],  
-        "properties":{
+        ],
+        "properties": {
           "argName": "arg3"
         },
         "to": "437e473a-bc17-46ce-8b36-a8b48cb2ef75"
       },
       {
-        "from":"6f6e18e2-c61c-4c72-8de8-808b16757166",
-        "labels":[
+        "from": "6f6e18e2-c61c-4c72-8de8-808b16757166",
+        "labels": [
           "contained_in"
         ],
-        "to":"e6e93f40-02a6-4335-97db-4f7c02d5da89"
-      }, 
+        "to": "e6e93f40-02a6-4335-97db-4f7c02d5da89"
+      },
       {
-        "from":"629bed3a-c1f1-421b-858a-f0f685bb8275",
-        "labels":[
+        "from": "629bed3a-c1f1-421b-858a-f0f685bb8275",
+        "labels": [
           "distribution"
         ],
-        "to":"6f6e18e2-c61c-4c72-8de8-808b16757166"
-      }, 
+        "to": "6f6e18e2-c61c-4c72-8de8-808b16757166"
+      },
       {
-        "from":"7e09b481-0812-4321-8e80-f9dc812f8b71",
-        "labels":[
+        "from": "7e09b481-0812-4321-8e80-f9dc812f8b71",
+        "labels": [
           "contained_in"
         ],
-        "to":"e6e93f40-02a6-4335-97db-4f7c02d5da89"
+        "to": "e6e93f40-02a6-4335-97db-4f7c02d5da89"
       }
     ],
     "nodes": [
@@ -120,7 +119,7 @@
         "id": "437e473a-bc17-46ce-8b36-a8b48cb2ef75",
         "labels": [
           "SQL_Operator",
-          "Query_Operator", 
+          "Query_Operator",
           "Operator"
         ],
         "properties": {
@@ -131,7 +130,6 @@
           "startTime": "2026-03-17T10:43:17.829Z"
         }
       },
-
       {
         "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
         "labels": [
@@ -148,56 +146,56 @@
           "description": "Task to query a dataset",
           "name": "Dataset Querying Task"
         }
-      }, 
+      },
       {
-        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad", 
-        "labels":[
-          "Data", 
+        "id": "8756aa7a-2436-48c7-afb0-0f99401392ad",
+        "labels": [
+          "Data",
           "cr:FileObject"
         ],
         "properties": {}
-      }, 
+      },
       {
-        "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318", 
-        "labels":[
+        "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
+        "labels": [
           "sc:Dataset"
         ],
         "properties": {}
-      }, 
+      },
       {
         "id": "3b516b4d-5318-422f-a605-b86b5796d565",
-        "labels":[
-          "Data", 
+        "labels": [
+          "Data",
           "cr:FileObject"
         ],
         "properties": {}
-      }, 
+      },
       {
         "id": "629bed3a-c1f1-421b-858a-f0f685bb8275",
-        "labels":[
+        "labels": [
           "sc:Dataset"
-         ],
-          "properties": {}
-      }, 
+        ],
+        "properties": {}
+      },
       {
         "id": "7e09b481-0812-4321-8e80-f9dc812f8b71",
-        "labels":[
-          "Data", 
+        "labels": [
+          "Data",
           "cr:FileObject"
         ],
         "properties": {}
-      }, 
+      },
       {
         "id": "6f6e18e2-c61c-4c72-8de8-808b16757166",
-        "labels":[
-          "Data", 
+        "labels": [
+          "Data",
           "cr:FileObject"
         ],
         "properties": {}
       },
       {
         "id": "e6e93f40-02a6-4335-97db-4f7c02d5da89",
-        "labels":[
+        "labels": [
           "dg:DatabaseConnection"
         ],
         "properties": {}

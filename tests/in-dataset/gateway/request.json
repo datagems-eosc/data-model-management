@@ -1,94 +1,94 @@
 {
-    "ap": {
-        "edges": [
-            {
-                "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-                "labels": [
-                    "request"
-                ],
-                "to": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c"
-            },
-            {
-                "from": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
-                "labels": [
-                    "is_accomplished_by"
-                ],
-                "to": "9593a87a-b361-4f56-aed5-df53e0fb5a3f"
-            },
-            {
-                "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
-                "labels": [
-                    "consist_of"
-                ],
-                "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
-            },
-            {
-                "from": "d62e1c6c-5350-4153-834b-3af34d80f943",
-                "labels": [
-                    "output"
-                ],
-                "to": "01624723-6b74-4719-a985-ceb70c623932"
-            }
+  "ap": {
+    "edges": [
+      {
+        "from": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "request"
         ],
-        "nodes": [
-            {
-                "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
-                "labels": [
-                    "User"
-                ],
-                "properties": {}
-            },
-            {
-                "id": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
-                "labels": [
-                    "Task"
-                ],
-                "properties": {
-                    "description": "Task to find the the mean daily temperature in Zurich for 2020",
-                    "name": "Temperature Task"
-                }
-            },
-            {
-                "id": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
-                "labels": [
-                    "Analytical_Pattern"
-                ],
-                "properties": {
-                    "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
-                    "name": "In-Dataset Discovery Temperature",
-                    "startTime": "2026-03-17T10:43:17.829Z"
-                }
-            },
-            {
-                "id": "d62e1c6c-5350-4153-834b-3af34d80f943",
-                "labels": [
-                    "Query_Operator",
-                    "NLQ_Operator", 
-                    "Operator"
-                ],
-                "properties": {
-                    "description": "Translate text to SQL",
-                    "name": "Text-to-SQL",
-                    "process": "In-Dataset Discovery",
-                    "query": "What is mean daily temperature in Zurich in the year 2020?",
-                    "startTime": "2026-03-17T10:43:17.829Z"
-                }
-            },
-            {
-                "id": "da70868b-9464-4415-8a11-e1af8f919179",
-                "labels": [
-                    "sc:Dataset"
-                ], 
-                "properties":{}
-            },
-            {
-                "id": "01624723-6b74-4719-a985-ceb70c623932",
-                "labels": [
-                    "cr:FileObject",
-                    "Data"
-                ], 
-                "properties":{}
-            }
-        ]
-    }
+        "to": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c"
+      },
+      {
+        "from": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+        "labels": [
+          "is_accomplished_by"
+        ],
+        "to": "9593a87a-b361-4f56-aed5-df53e0fb5a3f"
+      },
+      {
+        "from": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+        "labels": [
+          "consist_of"
+        ],
+        "to": "d62e1c6c-5350-4153-834b-3af34d80f943"
+      },
+      {
+        "from": "d62e1c6c-5350-4153-834b-3af34d80f943",
+        "labels": [
+          "output"
+        ],
+        "to": "01624723-6b74-4719-a985-ceb70c623932"
+      }
+    ],
+    "nodes": [
+      {
+        "id": "38b5aafb-184d-4b1e-9e9e-5541afca2c96",
+        "labels": [
+          "User"
+        ],
+        "properties": {}
+      },
+      {
+        "id": "a0f94d92-5596-43bb-9b2c-1bc425ab9c4c",
+        "labels": [
+          "Task"
+        ],
+        "properties": {
+          "description": "Task to find the the mean daily temperature in Zurich for 2020",
+          "name": "Temperature Task"
+        }
+      },
+      {
+        "id": "9593a87a-b361-4f56-aed5-df53e0fb5a3f",
+        "labels": [
+          "Analytical_Pattern"
+        ],
+        "properties": {
+          "description": "Analytical Pattern about the mean daily temperature in the city of Zurich in the year 2020",
+          "name": "In-Dataset Discovery Temperature",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "d62e1c6c-5350-4153-834b-3af34d80f943",
+        "labels": [
+          "Query_Operator",
+          "NLQ_Operator",
+          "Operator"
+        ],
+        "properties": {
+          "description": "Translate text to SQL",
+          "name": "Text-to-SQL",
+          "process": "In-Dataset Discovery",
+          "query": "What is mean daily temperature in Zurich in the year 2020?",
+          "startTime": "2026-03-17T10:43:17.829Z"
+        }
+      },
+      {
+        "id": "da70868b-9464-4415-8a11-e1af8f919179",
+        "labels": [
+          "sc:Dataset"
+        ],
+        "properties": {}
+      },
+      {
+        "id": "01624723-6b74-4719-a985-ceb70c623932",
+        "labels": [
+          "cr:FileObject",
+          "Data"
+        ],
+        "properties": {}
+      }
+    ]
+  }
 }
