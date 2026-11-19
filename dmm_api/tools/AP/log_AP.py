@@ -1,6 +1,5 @@
 import os
 from datetime import datetime, timezone
-from typing import Optional, List
 import requests
 import structlog
 
@@ -97,7 +96,7 @@ def AP_to_Grafeo(AP_payload: APRequest) -> dict:
 
     for node in grafeo_json["nodes"]:
         # Normalize labels
-        labels = [normalize_label(l) for l in node.get("labels", [])]
+        labels = [normalize_label(label) for label in node.get("labels", [])]
         label_str = " :" + " :".join(labels) if labels else ""
 
         # Build properties

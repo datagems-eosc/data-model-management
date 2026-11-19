@@ -4,22 +4,6 @@ from dmm_api.tools.AP.parse_AP import APRequest, Edge, Node
 from datetime import datetime, timezone
 
 
-# TODO: update the id for more than one dataset?
-# def update_dataset_id(
-#     ap_payload: APRequest, old_field: str, new_field: str
-# ) -> APRequest:
-#     for node in ap_payload.nodes:
-#         if str(node.id) == str(old_field) and "sc:Dataset" in node.labels:
-#             node.id = new_field
-
-#     for edge in ap_payload.edges:
-#         if str(edge.target) == str(old_field):
-#             edge.target = new_field
-#         if str(edge.source) == str(old_field):
-#             edge.source = new_field
-
-#     return ap_payload
-
 def update_fileObject_id(
     ap_payload: APRequest, old_field: str, new_field: str
 ) -> APRequest:
@@ -32,7 +16,7 @@ def update_fileObject_id(
             edge.target = new_field
         if str(edge.source) == str(old_field):
             edge.source = new_field
-    return ap_payload    
+    return ap_payload
 
 
 def update_dataset_archivedAt(
@@ -44,6 +28,7 @@ def update_dataset_archivedAt(
                 node.properties = {}
             node.properties["archivedAt"] = new_path
     return ap_payload
+
 
 def update_fileObject_properties(
     ap_payload: APRequest, fileObject_id: str, new_path: str
@@ -60,26 +45,13 @@ def update_fileObject_properties(
             node.properties["sha256"] = "hash1234567890abcdef"
     return ap_payload
 
-# I want it to return APRequest and the new dataset id
-def update_output_dataset_id(ap_payload: APRequest) -> tuple[APRequest, str]:
-    output_edge = next((e for e in ap_payload.edges if "output" in e.labels), None)
-    if not output_edge:
-        raise ValueError("No edge with label 'output' found.")
-    old_dataset_id = output_edge.target
-    dataset_id = str(uuid.uuid4())
-    updated_AP = update_dataset_id(ap_payload, old_dataset_id, dataset_id)
-    return updated_AP, dataset_id
 
 def generate_dataset_node(ap_payload: APRequest) -> tuple[APRequest, str]:
     dataset_id = str(uuid.uuid4())
-    new_dataset_node = Node(
-        **{
-            "id": dataset_id,
-            "labels": ["sc:Dataset"]
-        }
-    )
+    new_dataset_node = Node(**{"id": dataset_id, "labels": ["sc:Dataset"]})
     ap_payload.nodes.append(new_dataset_node)
     return ap_payload, dataset_id
+
 
 def update_AP_after_query(
     ap_payload: APRequest, dataset_id: str, new_path: str
@@ -94,7 +66,7 @@ def update_AP_after_query(
     fileObject_id = str(uuid.uuid4())
     s3_path = new_path.replace("/s3/", "s3://")
     updated_AP = update_fileObject_id(updated_AP, old_fileObject_id, fileObject_id)
-    updated_AP = update_fileObject_properties(updated_AP,fileObject_id, s3_path)
+    updated_AP = update_fileObject_properties(updated_AP, fileObject_id, s3_path)
 
     updated_AP = update_dataset_archivedAt(updated_AP, dataset_id, s3_path)
 
@@ -106,13 +78,14 @@ def update_AP_after_query(
 
     return updated_AP
 
+
 def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
     ap_payload = APRequest.model_validate(ap_payload)
     sql_operator_id = str(uuid.uuid4())
     new_dataset_node = Node(
         **{
             "id": sql_operator_id,
-            "labels": ["Query_Operator", "SQL_Operator", "Operator"], 
+            "labels": ["Query_Operator", "SQL_Operator", "Operator"],
         }
     )
     ap_payload.nodes.append(new_dataset_node)
@@ -124,18 +97,19 @@ def add_sql_operators_to_ap(ap_payload: APRequest) -> APRequest:
             ap_id = node.id
     if nlq_operator_id:
         new_edge = Edge(
-                    **{"from": sql_operator_id, "to": nlq_operator_id, "labels": ["follows"]}
-                )
+            **{"from": sql_operator_id, "to": nlq_operator_id, "labels": ["follows"]}
+        )
         ap_payload.edges.append(new_edge)
         new_edge = Edge(
-                    **{"from": ap_id, "to": sql_operator_id, "labels": ["consist_of"]}
-                )
+            **{"from": ap_id, "to": sql_operator_id, "labels": ["consist_of"]}
+        )
         ap_payload.edges.append(new_edge)
         for edge in ap_payload.edges:
             if str(edge.source) == str(nlq_operator_id) and "output" in edge.labels:
                 edge.source = sql_operator_id
 
     return ap_payload
+
 
 def update_startTime(ap_payload: APRequest) -> APRequest:
     timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -145,6 +119,7 @@ def update_startTime(ap_payload: APRequest) -> APRequest:
         node.properties["startTime"] = timeNow
     return ap_payload
 
+
 def update_endTime(ap_payload: APRequest) -> APRequest:
     timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     for node in ap_payload.nodes:
@@ -152,6 +127,7 @@ def update_endTime(ap_payload: APRequest) -> APRequest:
             node.properties = {}
         node.properties["endTime"] = timeNow
     return ap_payload
+
 
 def update_starTime_node(ap_payload: APRequest, node_id: str) -> APRequest:
     timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -161,6 +137,7 @@ def update_starTime_node(ap_payload: APRequest, node_id: str) -> APRequest:
                 node.properties = {}
             node.properties["startTime"] = timeNow
     return ap_payload
+
 
 def update_endTime_node(ap_payload: APRequest, node_id: str) -> APRequest:
     timeNow = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
