@@ -10,12 +10,18 @@ The official documentation is available at: https://datagems-eosc.github.io/data
 
 #### Linux/macOS
 
-If you do not have `uv` installed, you can install it with
+The project requires uv 0.13.5 (`required-version` in `pyproject.toml`).
+If you do not have `uv` installed, you can install that version with
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
+curl -LsSf https://astral.sh/uv/0.13.5/install.sh | sh
 ```
 After executing the command above, you will need to restart your shell.
+If you already have `uv` from this installer, switch it to that version with:
+
+```bash
+uv self update 0.13.5
+```
 
 `uv` is a python package similar to `poetry`.
 
@@ -33,10 +39,11 @@ This will also generate your `uv.lock` file
 
 ### Windows
 
-If you do not have `uv` installed, you can install it with
+The project requires uv 0.13.5. If you do not have `uv` installed, you can
+install that version with
 
 ```bash
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/0.13.5/install.ps1 | iex"
 ```
 Or following the instructions at docs.astral.sh/uv/getting-started/installation/#installation-methods.
 
