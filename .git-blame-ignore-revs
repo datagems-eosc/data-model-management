@@ -1,0 +1,6 @@
+# Commits that only reformat files, skipped by git blame.
+# What this file is for, and how to add to it: CONTRIBUTING.md,
+# "Formatting-only commits and git blame".
+
+# chore: apply the pre-commit hooks to every file [BOT]
+c9c143c3bb22ec2c7560941d6093efe3007d1fbf
