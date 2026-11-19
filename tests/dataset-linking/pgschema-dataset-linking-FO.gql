@@ -1,50 +1,50 @@
 (:BasicDLElement => {
-    id :: STRING NOT NULL, 
-    date :: OFFSET DATETIME, 
-    similarityScore :: FLOAT, 
+    id :: STRING NOT NULL,
+    date :: OFFSET DATETIME,
+    similarityScore :: FLOAT,
     usesMetrics :: STRING
 }),
 
-CONSTRAINT basicdlelement_pk 
-FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY 
+CONSTRAINT basicdlelement_pk
+FOR (n:BasicDLElement) REQUIRE (n.id) IS KEY
 
 (:PropertyComparison => {
-    id :: STRING NOT NULL,  
+    id :: STRING NOT NULL,
     targetProperty :: STRING,
-    similarityScore :: FLOAT, 
-    usesMetrics :: STRING, 
-    relevantWords :: LIST<STRING> 
+    similarityScore :: FLOAT,
+    usesMetrics :: STRING,
+    relevantWords :: LIST<STRING>
 }),
 
-CONSTRAINT propertycomparison_pk 
-FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY 
+CONSTRAINT propertycomparison_pk
+FOR (n:PropertyComparison) REQUIRE (n.id) IS KEY
 
 (:TextEvidence => {
-    id :: STRING NOT NULL,  
+    id :: STRING NOT NULL,
     similarityScore :: FLOAT
 })
 
-CONSTRAINT textevidence_pk 
-FOR (n:TextEvidence) REQUIRE (n.id) IS KEY 
+CONSTRAINT textevidence_pk
+FOR (n:TextEvidence) REQUIRE (n.id) IS KEY
 
 (:FileObjectLinkingElement => {
-    id :: STRING NOT NULL, 
-    date :: OFFSET DATETIME, 
-    similarityScore :: FLOAT, 
+    id :: STRING NOT NULL,
+    date :: OFFSET DATETIME,
+    similarityScore :: FLOAT,
     usesMetrics :: STRING
 }),
 
-CONSTRAINT fileobjectlinkinelement_pk 
-FOR (n:FileObjectLinkingElement) REQUIRE (n.id) IS KEY 
+CONSTRAINT fileobjectlinkinelement_pk
+FOR (n:FileObjectLinkingElement) REQUIRE (n.id) IS KEY
 
 (:FileObjectComparison => {
-    id :: STRING NOT NULL,  
+    id :: STRING NOT NULL,
     targetProperty :: STRING,
-    similarityScore :: FLOAT, 
+    similarityScore :: FLOAT,
 }),
 
-CONSTRAINT fileobjectcomparison_pk 
-FOR (n:FileObjectComparison) REQUIRE (n.id) IS KEY 
+CONSTRAINT fileobjectcomparison_pk
+FOR (n:FileObjectComparison) REQUIRE (n.id) IS KEY
 
 (:BasicDLElement)-[:HAS_COMPARISON { weight :: FLOAT }]->(:PropertyComparison)
 
@@ -59,4 +59,3 @@ FOR (n:FileObjectComparison) REQUIRE (n.id) IS KEY
 (:FileObjectLinkingElement)-[:HAS_COMPARISON { weight :: FLOAT }]->(:FileObjectComparison)
 
 (:FileObjectComparison)-[:HAS_TARGET]->(:cr_FileObject)
-

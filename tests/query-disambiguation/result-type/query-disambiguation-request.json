@@ -1,7 +1,6 @@
 {
-    "ap": {
+  "ap": {
     "edges": [
-      
       {
         "from": "99154e4e-acc8-4d07-95a7-f19c6f582f44",
         "labels": [
@@ -15,20 +14,20 @@
           "distribution"
         ],
         "to": "ec72c745-7625-42c2-94b5-692ea0ca2eba"
-      }, 
+      },
       {
-        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba", 
+        "from": "ec72c745-7625-42c2-94b5-692ea0ca2eba",
         "labels": [
-            "input"
+          "input"
         ],
         "to": "69ce4693-e71e-4616-9320-037c90a88859"
-      }, 
+      },
       {
-          "from": "69ce4693-e71e-4616-9320-037c90a88859",
-          "labels": [
-              "output"
-          ],
-          "to": "b15f0dda-d963-44db-8d49-07a11332a042"
+        "from": "69ce4693-e71e-4616-9320-037c90a88859",
+        "labels": [
+          "output"
+        ],
+        "to": "b15f0dda-d963-44db-8d49-07a11332a042"
       }
     ],
     "nodes": [
@@ -61,7 +60,7 @@
         "id": "e81aef05-6978-40ae-8195-d0f9d37a6b71",
         "labels": [
           "sc:Dataset"
-        ], 
+        ],
         "properties": {}
       },
       {
@@ -69,14 +68,15 @@
         "labels": [
           "dg:DatabaseConnection",
           "RelationalDatabase"
-        ], 
+        ],
         "properties": {}
       },
       {
-        "id": "b15f0dda-d963-44db-8d49-07a11332a042", 
-        "labels":[
-            "ResultType", "array"
-        ], 
+        "id": "b15f0dda-d963-44db-8d49-07a11332a042",
+        "labels": [
+          "ResultType",
+          "array"
+        ],
         "properties": {}
       }
     ]
