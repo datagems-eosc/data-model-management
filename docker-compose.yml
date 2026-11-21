@@ -1,9 +1,13 @@
 services:
   grafeo:
-    image: grafeo/grafeo-server:latest
+    image: grafeo/grafeo-server:0.6.3-full
     ports:
       - "7474:7474"
       - "7687:7687"
+    environment:
+      # The same token as the API's below. It guards only this local
+      # database, so it is not a secret; the deployments set their own.
+      GRAFEO_AUTH_TOKEN: local-dev-token
     volumes:
       - grafeo_data:/data
 
@@ -14,6 +18,7 @@ services:
     env_file: dev.env
     environment:
       GRAFEO_URL: http://grafeo:7474
+      GRAFEO_AUTH_TOKEN: local-dev-token
     depends_on:
       - grafeo
 

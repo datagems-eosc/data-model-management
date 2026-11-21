@@ -107,12 +107,16 @@ Primary endpoint URLs (grouped):
 You can run the API either directly via Python or using Docker.
 
 The API needs the URLs of the services it calls (see
-[Required service URLs](#required-service-urls)). `dev.env` holds those of the
-DataGEMS dev deployment. `docker compose up` loads it; for any other way of
-running the API, load it into the shell first:
+[Required service URLs](#required-service-urls)), and `GRAFEO_AUTH_TOKEN`, the
+token of the Grafeo it talks to. `dev.env` holds the URLs of the DataGEMS dev
+deployment. `docker compose up` loads it, and gives its Grafeo and the API the
+same local token, `local-dev-token`. For any other way of running the API,
+load `dev.env` into the shell and set the token of your Grafeo, which is
+`local-dev-token` for the one `docker compose up` starts:
 
 ```bash
 set -a; . ./dev.env; set +a
+export GRAFEO_AUTH_TOKEN=<your-grafeo-token>
 uv run uvicorn dmm_api.main:app --port 5000
 ```
 
@@ -123,7 +127,7 @@ To run the image on its own:
 
 ```bash
 docker build -t dmm-api .
-docker run -d -p 5000:5000 --env-file dev.env --name dmm-api dmm-api
+docker run -d -p 5000:5000 --env-file dev.env -e GRAFEO_AUTH_TOKEN=<your-grafeo-token> --name dmm-api dmm-api
 ```
 
 The image runs as uid and gid 10001 and writes only to `/logs`, `/s3` and
@@ -154,20 +158,20 @@ The following environment variables are read by the API **without defaults**.
 
 | Variable | Used by | Required when | Secret |
 |---|---|---|---|
+| `GRAFEO_AUTH_TOKEN` | Every Grafeo request (AP logs, `/api/v1/grafeo/*`), in `dmm_api/tools/AP/log_AP.py` | Always: without it the API stops at start-up | Yes |
 | `DATASET_DIR` | Dataset load flow in `dmm_api/resources/dataset.py` | Using `PUT /api/v1/dataset/load` | No |
 | `DATAGEMS_POSTGRES_HOST` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
 | `DATAGEMS_POSTGRES_PORT` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | No |
 | `DS_READER_USER` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
 | `DS_READER_PS` | PostgreSQL and mixed queries in `dmm_api/resources/dataset.py` | Using `POST /api/v1/polyglot/query` on PostgreSQL or mixed sources | Yes |
 
-`DS_READER_USER` and `DS_READER_PS` should never be hardcoded in image layers or committed files.
+`GRAFEO_AUTH_TOKEN`, `DS_READER_USER` and `DS_READER_PS` should never be hardcoded in image layers or committed files.
 
 #### Optional Environment Variables
 
 | Variable | Default | Meaning |
 |---|---|---|
 | `GRAFEO_URL` | `http://localhost:7474` | Grafeo's HTTP endpoint |
-| `GRAFEO_AUTH_TOKEN` | *(unset)* | Bearer token for Grafeo HTTP requests |
 | `OIDC_CLIENT_ID` | `data-model-management-api` | The audience (`aud`) a token must contain |
 | `OIDC_JWKS_URL` | `<OIDC_ISSUER_URL>/protocol/openid-connect/certs` | The login server's public keys |
 | `JWKS_CACHE_TTL_SECONDS` | `300` | How long the public keys are cached, in seconds |
