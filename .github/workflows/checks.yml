@@ -1,0 +1,33 @@
+name: Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          # The version pyproject.toml requires.
+          version: "0.13.5"
+
+      # The same commands CONTRIBUTING.md asks for before every push.
+      - name: Check the lock file and run the pre-commit hooks
+        run: make check
+
+      - name: Run the tests
+        run: make test
