@@ -42,8 +42,8 @@
         "id": "3f8a2b1c-4d5e-4a6b-9c7d-8e9f0a1b2c3d",
         "labels": [
           "User"
-        ], 
-        "properties":{}
+        ],
+        "properties": {}
       },
       {
         "id": "7a1b2c3d-4e5f-4a6b-9c8d-7e6f5a4b3c2d",
@@ -61,7 +61,7 @@
         "id": "9b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e",
         "labels": [
           "Query_Operator",
-          "CDD_Operator", 
+          "CDD_Operator",
           "Operator"
         ],
         "properties": {
@@ -76,7 +76,7 @@
         "id": "670f08a2-3b6f-4dba-b4c7-a485c4e9caa4",
         "labels": [
           "cr:FileObject"
-        ], 
+        ],
         "properties": {}
       },
       {

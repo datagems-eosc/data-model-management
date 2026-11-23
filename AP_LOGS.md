@@ -20,7 +20,7 @@ cd tests
 - [4) Delete an AP](#4-delete-an-AP)
 ## 1) Get an AP
 
-You can retrieve an AP that are stored in Grafeo by its id. 
+You can retrieve an AP that are stored in Grafeo by its id.
 
 ```bash
 curl -X 'GET' \
@@ -84,8 +84,8 @@ The API returns:
 
 ## 2) Search an AP
 
-You can retrieve Analytical Pattern (AP) logs stored in Grafeo.  
-All parameters are optional.  
+You can retrieve Analytical Pattern (AP) logs stored in Grafeo.
+All parameters are optional.
 The endpoint supports **two retrieval modes** depending on the filters used.
 
 ### Shallow AP Log (default)
@@ -96,10 +96,10 @@ Returned when **no deep filters** are provided, or when only these parameters ar
 - startDate/endDate: Filter by the AP date
 - limit: The number of returned AP logs, default is 20
 
-In this mode, each AP log contains only: 
+In this mode, each AP log contains only:
 - **User** node, **Task** node, and **Analytical_Pattern** node
-- Connected nodes: 
-    - `User -request-> Task`  
+- Connected nodes:
+    - `User -request-> Task`
     - `Task -is_accomplished-> Analytical_Pattern`
 
 ```bash
@@ -250,7 +250,7 @@ The API returns:
 
 ## 3) Store an AP
 
-This endpoint is only used for tests. The AP logs should be stored after they are executed. The endpoint allows to store an AP in the database Grafeo. 
+This endpoint is only used for tests. The AP logs should be stored after they are executed. The endpoint allows to store an AP in the database Grafeo.
 
 ```bash
 curl -X 'POST' \
@@ -290,7 +290,7 @@ curl -X 'DELETE' \
   -H "Authorization: Bearer $TOKEN" | python -m json.tool
 ```
 
-The API returns: 
+The API returns:
 ```json
 {
     "code": 200,

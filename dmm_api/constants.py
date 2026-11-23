@@ -8,21 +8,12 @@ CROISSANT_CONTEXT = {
     "column": "cr:column",
     "conformsTo": "dct:conformsTo",
     "cr": "http://mlcommons.org/croissant/",
-    "data": {
-      "@id": "cr:data",
-      "@type": "@json"
-    },
-    "dataType": {
-      "@id": "cr:dataType",
-      "@type": "@vocab"
-    },
+    "data": {"@id": "cr:data", "@type": "@json"},
+    "dataType": {"@id": "cr:dataType", "@type": "@vocab"},
     "dct": "http://purl.org/dc/terms/",
     "dg": "http://datagems.eu/TBD/",
     "doi": "dg:doi",
-    "examples": {
-      "@id": "cr:examples",
-      "@type": "@json"
-    },
+    "examples": {"@id": "cr:examples", "@type": "@json"},
     "extract": "cr:extract",
     "field": "cr:field",
     "fieldOfScience": "dg:fieldOfScience",
@@ -61,5 +52,5 @@ CROISSANT_CONTEXT = {
     "transform": "cr:transform",
     "uniqueCount": "dg:uniqueCount",
     "uploadedBy": "dg:uploadedBy",
-    "wd": "https://www.wikidata.org/wiki/"
-  }
+    "wd": "https://www.wikidata.org/wiki/",
+}
