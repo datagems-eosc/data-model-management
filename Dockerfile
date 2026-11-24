@@ -1,5 +1,5 @@
-# Install uv
-FROM python:3.12-slim
+# The exact Python and Debian release, so a rebuild cannot change either
+FROM python:3.12.16-slim-trixie
 
 # Copy the uv binary, at the version pyproject.toml requires
 COPY --from=ghcr.io/astral-sh/uv:0.13.5 /uv /bin/uv
