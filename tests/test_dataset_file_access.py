@@ -50,6 +50,14 @@ def test_a_csv_url_maps_to_the_dataset_mount():
     )
 
 
+def test_a_mounted_csv_path_maps_to_itself():
+    assert dataset._dataset_csv_path("/s3/dataset/d1/x.csv") == "/s3/dataset/d1/x.csv"
+    assert (
+        dataset._dataset_csv_path("/s3/dataset/d1/it's.csv")
+        == "/s3/dataset/d1/it''s.csv"
+    )
+
+
 @pytest.mark.parametrize(
     "url",
     [
@@ -59,6 +67,10 @@ def test_a_csv_url_maps_to_the_dataset_mount():
         "s3://other-bucket/x.csv",
         "https://example.org/x.csv",
         "",
+        "/s3/dataset/../scratchpad/x.csv",
+        "/s3/dataset/d1/../../x.csv",
+        "/s3/dataset_staging/d1/x.csv",
+        "/s3/scratchpad/x.csv",
     ],
 )
 def test_any_other_csv_url_is_refused(url):
@@ -104,19 +116,25 @@ def test_a_restricted_connection_reads_only_the_datasets(mount):
         con.sql("SET enable_external_access = true")
 
 
-def mixed_query(query, argname="arg1"):
+def mixed_query(query, argname="arg1", content_url="s3://dataset/d1/x.csv"):
     return dataset.execute_query_mixed(
         {
             "query": query,
-            "args_map": {
-                argname: {"mimeType": "text/csv", "contentUrl": "s3://dataset/d1/x.csv"}
-            },
+            "args_map": {argname: {"mimeType": "text/csv", "contentUrl": content_url}},
         }
     )
 
 
 def test_a_mixed_query_reads_its_csv(mount):
     assert mixed_query("SELECT t.a, t.b FROM {{arg1}} as t").values.tolist() == [[1, 2]]
+
+
+def test_a_mixed_query_reads_its_csv_by_its_mounted_path(mount):
+    result = mixed_query(
+        "SELECT t.a, t.b FROM {{arg1}} as t", content_url=f"{mount}/dataset/d1/x.csv"
+    )
+
+    assert result.values.tolist() == [[1, 2]]
 
 
 def test_an_argument_name_never_reaches_sql(mount):

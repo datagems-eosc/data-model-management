@@ -3232,11 +3232,16 @@ def extract_alias(sql, args_map):
 
 
 def _dataset_csv_path(content_url: str) -> str:
-    """The mounted path of an `s3://dataset/` CSV file, quoted for SQL."""
-    prefix = "s3://dataset/"
-    if not content_url.startswith(prefix) or ".." in content_url.split("/"):
-        raise ValueError(f"A CSV contentUrl must be a file under {prefix}")
-    return (DATASET_MOUNT + content_url[len(prefix) :]).replace("'", "''")
+    """The mounted path of a CSV file in `s3://dataset/`, quoted for SQL.
+
+    The file is named by its URL or by its path under the mount: profiles
+    store the mounted path, which the service read as it was before it
+    checked contentUrl, so both forms name a file there.
+    """
+    for prefix in ("s3://dataset/", DATASET_MOUNT):
+        if content_url.startswith(prefix) and ".." not in content_url.split("/"):
+            return (DATASET_MOUNT + content_url[len(prefix) :]).replace("'", "''")
+    raise ValueError("A CSV contentUrl must be a file under s3://dataset/")
 
 
 def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):
