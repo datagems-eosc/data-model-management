@@ -401,7 +401,7 @@ def get_datasets_by_user(user_id: str) -> list:
         txId = grafeo_begin()
         result = grafeo_execute(txId, query)
         grafeo_commit(txId)
-        return [row[0] for row in result]
+        return [row[0] for row in result.get("rows", [])]
     except Exception:
         if txId is not None:
             grafeo_rollback(txId)

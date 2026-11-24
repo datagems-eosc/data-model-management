@@ -494,9 +494,11 @@ async def search_datasets(
         None,
         description="Filter datasets by file MIME types.",
     ),
-    user_id: Optional[str] = Query(
+    # A list, so that a repeated user_id can be refused rather than all but
+    # one silently dropped.
+    user_id: Optional[List[str]] = Query(
         None,
-        description="Filter datasets by the user who owns them.",
+        description="Filter datasets by the user who owns them. One user only.",
     ),
 ):
     """
@@ -515,12 +517,23 @@ async def search_datasets(
                     error="Only one user_id is allowed for filtering datasets.",
                 ).model_dump(exclude_none=True),
             )
-        datasetsUser = get_datasets_by_user(user_id)
+        datasetsUser = get_datasets_by_user(user_id[0])
         if nodeIds:
             # Intersect nodeIds with datasetsUser
             nodeIds = list(set(nodeIds) & set(datasetsUser))
         else:
             nodeIds = datasetsUser
+        if not nodeIds:
+            # MoMa returns every dataset when no nodeIds are given, so a user
+            # filter that leaves none must not reach it.
+            return DatasetsSuccessEnvelope(
+                code=status.HTTP_200_OK,
+                message="No datasets found matching the search criteria",
+                datasets=[],
+                offset=offset or 0,
+                count=0,
+                total=0,
+            )
 
     if nodeIds:
         params += [("nodeIds", nid) for nid in nodeIds]
