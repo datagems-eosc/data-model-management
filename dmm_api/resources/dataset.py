@@ -266,6 +266,13 @@ S3_MOUNT = Path("/s3")
 _SQL_ERRORS = (duckdb.ParserException, duckdb.BinderException, duckdb.CatalogException)
 
 
+class _QueryRefused(ValueError):
+    """A query, or one of its sources, that the service will not run.
+
+    Its message says what to change, and reaches the caller.
+    """
+
+
 EXTERNAL_SERVICES = {
     "/cross-dataset-discovery/search": {
         "url": f"{CDD_URL}search-ap/",
@@ -2169,9 +2176,11 @@ def _require_one_query(sql: str) -> None:
     try:
         statements = [s for s in sqlglot.parse(sql, read="duckdb") if s is not None]
     except SqlglotError as e:
-        raise ValueError(f"Query could not be parsed: {e}") from e
+        raise _QueryRefused(f"Query could not be parsed: {e}") from e
     if len(statements) != 1 or not isinstance(statements[0], exp.Query):
-        raise ValueError("Only a single SELECT query is supported for mixed sources.")
+        raise _QueryRefused(
+            "Only a single SELECT query is supported for mixed sources."
+        )
 
 
 def _postgres_db_name(name: str) -> str:
@@ -2201,7 +2210,7 @@ def execute_query_mixed(query_builder):
     query = query_builder.get("query", "")
     count = query.lower().count("select")
     if count > 1:
-        raise ValueError(
+        raise _QueryRefused(
             f"Query contains multiple SELECT statements ({count}). "
             "Only single SELECT queries are supported for mixed sources."
         )
@@ -2288,7 +2297,7 @@ def execute_query_mixed(query_builder):
 
         return result_df
 
-    except _SQL_ERRORS:
+    except (*_SQL_ERRORS, _QueryRefused):
         raise
     except Exception as e:
         # As in execute_query_postgres: the password stays out of the log.
@@ -2556,6 +2565,10 @@ async def polyglot_query(
 
     except HTTPException:
         raise
+    except _QueryRefused as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e)
+        )
     except Exception as e:
         # DuckDB's own message tells the caller what is wrong with their SQL.
         # Any other error, such as a failed connection to PostgreSQL, can name
@@ -3241,7 +3254,7 @@ def _dataset_csv_path(content_url: str) -> str:
     for prefix in ("s3://dataset/", DATASET_MOUNT):
         if content_url.startswith(prefix) and ".." not in content_url.split("/"):
             return (DATASET_MOUNT + content_url[len(prefix) :]).replace("'", "''")
-    raise ValueError("A CSV contentUrl must be a file under s3://dataset/")
+    raise _QueryRefused("A CSV contentUrl must be a file under s3://dataset/")
 
 
 def write_views_minimal_extraction(query: str, args_maps: dict[str, dict]):

@@ -207,6 +207,57 @@ def test_data_workflow_refuses_a_path(
     assert list(scratchpad.iterdir()) == []
 
 
+QUERY_MIXED = (Path(__file__).parent / "query" / "query_mixed.json").read_text()
+
+
+def polyglot_query(client, monkeypatch, query, content_url):
+    async def query_builder(ap_payload, token):
+        return {
+            "query": query,
+            "software": "DuckDB Query Operator",
+            "type": "mixed",
+            "args_map": {"arg1": {"mimeType": "text/csv", "contentUrl": content_url}},
+        }
+
+    # MoMa would supply the query and its sources; no test may reach it.
+    monkeypatch.setattr(dataset, "extract_query_from_AP", query_builder)
+    return client.post(
+        "/api/v1/polyglot/query",
+        content=QUERY_MIXED,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer t"},
+    )
+
+
+@pytest.mark.parametrize(
+    "query, content_url, reason",
+    [
+        (
+            "SELECT t.a FROM {{arg1}} as t",
+            "/tmp/x.csv",
+            "A CSV contentUrl must be a file under s3://dataset/",
+        ),
+        (
+            "SELECT t.a FROM {{arg1}} as t; PRAGMA version",
+            "s3://dataset/d1/x.csv",
+            "Only a single SELECT query is supported for mixed sources.",
+        ),
+        (
+            "SELECT t.a FROM {{arg1}} as t UNION SELECT t.b FROM {{arg1}} as t",
+            "s3://dataset/d1/x.csv",
+            "Query contains multiple SELECT statements (2). "
+            "Only single SELECT queries are supported for mixed sources.",
+        ),
+    ],
+)
+def test_a_refused_mixed_query_answers_422_with_its_reason(
+    client, logged_in, mount, monkeypatch, query, content_url, reason
+):
+    response = polyglot_query(client, monkeypatch, query, content_url)
+
+    assert response.status_code == 422
+    assert response.json()["error"] == reason
+
+
 def test_a_query_result_needs_a_valid_token(client, monkeypatch):
     async def no_keys():
         return {}
