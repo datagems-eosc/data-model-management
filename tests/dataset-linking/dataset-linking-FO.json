@@ -74,34 +74,14 @@
       "labels": [
         "sc:Dataset"
       ],
-      "properties": {
-        "type": "sc:Dataset",
-        "name": "Pedagogic Resources MathE Database",
-        "dg:description": "MathE is a mathematical platform developed under the MathE project (mathe.ipb.pt) for higher education.  The dataset is based on the 410 pdf documents organized by keywords in a cvs file.",
-        "dg:headline": "Math pedagogical material provided in the MathE platform.",
-        "dg:keywords": [
-          "math",
-          "student",
-          "higher education"
-        ]
-      }
+      "properties": {}
     },
     {
       "id": "a36dde9d-7f95-40ff-8a9b-f687d0a72318",
       "labels": [
         "sc:Dataset"
       ],
-      "properties": {
-        "type": "sc:Dataset",
-        "name": "Integration Techniques Questions MathE Database",
-        "dg:description": "MathE is a mathematical platform developed under the MathE project (mathe.ipb.pt) for higher education. The dataset associated with the Integration topic and the Integration techniques subtopic has 61 questions, the correct answer and two incorrect answers with common errors made by students, keywords associated and material association. The database is organised as follows: Question ID, topic name; subtopic name; question; Correct answer, Incorrect answer 1, incorrect answer 2, keywords, Videos, Material.",
-        "dg:headline": "Integration Techniques Questions MathE Database.",
-        "dg:keywords": [
-          "math",
-          "student",
-          "higher education"
-        ]
-      }
+      "properties": {}
     },
     {
       "id": "982f612d-a17f-4f1b-9340-04d7ced20f13",
@@ -146,48 +126,28 @@
       "labels": [
         "cr:FileObject"
       ],
-      "properties": {
-        "name": "137.pdf",
-        "type": "cr:FileObject",
-        "sc:encodingFormat": "application/pdf",
-        "sc:contentUrl": "/s3/dataset/9b25bc46-8bd3-4f7f-94b4-52dbc38c130f/pdfs/137.pdf"
-      }
+      "properties": {}
     },
     {
       "id": "e1b26038-41fd-404c-a9b8-96a11f5e0686",
       "labels": [
         "cr:FileObject"
       ],
-      "properties": {
-        "name": "137.pdf",
-        "type": "cr:FileObject",
-        "sc:encodingFormat": "application/pdf",
-        "sc:contentUrl": "/s3/dataset/a36dde9d-7f95-40ff-8a9b-f687d0a72318/PDF/137.pdf"
-      }
+      "properties": {}
     },
     {
       "id": "fc34f7fc-815b-4c32-8425-8654581de81e",
       "labels": [
         "cr:FileObject"
       ],
-      "properties": {
-        "name": "138.pdf",
-        "type": "cr:FileObject",
-        "sc:encodingFormat": "application/pdf",
-        "sc:contentUrl": "/s3/dataset/9b25bc46-8bd3-4f7f-94b4-52dbc38c130f/pdfs/138.pdf"
-      }
+      "properties": {}
     },
     {
       "id": "f48a5b4f-9c4b-40a0-8b1a-603b312ff639",
       "labels": [
         "cr:FileObject"
       ],
-      "properties": {
-        "name": "138.pdf",
-        "type": "cr:FileObject",
-        "sc:encodingFormat": "application/pdf",
-        "sc:contentUrl": "/s3/dataset/a36dde9d-7f95-40ff-8a9b-f687d0a72318/PDF/138.pdf"
-      }
+      "properties": {}
     }
   ],
   "edges": [
