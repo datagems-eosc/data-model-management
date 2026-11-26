@@ -74,3 +74,11 @@ The other rules are defaults. This repository's own rules may relax one only
 in a section headed "Relaxations" that names it. Otherwise, where two rules
 differ only in how strict they are, follow the stricter one; where they cannot
 both be followed, stop and ask which one applies.
+
+## This repository
+
+- `CONTRIBUTING.md` says how a change reaches `main` and how a release is
+  made. Follow it.
+- A change that API clients or the deployments see gets its entry in
+  `CHANGELOG.md`, under `## [Unreleased]`, in the commit that makes the
+  change, as "Changelog" in `CONTRIBUTING.md` describes.

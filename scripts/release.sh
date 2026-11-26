@@ -1,7 +1,8 @@
 #!/bin/sh
 #
-# Release a version: set it in pyproject.toml and uv.lock, commit that alone
-# on main, and put the annotated tag vX.Y.Z on the same commit.
+# Release a version: set it in pyproject.toml and uv.lock, turn the
+# changelog's Unreleased section into the version's, commit those three files
+# alone on main, and put the annotated tag vX.Y.Z on the same commit.
 #
 #     make release VERSION=X.Y.Z
 #
@@ -10,6 +11,9 @@
 # the bump, the commit and the tag in one step keeps the tag on the commit that
 # carries its version, with the v prefix the workflow needs. Nothing is pushed:
 # the script prints the two push commands for you to run.
+#
+# The changelog entries are written in the pull requests that make the
+# changes, under "## [Unreleased]"; a release with no entry there is refused.
 
 set -eu
 
@@ -42,17 +46,43 @@ git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null &&
 current=$(uv version --short --offline)
 [ "$current" != "$version" ] ||
     fail "pyproject.toml already says $version"
+git rev-parse --quiet --verify "refs/tags/v$current" >/dev/null ||
+    fail "no tag v$current for the current version, which the changelog compares against"
+
+changelog=CHANGELOG.md
+repo_url=https://github.com/datagems-eosc/data-model-management
+grep -qx '## \[Unreleased\]' "$changelog" ||
+    fail "$changelog has no '## [Unreleased]' heading"
+awk '$0 == "## [Unreleased]" { on = 1; next }
+     on && /^## / { exit }
+     on && /^- / { found = 1 }
+     END { exit !found }' "$changelog" ||
+    fail "$changelog has no entry under Unreleased; add the release's entries in a pull request first"
 
 uv version "$version" --no-sync --offline >/dev/null
 
+# The version's section takes Unreleased's entries, under the release date, and
+# a new empty Unreleased goes above it. The link references at the end compare
+# each version with the one before.
+awk -v v="$version" -v prev="v$current" -v d="$(date +%Y-%m-%d)" -v url="$repo_url" '
+    $0 == "## [Unreleased]" { print; print ""; print "## [" v "] - " d; next }
+    index($0, "[Unreleased]: ") == 1 {
+        print "[Unreleased]: " url "/compare/v" v "...HEAD"
+        print "[" v "]: " url "/compare/" prev "...v" v
+        next
+    }
+    { print }
+' "$changelog" >"$changelog.new"
+mv "$changelog.new" "$changelog"
+
 changed=$(git diff --name-only | tr '\n' ' ')
-if [ "$changed" != "pyproject.toml uv.lock " ]; then
-    echo "release: expected pyproject.toml and uv.lock to change, got: $changed" >&2
-    echo "Inspect with git diff, and undo with: git checkout -- pyproject.toml uv.lock" >&2
+if [ "$changed" != "CHANGELOG.md pyproject.toml uv.lock " ]; then
+    echo "release: expected CHANGELOG.md, pyproject.toml and uv.lock to change, got: $changed" >&2
+    echo "Inspect with git diff, and undo with: git checkout -- CHANGELOG.md pyproject.toml uv.lock" >&2
     exit 1
 fi
 
-git add pyproject.toml uv.lock
+git add CHANGELOG.md pyproject.toml uv.lock
 git commit --quiet -m "chore: bump the version to $version"
 git tag -a "$tag" -m "$tag"
 

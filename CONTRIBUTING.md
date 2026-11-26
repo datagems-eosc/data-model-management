@@ -28,6 +28,34 @@ In the pull request description, say:
 Change dependencies through uv (`uv add`, `uv remove`, `uv lock`), so that
 `pyproject.toml` and `uv.lock` stay in step. Never edit `uv.lock` by hand.
 
+## Changelog
+
+`CHANGELOG.md` records what each release changes for the clients of the API
+and for the deployments, in the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+format. A pull request that changes something either of them sees adds its
+entry in the same pull request:
+
+- under `## [Unreleased]` at the top, in the subsection that fits, in this
+  order: Added, Changed, Deprecated, Removed, Fixed, Security. Add the
+  subsection if it is not there yet.
+- one entry per change, saying what changes for the reader rather than how
+  the code does it, ending with the pull request's number once it is open:
+
+  ```
+  ### Fixed
+
+  - `user_id` in `GET /dataset/search` filters by the datasets the user owns (#91).
+  ```
+
+- every environment variable added, renamed or removed, with its default,
+  and whether the service starts without it;
+- for a change that breaks what worked before, what breaks and what to do.
+
+Tests, refactoring, CI and the repository's own documentation get no entry.
+
+`make release` turns the Unreleased section into the new version's, and
+refuses to release while it is empty.
+
 ## Formatting-only commits and git blame
 
 Some commits only reformat files, such as `c9c143c` ("chore: apply the
@@ -50,8 +78,9 @@ commits, and the listed hash would not be on `main`.
 
 ## Releasing
 
-A release is made on `main`, after the pull requests it releases are merged.
-Versions follow semantic versioning, `MAJOR.MINOR.PATCH`.
+A release is made on `main`, after the pull requests it releases are merged,
+each with its changelog entry. Versions follow semantic versioning,
+`MAJOR.MINOR.PATCH`; the entries under Unreleased show which part to bump.
 
 1. Make the release commit and its tag, with the new version number:
 
@@ -60,8 +89,10 @@ Versions follow semantic versioning, `MAJOR.MINOR.PATCH`.
    ```
 
    It checks that you are on `main`, with no uncommitted changes and in step
-   with `origin/main`. Then it sets the version in `pyproject.toml` and
-   `uv.lock`, commits only that, and tags the commit `v<X.Y.Z>`.
+   with `origin/main`, and that `CHANGELOG.md` has entries under Unreleased.
+   Then it sets the version in `pyproject.toml` and `uv.lock`, moves the
+   Unreleased entries into a section for the version, dated today, commits
+   only those three files, and tags the commit `v<X.Y.Z>`.
 
 2. Push the commit and the tag, as the command prints:
 
@@ -82,6 +113,14 @@ The workflow builds only from a tag that is `v` followed by the version in
 tag without the `v` starts no build at all. `make release` gets both right.
 Never move or delete a pushed tag. If a release is wrong, fix it in the next
 one.
+
+The image name repeats the organisation: the workflow prefixes
+`datagems-eosc/` to `${{ github.repository }}`, which already contains it, so
+images are published as
+`ghcr.io/datagems-eosc/datagems-eosc/data-model-management:vX.Y.Z`. The
+deployments pull that name, so it is kept as it is. Changing it would make
+the next release publish under a new name while the deployments stay on the
+last image of the old one.
 
 ## Deploying
 

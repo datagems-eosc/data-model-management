@@ -3247,10 +3247,20 @@ def extract_alias(sql, args_map):
 def _dataset_csv_path(content_url: str) -> str:
     """The mounted path of a CSV file in `s3://dataset/`, quoted for SQL.
 
-    The file is named by its URL or by its path under the mount: profiles
-    store the mounted path, which the service read as it was before it
-    checked contentUrl, so both forms name a file there.
+    `contentUrl` comes from the dataset's metadata, and DuckDB opens any file
+    the process can read, so only a file under `s3://dataset/` is accepted
+    (since v0.3.0), and the connection is limited to DATASET_MOUNT as well
+    (`_restrict_to_datasets`).
+
+    The file may be named by its URL, the expected form, or by its path under
+    the mount, which the profiler stores instead and which the service read
+    as it was before v0.3.0. Both name the same folder, and a `..` segment is
+    refused in either.
     """
+    # TODO: accept only the `s3://dataset/` URL again, as v0.3.0 to v0.4.4 did,
+    # once the profiler writes contentUrl in that form and the datasets it
+    # profiled with the mounted path have been updated. Their queries fail
+    # without it.
     for prefix in ("s3://dataset/", DATASET_MOUNT):
         if content_url.startswith(prefix) and ".." not in content_url.split("/"):
             return (DATASET_MOUNT + content_url[len(prefix) :]).replace("'", "''")
