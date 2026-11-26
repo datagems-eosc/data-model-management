@@ -190,6 +190,21 @@ def test_an_ap_compares_equal_whatever_the_order_of_nodes_and_labels():
     assert check.normalise_ap(first) != check.normalise_ap(second)
 
 
+def _owning(owned: dict[str, list[str]]) -> SimpleNamespace:
+    return SimpleNamespace(get_datasets_by_user=lambda user: owned[user])
+
+
+def test_datasets_by_user_are_sorted_so_their_order_does_not_count():
+    old = check.datasets_by_user(_owning({"u1": ["b", "c", "a"]}), "u1")
+    new = check.datasets_by_user(_owning({"u1": ["c", "a", "b"]}), "u1")
+    assert old == new == ("result", ["a", "b", "c"])
+
+
+def test_datasets_by_user_keep_a_duplicated_id():
+    result = check.datasets_by_user(_owning({"u1": ["b", "a", "b"]}), "u1")
+    assert result == ("result", ["a", "b", "b"])
+
+
 def test_write_times_are_left_out_only_when_asked():
     graph = {"nodes": [{"id": "a", "properties": {"created_at": "t1", "name": "n"}}]}
     assert check.normalise_ap(graph, check._WRITE_TIME_KEYS) == {
