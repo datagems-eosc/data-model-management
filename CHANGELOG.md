@@ -34,22 +34,15 @@ entry: "Changelog" in `CONTRIBUTING.md`.
 
 ## [0.4.4] - 2026-11-17
 
-The first published image with the change tagged in 0.4.2 and 0.4.3.
+Versions 0.4.2 and 0.4.3 were tagged but never published: `v0.4.2` is on a
+commit whose version still said 0.4.1, so the image build refused it, and
+`0.4.3` has no `v`, so no build ran. Their change is the one below, first
+published in 0.4.4.
 
 ### Changed
 
 - The service requires `GRAFEO_AUTH_TOKEN`, and sends it to Grafeo as a
   bearer token on every request. It does not start without it.
-
-## [0.4.3] - 2026-11-17
-
-Tagged `0.4.3`, without the `v`, so no image was built. Its change is in
-0.4.4.
-
-## [0.4.2] - 2026-11-17
-
-Tagged on a commit whose version still said 0.4.1, so the image build refused
-it. Its change is in 0.4.4.
 
 ## [0.4.1] - 2026-11-13
 
@@ -123,9 +116,7 @@ record them.
 
 [Unreleased]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.5...HEAD
 [0.4.5]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.4...v0.4.5
-[0.4.4]: https://github.com/datagems-eosc/data-model-management/compare/0.4.3...v0.4.4
-[0.4.3]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.2...0.4.3
-[0.4.2]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.1...v0.4.2
+[0.4.4]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.1...v0.4.4
 [0.4.1]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/datagems-eosc/data-model-management/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/datagems-eosc/data-model-management/compare/v0.3.0...v0.3.1
