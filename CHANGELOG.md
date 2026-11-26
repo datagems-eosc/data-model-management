@@ -11,7 +11,8 @@ entry: "Changelog" in `CONTRIBUTING.md`.
 
 - `python -m dmm_api.tools.grafeo_upgrade_check`: `reads/datasets-by-user`
   and `writes/datasets-by-user` no longer fail when the two Grafeo versions
-  return a user's datasets in different orders. A duplicated id still shows.
+  return a user's datasets in different orders. A duplicated id still shows
+  (#94).
 
 ## [0.4.5] - 2026-11-24
 
