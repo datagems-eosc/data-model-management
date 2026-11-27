@@ -487,6 +487,9 @@ async def search_datasets(
         description="Filter datasets whose license contains this text (case-insensitive).",
         alias="license",
     ),
+    uploadedBy: Optional[str] = Query(
+        None, description="Filter datasets by the user who uploaded them."
+    ),
     fieldsOfScience: Optional[List[str]] = Query(
         None,
         description="Filter datasets having at least one of these fields of science (case-insensitive).",
@@ -568,6 +571,9 @@ async def search_datasets(
 
     if license_filter:
         params.append(("license", license_filter))
+
+    if uploadedBy:
+        params.append(("uploadedBy", uploadedBy))
 
     if fieldsOfScience:
         params += [("fieldsOfScience", f) for f in fieldsOfScience]

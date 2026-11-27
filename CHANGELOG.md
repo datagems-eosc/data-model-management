@@ -7,6 +7,10 @@ entry: "Changelog" in `CONTRIBUTING.md`.
 
 ## [Unreleased]
 
+### Added
+
+- `GET /dataset/search` can filter datasets by `uploadedBy`.
+
 ## [0.4.5] - 2026-11-24
 
 ### Added
