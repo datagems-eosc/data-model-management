@@ -7,6 +7,8 @@ entry: "Changelog" in `CONTRIBUTING.md`.
 
 ## [Unreleased]
 
+## [0.4.7] - 2026-11-27
+
 ### Fixed
 
 - `python -m dmm_api.tools.grafeo_upgrade_check`: `reads/datasets-by-user`
@@ -127,7 +129,8 @@ published in 0.4.4.
 Versions up to 0.2.1 have no entries here; their tags and the commit history
 record them.
 
-[Unreleased]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.6...HEAD
+[Unreleased]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.7...HEAD
+[0.4.7]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.6...v0.4.7
 [0.4.6]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.1...v0.4.4
