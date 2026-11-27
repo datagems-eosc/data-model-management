@@ -644,6 +644,13 @@ def outcome(call: Callable[[], Any]) -> Any:
         return ("error", type(exc).__name__, str(exc)[:200])
 
 
+def datasets_by_user(log_AP: Any, user: str) -> Any:
+    """The outcome of get_datasets_by_user, its ids sorted: its query has no
+    ORDER BY, so they come in Grafeo's row order, which two versions need not
+    share. A list, not a set, so that a duplicated id still shows."""
+    return outcome(lambda: sorted(log_AP.get_datasets_by_user(user), key=canonical))
+
+
 class Run:
     def __init__(self, settings: Settings, out=sys.stdout):
         self.settings = settings
@@ -760,8 +767,7 @@ class Run:
                 aplogs += [f"{i}: {canonical(normalise_ap(graphs[i]))}" for i in batch]
             reads["aplogs"] = aplogs
             reads["datasets-by-user"] = [
-                f"{u}: {canonical(outcome(lambda u=u: log_AP.get_datasets_by_user(u)))}"
-                for u in users
+                f"{u}: {canonical(datasets_by_user(log_AP, u))}" for u in users
             ]
             variants: list[tuple[str, dict]] = [("all", {})]
             variants += [(f"userId={u}", {"userId": [u]}) for u in users[:_SAMPLE]]
@@ -850,9 +856,7 @@ class Run:
             unchanged = self._raw_test_data(instance, prefix) == before
             again[name] = (refused, unchanged, repeated)
             links[name] = self._link_twice(instance, user, owned)
-            by_user[name] = canonical(
-                outcome(lambda: log_AP.get_datasets_by_user(user))
-            )
+            by_user[name] = canonical(datasets_by_user(log_AP, user))
         yield compare(
             "writes/ap-read-back",
             "APs written and read back",
