@@ -14,6 +14,12 @@ entry: "Changelog" in `CONTRIBUTING.md`.
   return a user's datasets in different orders. A duplicated id still shows
   (#94).
 
+## [0.4.6] - 2026-11-27
+
+### Added
+
+- `GET /dataset/search` can filter datasets by `uploadedBy`. (#98)
+
 ## [0.4.5] - 2026-11-24
 
 ### Added
@@ -121,7 +127,8 @@ published in 0.4.4.
 Versions up to 0.2.1 have no entries here; their tags and the commit history
 record them.
 
-[Unreleased]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.5...HEAD
+[Unreleased]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.6...HEAD
+[0.4.6]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.5...v0.4.6
 [0.4.5]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.4...v0.4.5
 [0.4.4]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.1...v0.4.4
 [0.4.1]: https://github.com/datagems-eosc/data-model-management/compare/v0.4.0...v0.4.1
